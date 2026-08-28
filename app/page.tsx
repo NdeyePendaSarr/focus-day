@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { Task, TaskStatus } from "@/lib/types";
+import type { Task, TaskStatus, DebriefEntry } from "@/lib/types";
 import { useTasks, useNow } from "@/lib/useTasks";
 import { useReminders } from "@/lib/useReminders";
 import { todayISO, prettyDate, computeStats, reminderFor } from "@/lib/time";
@@ -10,7 +10,7 @@ import DayTimeline from "@/components/DayTimeline";
 import TaskCard from "@/components/TaskCard";
 import TaskForm, { TaskDraft } from "@/components/TaskForm";
 import EveningDebrief from "@/components/EveningDebrief";
-import { debriefStore } from "@/lib/store";
+import { repo } from "@/lib/repo";
 
 export default function HomePage() {
   const today = todayISO();
@@ -27,10 +27,15 @@ export default function HomePage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
   const [debriefKey, setDebriefKey] = useState(0);
-  // Lecture directe depuis localStorage (peu coûteux) : se rafraîchit à chaque
-  // rendu, donc après un enregistrement de débrief (setDebriefKey provoque le
-  // re-rendu) ou un refresh des tâches. Pas de useMemo nécessaire ici.
-  const existingDebrief = debriefStore.byDate(today);
+  // La lecture du débrief est asynchrone : elle ne peut plus se faire pendant
+  // le rendu. On la recharge au montage, au changement de jour, et après un
+  // enregistrement (debriefKey est incrémenté par onSaved).
+  const [existingDebrief, setExistingDebrief] = useState<DebriefEntry | null>(null);
+  useEffect(() => {
+    void (async () => {
+      setExistingDebrief(await repo.debriefs.byDate(today));
+    })();
+  }, [today, debriefKey]);
   // Le débrief apparaît en fin de journée (après 18h) ou s'il existe déjà
   const showDebrief = ready && tasks.length > 0 && (now >= 18 * 60 || existingDebrief);
 
@@ -125,7 +130,7 @@ export default function HomePage() {
               key={debriefKey}
               date={today}
               tasks={tasks}
-              existing={existingDebrief}
+              existing={existingDebrief ?? undefined}
               onSaved={() => setDebriefKey((k) => k + 1)}
             />
           )}

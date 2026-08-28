@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Task, DebriefEntry } from "@/lib/types";
-import { debriefStore } from "@/lib/store";
+import { repo } from "@/lib/repo";
 import { computeStats } from "@/lib/time";
 
 /**
@@ -26,8 +26,9 @@ export default function EveningDebrief({
   const [note, setNote] = useState(existing?.missingNote ?? "");
   const [mood, setMood] = useState<number>(existing?.mood ?? 3);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const save = () => {
+  const save = async () => {
     const entry: DebriefEntry = {
       date,
       reachedGoals: reached ?? false,
@@ -36,10 +37,15 @@ export default function EveningDebrief({
       mood: mood as DebriefEntry["mood"],
       createdAt: new Date().toISOString(),
     };
-    debriefStore.save(entry);
-    setSaved(true);
-    onSaved();
-    setTimeout(() => setSaved(false), 2500);
+    setSaving(true);
+    try {
+      await repo.debriefs.save(entry);
+      setSaved(true);
+      onSaved();
+      setTimeout(() => setSaved(false), 2500);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -99,8 +105,8 @@ export default function EveningDebrief({
 
         <div style={{ display: "flex", alignItems: "center", gap: "1rem", justifyContent: "flex-end" }}>
           {saved && <span style={{ color: "var(--color-mint)", fontSize: "0.85rem" }}>Débrief enregistré ✓</span>}
-          <button className="btn-primary" onClick={save} disabled={reached === null}>
-            Enregistrer mon débrief
+          <button className="btn-primary" onClick={save} disabled={reached === null || saving}>
+            {saving ? "Enregistrement…" : "Enregistrer mon débrief"}
           </button>
         </div>
       </div>
