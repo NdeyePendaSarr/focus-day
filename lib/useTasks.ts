@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Task, TaskStatus } from "@/lib/types";
-import { taskStore, uid } from "@/lib/store";
+import { repo, uid } from "@/lib/repo";
 import { todayISO, reconcileStatus, nowMinutes } from "@/lib/time";
 
 /** Rafraîchit "maintenant" chaque minute pour faire vivre la timeline. */
@@ -19,20 +19,34 @@ export function useTasks(date: string = todayISO()) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [ready, setReady] = useState(false);
 
-  const refresh = useCallback(() => {
-    const list = taskStore.byDate(date).map((t) => reconcileStatus(t));
-    // persister les bascules auto planned -> missed
-    list.forEach((t) => taskStore.save(t));
+  // Les lectures sont maintenant asynchrones : deux refresh peuvent se
+  // chevaucher. On ne garde que le résultat du plus récent, sinon une
+  // réponse lente pourrait écraser un état plus à jour.
+  const reqId = useRef(0);
+
+  const refresh = useCallback(async () => {
+    const id = ++reqId.current;
+
+    const stored = await repo.tasks.byDate(date);
+    const list = stored.map((t) => reconcileStatus(t));
+
+    // Persiste les bascules planned -> missed. Auparavant : une écriture
+    // par tâche à chaque affichage. Maintenant : un seul appel, et
+    // uniquement pour les tâches réellement modifiées.
+    const changed = list.filter((t, i) => t.status !== stored[i].status);
+    if (changed.length > 0) await repo.tasks.saveMany(changed);
+
+    if (id !== reqId.current) return; // un refresh plus récent a pris la main
     setTasks(list);
+    setReady(true);
   }, [date]);
 
   useEffect(() => {
-    refresh();
-    setReady(true);
+    void refresh();
   }, [refresh]);
 
   const addTask = useCallback(
-    (data: Omit<Task, "id" | "status" | "createdAt" | "date">) => {
+    async (data: Omit<Task, "id" | "status" | "createdAt" | "date">) => {
       const task: Task = {
         ...data,
         id: uid(),
@@ -40,45 +54,46 @@ export function useTasks(date: string = todayISO()) {
         status: "planned",
         createdAt: new Date().toISOString(),
       };
-      taskStore.save(task);
-      refresh();
+      await repo.tasks.save(task);
+      await refresh();
       return task;
     },
     [date, refresh]
   );
 
   const updateTask = useCallback(
-    (id: string, patch: Partial<Task>) => {
-      const current = taskStore.all().find((t) => t.id === id);
+    async (id: string, patch: Partial<Task>) => {
+      // byId au lieu de all().find() : une seule ligne lue, pas toute la table.
+      const current = await repo.tasks.byId(id);
       if (!current) return;
-      taskStore.save({ ...current, ...patch });
-      refresh();
+      await repo.tasks.save({ ...current, ...patch });
+      await refresh();
     },
     [refresh]
   );
 
   const setStatus = useCallback(
-    (id: string, status: TaskStatus) => {
+    async (id: string, status: TaskStatus) => {
       const now = new Date().toISOString();
       const patch: Partial<Task> = { status };
       if (status === "in_progress") patch.startedAt = now;
       if (status === "done") patch.completedAt = now;
-      updateTask(id, patch);
+      await updateTask(id, patch);
     },
     [updateTask]
   );
 
   const removeTask = useCallback(
-    (id: string) => {
-      taskStore.remove(id);
-      refresh();
+    async (id: string) => {
+      await repo.tasks.remove(id);
+      await refresh();
     },
     [refresh]
   );
 
   const archiveTask = useCallback(
-    (id: string) => {
-      updateTask(id, { archived: true, archivedAt: new Date().toISOString() });
+    async (id: string) => {
+      await updateTask(id, { archived: true, archivedAt: new Date().toISOString() });
     },
     [updateTask]
   );
