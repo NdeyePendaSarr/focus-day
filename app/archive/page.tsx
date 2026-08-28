@@ -2,28 +2,33 @@
 
 import { useEffect, useState, useCallback } from "react";
 import type { Task } from "@/lib/types";
-import { taskStore } from "@/lib/store";
+import { repo } from "@/lib/repo";
 import { prettyDate } from "@/lib/time";
 import NavBar from "@/components/NavBar";
 import ConfirmDialog from "@/components/ConfirmDialog";
 
 export default function ArchivePage() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [ready, setReady] = useState(false);
   const [toDelete, setToDelete] = useState<Task | null>(null);
 
-  const load = useCallback(() => setTasks(taskStore.archived()), []);
-  useEffect(() => { load(); }, [load]);
+  const load = useCallback(async () => {
+    setTasks(await repo.tasks.archived());
+    setReady(true);
+  }, []);
 
-  const unarchive = (t: Task) => {
-    taskStore.save({ ...t, archived: false, archivedAt: undefined });
-    load();
+  useEffect(() => { void load(); }, [load]);
+
+  const unarchive = async (t: Task) => {
+    await repo.tasks.save({ ...t, archived: false, archivedAt: undefined });
+    await load();
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (toDelete) {
-      taskStore.remove(toDelete.id);
+      await repo.tasks.remove(toDelete.id);
       setToDelete(null);
-      load();
+      await load();
     }
   };
 
@@ -38,7 +43,11 @@ export default function ArchivePage() {
           Les objectifs que tu as rangés. Tu peux les restaurer, ou les supprimer définitivement.
         </p>
 
-        {tasks.length === 0 ? (
+        {!ready ? (
+          <div className="card-surface" style={{ padding: "2.5rem", textAlign: "center", color: "var(--text-mute)" }}>
+            Chargement…
+          </div>
+        ) : tasks.length === 0 ? (
           <div className="card-surface" style={{ padding: "2.5rem", textAlign: "center", color: "var(--text-mute)" }}>
             Aucun objectif archivé. Depuis « Ma journée », le bouton « Archiver » range un objectif ici.
           </div>
