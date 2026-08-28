@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Task } from "@/lib/types";
-import { taskStore } from "@/lib/store";
+import { repo } from "@/lib/repo";
 import { prettyDate } from "@/lib/time";
 import NavBar from "@/components/NavBar";
 
@@ -17,8 +17,14 @@ export default function HistoryPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "done" | "missed">("all");
+  const [ready, setReady] = useState(false);
 
-  useEffect(() => { setTasks(taskStore.all()); }, []);
+  useEffect(() => {
+    void (async () => {
+      setTasks(await repo.tasks.all());
+      setReady(true);
+    })();
+  }, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -65,7 +71,11 @@ export default function HistoryPage() {
 
         {byDate.length === 0 ? (
           <div className="card-surface" style={{ padding: "2.5rem", textAlign: "center", color: "var(--text-mute)" }}>
-            {tasks.length === 0 ? "Aucun objectif enregistré pour l'instant." : "Aucun résultat pour cette recherche."}
+            {!ready
+              ? "Chargement…"
+              : tasks.length === 0
+                ? "Aucun objectif enregistré pour l'instant."
+                : "Aucun résultat pour cette recherche."}
           </div>
         ) : (
           <div style={{ display: "grid", gap: "1.5rem" }}>

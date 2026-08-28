@@ -2,24 +2,28 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Task, DebriefEntry } from "@/lib/types";
-import { taskStore, debriefStore } from "@/lib/store";
+import { repo } from "@/lib/repo";
 import { useWeather } from "@/lib/useWeather";
 import NavBar from "@/components/NavBar";
 
 export default function DashboardPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [debriefs, setDebriefs] = useState<DebriefEntry[]>([]);
+  const [ready, setReady] = useState(false);
   const { weather, status, load: loadWeather } = useWeather();
 
-  // Chargement post-montage (localStorage n'existe pas au SSR).
-  // Le setter est dans un effet volontairement — les données arrivent après hydratation.
+  // Chargement post-montage : les données arrivent après hydratation.
   useEffect(() => {
-    const load = () => {
+    void (async () => {
+      const [allTasks, allDebriefs] = await Promise.all([
+        repo.tasks.all(),
+        repo.debriefs.all(),
+      ]);
       // exclure les archivées des statistiques (elles ne comptent plus)
-      setTasks(taskStore.all().filter((t) => !t.archived));
-      setDebriefs(debriefStore.all());
-    };
-    load();
+      setTasks(allTasks.filter((t) => !t.archived));
+      setDebriefs(allDebriefs);
+      setReady(true);
+    })();
   }, []);
 
   const g = useMemo(() => {
@@ -54,10 +58,10 @@ export default function DashboardPage() {
 
         {/* Cartes de stats */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
-          <BigStat label="Objectifs créés" value={g.total} />
-          <BigStat label="Réussis" value={g.done} color="var(--color-mint)" />
-          <BigStat label="Manqués" value={g.missed} color="var(--color-rose)" />
-          <BigStat label="Taux de réussite" value={`${g.rate}%`} color="var(--color-brand)" />
+          <BigStat label="Objectifs créés" value={ready ? g.total : "—"} />
+          <BigStat label="Réussis" value={ready ? g.done : "—"} color="var(--color-mint)" />
+          <BigStat label="Manqués" value={ready ? g.missed : "—"} color="var(--color-rose)" />
+          <BigStat label="Taux de réussite" value={ready ? `${g.rate}%` : "—"} color="var(--color-brand)" />
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.25rem" }}>
@@ -66,7 +70,9 @@ export default function DashboardPage() {
             <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.15rem", fontWeight: 600, marginBottom: "1.2rem" }}>
               Réussite des derniers jours
             </h2>
-            {g.days.length === 0 ? (
+            {!ready ? (
+              <p style={{ color: "var(--text-mute)", fontSize: "0.9rem" }}>Chargement…</p>
+            ) : g.days.length === 0 ? (
               <p style={{ color: "var(--text-mute)", fontSize: "0.9rem" }}>Pas encore de données. Planifie et termine des objectifs pour voir ta progression.</p>
             ) : (
               <div style={{ display: "flex", alignItems: "flex-end", gap: 10, height: 140 }}>
@@ -131,7 +137,9 @@ export default function DashboardPage() {
             <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.15rem", fontWeight: 600, marginBottom: "0.9rem" }}>
               Tes derniers débriefs
             </h2>
-            {debriefs.length === 0 ? (
+            {!ready ? (
+              <p style={{ color: "var(--text-mute)", fontSize: "0.9rem" }}>Chargement…</p>
+            ) : debriefs.length === 0 ? (
               <p style={{ color: "var(--text-mute)", fontSize: "0.9rem" }}>Aucun débrief pour l&apos;instant. Fais le point en fin de journée depuis « Ma journée ».</p>
             ) : (
               <div style={{ display: "grid", gap: 8 }}>
