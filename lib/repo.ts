@@ -12,6 +12,7 @@
 
 import type { Task, DebriefEntry } from "@/lib/types";
 import { spillsIntoNextDay, shiftISO } from "@/lib/time";
+import { supabaseRepo } from "@/lib/repo.supabase";
 
 /* ------------------------------------------------------------------ */
 /* Interface                                                           */
@@ -162,15 +163,13 @@ export const localRepo: Repo = {
 /* ------------------------------------------------------------------ */
 
 /**
- * Étape B : ajouter ici
+ * NEXT_PUBLIC_DATA_SOURCE=supabase bascule toute l'application sur
+ * Postgres. Toute autre valeur (ou absence) garde localStorage.
  *
- *   import { supabaseRepo } from "@/lib/repo.supabase";
- *   if (process.env.NEXT_PUBLIC_DATA_SOURCE === "supabase") return supabaseRepo;
- *
- * Le reste de l'application ne change pas.
+ * Les composants ne voient aucune différence : ils parlent à Repo.
  */
 export function getRepo(): Repo {
-  return localRepo;
+  return process.env.NEXT_PUBLIC_DATA_SOURCE === "supabase" ? supabaseRepo : localRepo;
 }
 
 export const repo = getRepo();

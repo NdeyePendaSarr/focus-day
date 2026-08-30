@@ -15,14 +15,19 @@ export default function DashboardPage() {
   // Chargement post-montage : les données arrivent après hydratation.
   useEffect(() => {
     void (async () => {
-      const [allTasks, allDebriefs] = await Promise.all([
-        repo.tasks.all(),
-        repo.debriefs.all(),
-      ]);
-      // exclure les archivées des statistiques (elles ne comptent plus)
-      setTasks(allTasks.filter((t) => !t.archived));
-      setDebriefs(allDebriefs);
-      setReady(true);
+      try {
+        const [allTasks, allDebriefs] = await Promise.all([
+          repo.tasks.all(),
+          repo.debriefs.all(),
+        ]);
+        // exclure les archivées des statistiques (elles ne comptent plus)
+        setTasks(allTasks.filter((t) => !t.archived));
+        setDebriefs(allDebriefs);
+      } catch (e) {
+        console.error("Chargement du tableau de bord impossible", e);
+      } finally {
+        setReady(true);
+      }
     })();
   }, []);
 

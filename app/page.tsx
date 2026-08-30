@@ -33,7 +33,12 @@ export default function HomePage() {
   const [existingDebrief, setExistingDebrief] = useState<DebriefEntry | null>(null);
   useEffect(() => {
     void (async () => {
-      setExistingDebrief(await repo.debriefs.byDate(today));
+      try {
+        setExistingDebrief(await repo.debriefs.byDate(today));
+      } catch {
+        // Session absente ou réseau : pas de débrief affiché, pas de crash.
+        setExistingDebrief(null);
+      }
     })();
   }, [today, debriefKey]);
   // Le débrief apparaît en fin de journée (après 18h) ou s'il existe déjà

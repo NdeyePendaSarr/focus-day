@@ -21,8 +21,13 @@ export default function HistoryPage() {
 
   useEffect(() => {
     void (async () => {
-      setTasks(await repo.tasks.all());
-      setReady(true);
+      try {
+        setTasks(await repo.tasks.all());
+      } catch (e) {
+        console.error("Chargement de l'historique impossible", e);
+      } finally {
+        setReady(true);
+      }
     })();
   }, []);
 

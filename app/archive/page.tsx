@@ -13,8 +13,13 @@ export default function ArchivePage() {
   const [toDelete, setToDelete] = useState<Task | null>(null);
 
   const load = useCallback(async () => {
-    setTasks(await repo.tasks.archived());
-    setReady(true);
+    try {
+      setTasks(await repo.tasks.archived());
+    } catch (e) {
+      console.error("Chargement des archives impossible", e);
+    } finally {
+      setReady(true);
+    }
   }, []);
 
   useEffect(() => { void load(); }, [load]);

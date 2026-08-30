@@ -18,6 +18,7 @@ export function useNow() {
 export function useTasks(date: string = todayISO()) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [ready, setReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Les lectures sont maintenant asynchrones : deux refresh peuvent se
   // chevaucher. On ne garde que le résultat du plus récent, sinon une
@@ -26,19 +27,27 @@ export function useTasks(date: string = todayISO()) {
 
   const refresh = useCallback(async () => {
     const id = ++reqId.current;
+    try {
+      const stored = await repo.tasks.byDate(date);
+      const list = stored.map((t) => reconcileStatus(t));
 
-    const stored = await repo.tasks.byDate(date);
-    const list = stored.map((t) => reconcileStatus(t));
+      // Persiste les bascules planned -> missed. Auparavant : une écriture
+      // par tâche à chaque affichage. Maintenant : un seul appel, et
+      // uniquement pour les tâches réellement modifiées.
+      const changed = list.filter((t, i) => t.status !== stored[i].status);
+      if (changed.length > 0) await repo.tasks.saveMany(changed);
 
-    // Persiste les bascules planned -> missed. Auparavant : une écriture
-    // par tâche à chaque affichage. Maintenant : un seul appel, et
-    // uniquement pour les tâches réellement modifiées.
-    const changed = list.filter((t, i) => t.status !== stored[i].status);
-    if (changed.length > 0) await repo.tasks.saveMany(changed);
-
-    if (id !== reqId.current) return; // un refresh plus récent a pris la main
-    setTasks(list);
-    setReady(true);
+      if (id !== reqId.current) return; // un refresh plus récent a pris la main
+      setTasks(list);
+      setError(null);
+    } catch (e) {
+      // Une lecture qui échoue (session expirée, réseau) ne doit pas faire
+      // planter la page : on affiche l'erreur, on garde l'app utilisable.
+      if (id !== reqId.current) return;
+      setError(e instanceof Error ? e.message : "Impossible de charger la journée.");
+    } finally {
+      if (id === reqId.current) setReady(true);
+    }
   }, [date]);
 
   useEffect(() => {
@@ -98,5 +107,5 @@ export function useTasks(date: string = todayISO()) {
     [updateTask]
   );
 
-  return { tasks, ready, addTask, updateTask, setStatus, removeTask, archiveTask, refresh };
+  return { tasks, ready, error, addTask, updateTask, setStatus, removeTask, archiveTask, refresh };
 }
