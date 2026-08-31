@@ -105,6 +105,36 @@ export function useTasks(date: string = todayISO()) {
     [updateTask]
   );
 
+  /** Rattrapage : renseigne le temps réel sans toucher au statut. */
+  const setActual = useCallback(
+    async (id: string, actualMinutes: number, gapReason?: GapReason) => {
+      await updateTask(id, { actualMinutes, gapReason });
+    },
+    [updateTask]
+  );
+
+  /** Activité réalisée sans avoir été planifiée : pas de créneau,
+   *  seulement une durée. C'est elle qui mesure le hors-plan. */
+  const addUnplanned = useCallback(
+    async (name: string, minutes: number) => {
+      const now = new Date().toISOString();
+      await repo.tasks.save({
+        id: uid(),
+        date,
+        name,
+        start: "",
+        end: "",
+        status: "done",
+        origin: "unplanned",
+        actualMinutes: minutes,
+        createdAt: now,
+        completedAt: now,
+      });
+      await refresh();
+    },
+    [date, refresh]
+  );
+
   const removeTask = useCallback(
     async (id: string) => {
       await repo.tasks.remove(id);
@@ -120,5 +150,5 @@ export function useTasks(date: string = todayISO()) {
     [updateTask]
   );
 
-  return { tasks, ready, error, addTask, updateTask, setStatus, completeTask, removeTask, archiveTask, refresh };
+  return { tasks, ready, error, addTask, updateTask, setStatus, completeTask, setActual, addUnplanned, removeTask, archiveTask, refresh };
 }

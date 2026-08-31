@@ -4,6 +4,8 @@ import { useState } from "react";
 import type { Task, DebriefEntry } from "@/lib/types";
 import { repo } from "@/lib/repo";
 import { computeStats } from "@/lib/time";
+import type { GapReason } from "@/lib/types";
+import DayCatchUp from "@/components/DayCatchUp";
 
 /**
  * Débriefing du soir : le moment réflexif qui distingue FocusDay
@@ -14,13 +16,18 @@ export default function EveningDebrief({
   tasks,
   existing,
   onSaved,
+  onSetActual,
+  onAddUnplanned,
 }: {
   date: string;
   tasks: Task[];
   existing?: DebriefEntry;
   onSaved: () => void;
+  onSetActual: (id: string, actualMinutes: number, gapReason?: GapReason) => void;
+  onAddUnplanned: (name: string, minutes: number) => void;
 }) {
-  const stats = computeStats(tasks);
+  const planned = tasks.filter((t) => t.origin !== "unplanned");
+  const stats = computeStats(planned);
   const [reached, setReached] = useState<boolean | null>(existing?.reachedGoals ?? null);
   const [didMore, setDidMore] = useState<boolean>(existing?.didMore ?? false);
   const [note, setNote] = useState(existing?.missingNote ?? "");
@@ -56,6 +63,12 @@ export default function EveningDebrief({
       <p style={{ fontSize: "0.88rem", color: "var(--text-soft)", marginBottom: "1.3rem" }}>
         Tu as terminé {stats.done}/{stats.total} objectifs ({stats.successRate}%). Prends un instant pour faire le point.
       </p>
+
+      {/* Les faits d'abord, le ressenti ensuite : répondre "oui, tout va
+          bien" est plus difficile après avoir écrit ses vrais chiffres. */}
+      <div style={{ marginBottom: "1.6rem" }}>
+        <DayCatchUp tasks={tasks} onSetActual={onSetActual} onAddUnplanned={onAddUnplanned} />
+      </div>
 
       <div style={{ display: "grid", gap: "1.2rem" }}>
         <div>

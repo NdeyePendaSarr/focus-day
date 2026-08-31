@@ -14,7 +14,7 @@ import { repo } from "@/lib/repo";
 
 export default function HomePage() {
   const today = todayISO();
-  const { tasks, ready, addTask, updateTask, setStatus, completeTask, archiveTask } = useTasks(today);
+  const { tasks, ready, addTask, updateTask, setStatus, completeTask, setActual, addUnplanned, archiveTask } = useTasks(today);
   const now = useNow();
   const { permission, requestPermission } = useReminders(tasks);
 
@@ -41,11 +41,19 @@ export default function HomePage() {
       }
     })();
   }, [today, debriefKey]);
-  // Le débrief apparaît en fin de journée (après 18h) ou s'il existe déjà
-  const showDebrief = ready && tasks.length > 0 && (now >= 18 * 60 || existingDebrief);
+  // Les hors-plan n'ont pas de créneau : ils ne passent pas dans la timeline
+  // et ne comptent pas dans le taux d'achèvement des objectifs planifiés.
+  const plannedTasks = tasks.filter((t) => t.origin !== "unplanned");
 
-  const stats = computeStats(tasks);
-  const activeReminders = tasks
+  // Le débrief s'ouvre seul après 18h ou s'il existe déjà, mais reste
+  // atteignable à tout moment : un débrief rattrapé vaut mieux qu'un
+  // débrief manqué, et les journées ratées sont celles qui informent.
+  const [debriefOpen, setDebriefOpen] = useState(false);
+  const showDebrief =
+    ready && tasks.length > 0 && (debriefOpen || now >= 18 * 60 || Boolean(existingDebrief));
+
+  const stats = computeStats(plannedTasks);
+  const activeReminders = plannedTasks
     .map((t) => reminderFor(t, now))
     .filter((m): m is string => Boolean(m));
 
@@ -137,17 +145,25 @@ export default function HomePage() {
                 <button className="btn-primary" onClick={openNew}>+ Nouvel objectif</button>
               </div>
             )}
-            {tasks.map((t) => (
+            {plannedTasks.map((t) => (
               <TaskCard key={t.id} task={t} now={now} onStatus={setStatus}
               onComplete={completeTask} onEdit={openEdit} onArchive={archiveTask} />
             ))}
           </section>
+
+          {ready && tasks.length > 0 && !showDebrief && (
+            <button className="btn-ghost" onClick={() => setDebriefOpen(true)}>
+              Faire mon débrief maintenant
+            </button>
+          )}
 
           {showDebrief && (
             <EveningDebrief
               key={debriefKey}
               date={today}
               tasks={tasks}
+              onSetActual={setActual}
+              onAddUnplanned={addUnplanned}
               existing={existingDebrief ?? undefined}
               onSaved={() => setDebriefKey((k) => k + 1)}
             />
