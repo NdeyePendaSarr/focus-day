@@ -4,6 +4,27 @@
 
 export type TaskStatus = "planned" | "in_progress" | "done" | "missed";
 
+/** Cause d'un écart entre le prévu et le réalisé. Liste volontairement
+ *  courte : au-delà de sept choix, la saisie devient un formulaire. */
+export type GapReason =
+  | "imprevu"
+  | "mauvaise_estimation"
+  | "distraction"
+  | "fatigue"
+  | "difficulte"
+  | "changement_priorite"
+  | "autre";
+
+export const GAP_REASONS: { value: GapReason; label: string }[] = [
+  { value: "imprevu", label: "Imprévu" },
+  { value: "mauvaise_estimation", label: "Mal estimé" },
+  { value: "distraction", label: "Distraction" },
+  { value: "fatigue", label: "Fatigue" },
+  { value: "difficulte", label: "Plus difficile" },
+  { value: "changement_priorite", label: "Priorité changée" },
+  { value: "autre", label: "Autre" },
+];
+
 export interface Task {
   id: string;
   date: string;        // "2026-08-01" — le jour de la tâche
@@ -16,6 +37,19 @@ export interface Task {
   startedAt?: string;  // ISO — quand réellement commencée
   completedAt?: string;
   createdAt: string;   // ISO
+
+  // --- Instrumentation prévu / réalisé / écart ---------------------
+  /** Effort estimé, en minutes. Distinct de la durée du créneau :
+   *  bloquer 6h30 d'après-midi n'est pas estimer 6h30 de travail. */
+  estimatedMinutes?: number;
+  /** Temps réellement passé, en minutes. Saisi, jamais déduit. */
+  actualMinutes?: number;
+  gapReason?: GapReason;
+  gapNote?: string;
+  /** "unplanned" : activité saisie après coup, jamais planifiée.
+   *  C'est elle qui mesure la part de journée hors-plan. */
+  origin?: "planned" | "unplanned";
+
   archived?: boolean;  // rangée hors de la journée active, sans être supprimée
   archivedAt?: string; // ISO
 }

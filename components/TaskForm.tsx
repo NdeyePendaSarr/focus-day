@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Task } from "@/lib/types";
-import { toMinutes, findConflict, spillsIntoNextDay } from "@/lib/time";
+import { toMinutes, findConflict, spillsIntoNextDay, durationMinutes, formatDuration } from "@/lib/time";
 
 export type TaskDraft = {
   name: string;
@@ -10,9 +10,10 @@ export type TaskDraft = {
   why: string;
   start: string;
   end: string;
+  estimatedMinutes: string;
 };
 
-const EMPTY: TaskDraft = { name: "", description: "", why: "", start: "09:00", end: "10:00" };
+const EMPTY: TaskDraft = { name: "", description: "", why: "", start: "09:00", end: "10:00", estimatedMinutes: "" };
 
 export default function TaskForm({
   open,
@@ -38,6 +39,7 @@ export default function TaskForm({
         why: editing.why ?? "",
         start: editing.start,
         end: editing.end,
+        estimatedMinutes: editing.estimatedMinutes ? String(editing.estimatedMinutes) : "",
       });
     } else {
       setDraft(EMPTY);
@@ -58,6 +60,8 @@ export default function TaskForm({
   if (!open) return null;
 
   const conflict = findConflict(existingTasks, draft.start, draft.end, editing?.id);
+  // Pré-remplissage implicite : laisser le champ vide vaut "la durée du créneau".
+  const slotMinutes = durationMinutes(draft.start, draft.end);
 
   const submit = () => {
     if (!draft.name.trim()) return setError("Donne un nom à ton objectif.");
@@ -134,6 +138,25 @@ export default function TaskForm({
           </div>
 
           <div>
+            <label className="field-label">
+              Combien de temps penses-tu y passer vraiment ?
+            </label>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input
+                type="number"
+                min={1}
+                step={5}
+                className="field"
+                style={{ width: 110 }}
+                placeholder={String(slotMinutes)}
+                value={draft.estimatedMinutes}
+                onChange={(e) => set("estimatedMinutes", e.target.value)}
+              />
+              <span style={{ fontSize: "0.8rem", color: "var(--text-mute)" }}>
+                minutes — le créneau en dure {formatDuration(slotMinutes)}
+              </span>
+            </div>
+
             <label className="field-label">Pourquoi c&apos;est important ?</label>
             <textarea
               className="field"

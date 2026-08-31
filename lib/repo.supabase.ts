@@ -23,9 +23,15 @@ type SessionRow = {
   id: string;
   local_date: string;
   title: string;
+  description: string | null;
   why: string | null;
   planned_start: string | null;
   planned_end: string | null;
+  estimated_minutes: number | null;
+  actual_minutes: number | null;
+  gap_reason: string | null;
+  gap_note: string | null;
+  origin: string;
   status: string;
   archived: boolean;
   archived_at: string | null;
@@ -42,9 +48,15 @@ function toTask(r: SessionRow): Task {
     id: r.id,
     date: r.local_date,
     name: r.title,
+    description: r.description ?? undefined,
     why: r.why ?? undefined,
     start: hhmm(r.planned_start),
     end: hhmm(r.planned_end),
+    estimatedMinutes: r.estimated_minutes ?? undefined,
+    actualMinutes: r.actual_minutes ?? undefined,
+    gapReason: (r.gap_reason ?? undefined) as Task["gapReason"],
+    gapNote: r.gap_note ?? undefined,
+    origin: (r.origin ?? "planned") as Task["origin"],
     status: r.status as TaskStatus,
     createdAt: r.created_at,
     startedAt: r.started_at ?? undefined,
@@ -60,11 +72,16 @@ function toRow(t: Task, userId: string) {
     user_id: userId,
     local_date: t.date,
     title: t.name,
+    description: t.description ?? null,
     why: t.why ?? null,
     planned_start: t.start,
     planned_end: t.end,
     status: t.status,
-    origin: "planned",
+    estimated_minutes: t.estimatedMinutes ?? null,
+    actual_minutes: t.actualMinutes ?? null,
+    gap_reason: t.gapReason ?? null,
+    gap_note: t.gapNote ?? null,
+    origin: t.origin ?? "planned",
     archived: t.archived ?? false,
     archived_at: t.archivedAt ?? null,
     started_at: t.startedAt ?? null,
@@ -74,7 +91,7 @@ function toRow(t: Task, userId: string) {
 }
 
 const SESSION_COLS =
-  "id, local_date, title, why, planned_start, planned_end, status, archived, archived_at, started_at, completed_at, created_at";
+  "id, local_date, title, description, why, planned_start, planned_end, estimated_minutes, actual_minutes, gap_reason, gap_note, origin, status, archived, archived_at, started_at, completed_at, created_at";
 
 /**
  * Supabase renvoie des objets d'erreur simples, pas des instances d'Error.
@@ -195,7 +212,7 @@ function toDebrief(r: DebriefRow): DebriefEntry {
     reachedGoals: r.reached_goals ?? false,
     didMore: r.did_more ?? false,
     missingNote: r.missing_note ?? undefined,
-    mood: (r.mood ?? 3) as DebriefEntry["mood"],
+    mood: (r.mood ?? undefined) as DebriefEntry["mood"],
     createdAt: r.created_at,
   };
 }
