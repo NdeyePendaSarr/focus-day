@@ -201,7 +201,9 @@ textarea:focus-visible, select:focus-visible {
 
 .day-stats {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  /* Colonnes inégales : "Terminés" démarre après la moitié, ce qui
+     l'écarte du premier chiffre sans le coller au bord. */
+  grid-template-columns: 1.25fr 1fr;
   gap: 0.5rem;
 }
 

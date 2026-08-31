@@ -137,7 +137,7 @@ export default function HomePage() {
             {/* Le rapport de temps remplace le taux de réussite : un
                 pourcentage note la journée, ces deux durées la décrivent. */}
             {ready && minutesPrevues > 0 && (
-              <p style={{ fontSize: "0.85rem", color: "var(--text-soft)" }}>
+              <p style={{ fontSize: "0.85rem", color: "var(--text-soft)", marginTop: "0.4rem" }}>
                 <strong style={{ color: "var(--color-mint)" }}>
                   {formatDuration(minutesRealisees)}
                 </strong>{" "}
