@@ -14,7 +14,7 @@ import { repo } from "@/lib/repo";
 
 export default function HomePage() {
   const today = todayISO();
-  const { tasks, ready, addTask, updateTask, setStatus, archiveTask } = useTasks(today);
+  const { tasks, ready, addTask, updateTask, setStatus, completeTask, archiveTask } = useTasks(today);
   const now = useNow();
   const { permission, requestPermission } = useReminders(tasks);
 
@@ -138,7 +138,8 @@ export default function HomePage() {
               </div>
             )}
             {tasks.map((t) => (
-              <TaskCard key={t.id} task={t} now={now} onStatus={setStatus} onEdit={openEdit} onArchive={archiveTask} />
+              <TaskCard key={t.id} task={t} now={now} onStatus={setStatus}
+              onComplete={completeTask} onEdit={openEdit} onArchive={archiveTask} />
             ))}
           </section>
 

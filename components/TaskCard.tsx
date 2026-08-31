@@ -1,6 +1,8 @@
 "use client";
 
-import type { Task, TaskStatus } from "@/lib/types";
+import { useState } from "react";
+import type { Task, TaskStatus, GapReason } from "@/lib/types";
+import ActualTimePanel from "@/components/ActualTimePanel";
 import { formatDuration, durationMinutes, timePosition, spillsIntoNextDay } from "@/lib/time";
 
 const STATUS_LABEL: Record<TaskStatus, string> = {
@@ -21,15 +23,19 @@ export default function TaskCard({
   task,
   now,
   onStatus,
+  onComplete,
   onEdit,
   onArchive,
 }: {
   task: Task;
   now: number;
   onStatus: (id: string, s: TaskStatus) => void;
+  /** Termine la tâche ET enregistre le réalisé, en une seule opération. */
+  onComplete: (id: string, actualMinutes: number, gapReason?: GapReason) => void;
   onEdit: (task: Task) => void;
   onArchive: (id: string) => void;
 }) {
+  const [capturing, setCapturing] = useState(false);
   const pos = timePosition(task, now);
   const duration = durationMinutes(task.start, task.end);
   const overnight = spillsIntoNextDay(task.start, task.end);
@@ -78,6 +84,11 @@ export default function TaskCard({
             <span style={{ fontSize: "0.72rem", color: "var(--text-mute)" }}>
               {formatDuration(duration)}
             </span>
+            {task.actualMinutes != null && (
+              <span style={{ fontSize: "0.72rem", color: "var(--color-mint)", fontWeight: 600 }}>
+                réel {formatDuration(task.actualMinutes)}
+              </span>
+            )}
           </div>
           <h3
             style={{
@@ -133,12 +144,12 @@ export default function TaskCard({
           </button>
         )}
         {task.status === "in_progress" && (
-          <button className="chip chip-mint" onClick={() => onStatus(task.id, "done")}>
+          <button className="chip chip-mint" onClick={() => setCapturing(true)}>
             Terminer
           </button>
         )}
         {task.status !== "done" && task.status !== "in_progress" && (
-          <button className="chip chip-mint" onClick={() => onStatus(task.id, "done")}>
+          <button className="chip chip-mint" onClick={() => setCapturing(true)}>
             Fait
           </button>
         )}
@@ -154,6 +165,18 @@ export default function TaskCard({
           Archiver
         </button>
       </div>
+
+      {capturing && (
+        <ActualTimePanel
+          task={task}
+          slotMinutes={duration}
+          onConfirm={(m, r) => {
+            setCapturing(false);
+            onComplete(task.id, m, r);
+          }}
+          onCancel={() => setCapturing(false)}
+        />
+      )}
     </article>
   );
 }

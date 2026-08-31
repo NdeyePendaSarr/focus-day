@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Task, TaskStatus } from "@/lib/types";
+import type { Task, TaskStatus, GapReason } from "@/lib/types";
 import { repo, uid } from "@/lib/repo";
 import { todayISO, reconcileStatus, nowMinutes } from "@/lib/time";
 
@@ -92,6 +92,19 @@ export function useTasks(date: string = todayISO()) {
     [updateTask]
   );
 
+  /** Termine une tâche en enregistrant le réalisé dans la même écriture. */
+  const completeTask = useCallback(
+    async (id: string, actualMinutes: number, gapReason?: GapReason) => {
+      await updateTask(id, {
+        status: "done",
+        completedAt: new Date().toISOString(),
+        actualMinutes,
+        gapReason,
+      });
+    },
+    [updateTask]
+  );
+
   const removeTask = useCallback(
     async (id: string) => {
       await repo.tasks.remove(id);
@@ -107,5 +120,5 @@ export function useTasks(date: string = todayISO()) {
     [updateTask]
   );
 
-  return { tasks, ready, error, addTask, updateTask, setStatus, removeTask, archiveTask, refresh };
+  return { tasks, ready, error, addTask, updateTask, setStatus, completeTask, removeTask, archiveTask, refresh };
 }
