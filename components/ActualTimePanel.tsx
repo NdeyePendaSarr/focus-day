@@ -88,7 +88,7 @@ export default function ActualTimePanel({
           }}
         >
           {gap > 0 ? "+" : "−"}
-          {formatDuration(Math.abs(gap))} par rapport au prévu. Qu'est-ce qui explique l'écart ?
+          {formatDuration(Math.abs(gap))} par rapport au prévu. Qu&apos;est-ce qui explique l&apos;écart ?
         </p>
       )}
 
