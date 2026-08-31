@@ -122,7 +122,7 @@ export default function HomePage() {
               <p style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--color-brand)" }}>
                 {mounted ? prettyDate(today) : "\u00A0"}
               </p>
-              <h1 style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", fontWeight: 700, marginTop: 2 }}>
+              <h1 className="day-title">
                 Ta journée
               </h1>
             </div>

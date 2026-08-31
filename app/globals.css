@@ -285,3 +285,19 @@ textarea:focus-visible, select:focus-visible {
     display: none;
   }
 }
+
+/* Titre du jour. Sur mobile il se cale sur la taille du logo (1.1rem) :
+   plus gros, il devenait l'élément dominant de l'écran alors que ce
+   sont les objectifs qu'on vient consulter. */
+.day-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  margin-top: 2px;
+}
+
+@media (min-width: 1024px) {
+  .day-title {
+    font-size: 1.5rem;
+  }
+}
