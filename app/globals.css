@@ -200,11 +200,16 @@ textarea:focus-visible, select:focus-visible {
 }
 
 .day-stats {
-  display: grid;
-  /* Colonnes inégales : "Terminés" démarre après la moitié, ce qui
-     l'écarte du premier chiffre sans le coller au bord. */
-  grid-template-columns: 1.25fr 1fr;
-  gap: 0.5rem;
+  /* Un chiffre à chaque extrémité : le second se cale sur le bord
+     droit de la carte, pas sur une colonne au milieu. */
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.day-stats > :last-child {
+  text-align: right;
 }
 
 /* ============================================================
