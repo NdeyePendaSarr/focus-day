@@ -224,3 +224,36 @@ textarea:focus-visible, select:focus-visible {
     align-items: start;
   }
 }
+
+/* ============================================================
+   Carte d'objectif : en-tête et bloc prévu/réel
+   Sur grand écran les deux colonnes cohabitent. Quand le bloc
+   passe sous le texte, il doit s'aligner sur lui — sinon les
+   barres et le statut flottent à droite dans le vide.
+   ============================================================ */
+.task-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.task-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 700px) {
+  .task-side {
+    width: 100%;
+    align-items: flex-start;
+  }
+  /* Le bloc des barres a une largeur fixe en ligne, adaptée au
+     desktop : on la libère une fois passé sous le texte. */
+  .task-side > div {
+    width: 100% !important;
+  }
+}

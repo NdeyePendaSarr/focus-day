@@ -54,7 +54,7 @@ export default function TaskCard({
         transition: "border-color .3s, box-shadow .3s",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+      <div className="task-head">
         {/* flex "1 1 260px" : le titre se comprime et revient à la ligne
             au lieu de repousser le bloc de droite sous la carte.
             Sans base explicite, un titre long l'emporte sur la mise en page. */}
@@ -122,7 +122,7 @@ export default function TaskCard({
           )}
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, flexShrink: 0 }}>
+        <div className="task-side">
           <span
             style={{
               fontSize: "0.72rem",
