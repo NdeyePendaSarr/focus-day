@@ -257,3 +257,24 @@ textarea:focus-visible, select:focus-visible {
     width: 100% !important;
   }
 }
+
+/* ============================================================
+   Timeline : deux emplacements, un seul affiché
+   Mobile   -> après les objectifs (.timeline-below)
+   Desktop  -> dans le rail (.timeline-rail)
+   Le composant est rendu deux fois plutôt que déplacé : CSS ne
+   réordonne pas le DOM, et un simple `order` aurait mis la
+   timeline en bas de la colonne de gauche, très loin du rail.
+   ============================================================ */
+.timeline-rail {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .timeline-rail {
+    display: block;
+  }
+  .timeline-below {
+    display: none;
+  }
+}

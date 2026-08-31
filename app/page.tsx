@@ -145,7 +145,10 @@ export default function HomePage() {
               </p>
             )}
 
-            {ready && plannedTasks.length > 0 && <DayTimeline tasks={plannedTasks} now={now} />}
+            {/* Dans le rail sur grand écran, où elle fait face aux objectifs. */}
+            <div className="timeline-rail">
+              {ready && plannedTasks.length > 0 && <DayTimeline tasks={plannedTasks} now={now} />}
+            </div>
           </aside>
 
           {/* Zone de travail */}
@@ -190,6 +193,18 @@ export default function HomePage() {
               />
             )}
           </section>
+
+          {/* Sur mobile, la timeline passe APRÈS les objectifs : elle montre
+              les mêmes créneaux que les cartes, en moins détaillé. La placer
+              avant coûtait un écran entier avant d'accéder au contenu. */}
+          {ready && plannedTasks.length > 0 && (
+            <section className="timeline-below card-surface" style={{ padding: "1.15rem" }}>
+              <p style={{ fontSize: "0.78rem", color: "var(--text-mute)", marginBottom: "0.75rem" }}>
+                Ta journée heure par heure
+              </p>
+              <DayTimeline tasks={plannedTasks} now={now} />
+            </section>
+          )}
         </div>
       </main>
 
