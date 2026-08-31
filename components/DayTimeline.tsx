@@ -1,20 +1,16 @@
 "use client";
 
+import { useMemo } from "react";
 import type { Task } from "@/lib/types";
 import { toMinutes, endMinutesAdjusted } from "@/lib/time";
 
 /**
- * Signature visuelle de FocusDay : la journée comme un ruban de temps.
- * Une ligne verticale de 6h à 24h, les tâches placées à leur créneau,
- * et un curseur "maintenant" qui glisse en temps réel.
+ * La journée comme un ruban de temps.
+ *
+ * Le ruban ne couvre plus une plage fixe 05h-minuit : il se cale sur les
+ * créneaux réels, avec une heure de marge de chaque côté. Une journée de
+ * deux tâches entre 11h et 15h n'affiche plus six heures de vide au-dessus.
  */
-const DAY_START = 5 * 60;  // 05:00 — couvre les lève-tôt
-const DAY_END = 24 * 60;   // minuit
-const RANGE = DAY_END - DAY_START;
-
-function pct(min: number): number {
-  return Math.max(0, Math.min(100, ((min - DAY_START) / RANGE) * 100));
-}
 
 const STATUS_DOT: Record<string, string> = {
   planned: "var(--text-mute)",
@@ -23,14 +19,55 @@ const STATUS_DOT: Record<string, string> = {
   missed: "var(--color-rose)",
 };
 
+/** Amplitude minimale, pour qu'une journée d'une seule tâche reste lisible. */
+const MIN_SPAN = 4 * 60;
+
 export default function DayTimeline({ tasks, now }: { tasks: Task[]; now: number }) {
-  const nowVisible = now >= DAY_START && now <= DAY_END;
-  const hours = [5, 8, 11, 14, 17, 20, 23];
+  // Les activités hors plan n'ont pas de créneau : elles ne sont pas placées ici.
+  const slotted = useMemo(() => tasks.filter((t) => t.start && t.end), [tasks]);
+
+  const { start, end, hours } = useMemo(() => {
+    if (slotted.length === 0) {
+      return { start: 8 * 60, end: 20 * 60, hours: [8, 11, 14, 17, 20] };
+    }
+
+    const starts = slotted.map((t) => toMinutes(t.start));
+    const ends = slotted.map((t) => endMinutesAdjusted(t.start, t.end));
+
+    // Le curseur "maintenant" doit rester dans le cadre.
+    let lo = Math.min(...starts, now) - 60;
+    let hi = Math.max(...ends, now) + 60;
+
+    lo = Math.max(0, Math.floor(lo / 60) * 60);
+    hi = Math.min(24 * 60, Math.ceil(hi / 60) * 60);
+
+    if (hi - lo < MIN_SPAN) {
+      hi = Math.min(24 * 60, lo + MIN_SPAN);
+      lo = Math.max(0, hi - MIN_SPAN);
+    }
+
+    // Une graduation toutes les 1, 2 ou 3 heures selon l'amplitude :
+    // au-delà, les heures se chevauchent dans une colonne étroite.
+    const span = hi - lo;
+    const step = span > 8 * 60 ? 3 : span > 5 * 60 ? 2 : 1;
+    const ticks: number[] = [];
+    for (let h = Math.ceil(lo / 60); h * 60 <= hi; h += step) ticks.push(h);
+
+    return { start: lo, end: hi, hours: ticks };
+  }, [slotted, now]);
+
+  const range = end - start;
+  const pct = (min: number) => Math.max(0, Math.min(100, ((min - start) / range) * 100));
+
+  // Hauteur proportionnelle à la durée couverte : une journée courte
+  // n'occupe pas la même place qu'une journée de douze heures.
+  const height = Math.round(Math.min(300, Math.max(180, (range / 60) * 26)));
+  const nowVisible = now >= start && now <= end;
 
   return (
-    <div style={{ display: "flex", gap: "0.75rem", height: 420 }}>
+    <div style={{ display: "flex", gap: "0.75rem", height }}>
       {/* Axe des heures */}
-      <div style={{ position: "relative", width: 40, flexShrink: 0 }}>
+      <div style={{ position: "relative", width: 34, flexShrink: 0 }}>
         {hours.map((h) => (
           <span
             key={h}
@@ -59,7 +96,6 @@ export default function DayTimeline({ tasks, now }: { tasks: Task[]; now: number
           borderRadius: 999,
         }}
       >
-        {/* Curseur maintenant */}
         {nowVisible && (
           <div
             style={{
@@ -78,20 +114,18 @@ export default function DayTimeline({ tasks, now }: { tasks: Task[]; now: number
             }}
           />
         )}
-        {/* Segments de tâches (celles dans la plage visible) */}
-        {tasks.filter((t) => endMinutesAdjusted(t.start, t.end) > DAY_START).map((t) => {
+
+        {slotted.map((t) => {
           const top = pct(toMinutes(t.start));
-          // pct() se clampe à 100 : un créneau nocturne s'arrête donc
-          // visuellement à minuit sur le ruban du jour.
-          const height = Math.max(2, pct(endMinutesAdjusted(t.start, t.end)) - top);
+          const segHeight = Math.max(2, pct(endMinutesAdjusted(t.start, t.end)) - top);
           return (
             <div
               key={t.id}
-              title={`${t.name} (${t.start}–${t.end})`}
+              title={`${t.name} (${t.start}-${t.end})`}
               style={{
                 position: "absolute",
                 top: `${top}%`,
-                height: `${height}%`,
+                height: `${segHeight}%`,
                 left: -3,
                 width: 14,
                 borderRadius: 8,
@@ -104,11 +138,12 @@ export default function DayTimeline({ tasks, now }: { tasks: Task[]; now: number
         })}
       </div>
 
-      {/* Étiquettes des tâches alignées à leur créneau */}
-      <div style={{ position: "relative", flex: 1 }}>
-        {tasks.map((t) => (
+      {/* Étiquettes alignées sur leur créneau */}
+      <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
+        {slotted.map((t) => (
           <div
             key={t.id}
+            title={t.name}
             style={{
               position: "absolute",
               top: `${pct(toMinutes(t.start))}%`,
@@ -122,7 +157,7 @@ export default function DayTimeline({ tasks, now }: { tasks: Task[]; now: number
               paddingLeft: 4,
             }}
           >
-            <span style={{ color: STATUS_DOT[t.status], marginRight: 6 }}>●</span>
+            <span style={{ color: STATUS_DOT[t.status], marginRight: 6 }}>&#9679;</span>
             {t.name}
           </div>
         ))}

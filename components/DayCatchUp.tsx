@@ -28,9 +28,18 @@ export default function DayCatchUp({
   // Uniquement les créneaux planifiés sans temps réel renseigné.
   const missing = tasks.filter((t) => t.origin !== "unplanned" && t.actualMinutes == null);
   const unplanned = tasks.filter((t) => t.origin === "unplanned");
+  const planned = tasks.filter((t) => t.origin !== "unplanned");
+
+  const prevu = planned.reduce(
+    (sum, t) => sum + (t.estimatedMinutes ?? durationMinutes(t.start, t.end)),
+    0
+  );
+  const reel = planned.reduce((sum, t) => sum + (t.actualMinutes ?? 0), 0);
+  const horsPlan = unplanned.reduce((sum, t) => sum + (t.actualMinutes ?? 0), 0);
 
   return (
     <div style={{ display: "grid", gap: "1.4rem" }}>
+      <DayRecap prevu={prevu} reel={reel} horsPlan={horsPlan} />
       {missing.length > 0 && (
         <div>
           <label className="field-label" style={{ display: "block", marginBottom: 8 }}>
@@ -228,6 +237,87 @@ function UnplannedBlock({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+
+/**
+ * Le rapport prévu / réalisé de la journée, en une barre.
+ *
+ * La barre grise porte le temps prévu, la barre pleine ce qui a
+ * réellement été fait. L'écart se lit sans avoir à comparer deux
+ * nombres — c'est la seule chose que cette carte doit rendre évidente.
+ */
+function DayRecap({ prevu, reel, horsPlan }: { prevu: number; reel: number; horsPlan: number }) {
+  if (prevu === 0 && reel === 0 && horsPlan === 0) return null;
+
+  const echelle = Math.max(prevu, reel + horsPlan, 1);
+  const w = (m: number) => `${(m / echelle) * 100}%`;
+
+  return (
+    <div>
+      <label className="field-label" style={{ display: "block", marginBottom: 10 }}>
+        Ta journée en temps
+      </label>
+
+      <div style={{ display: "grid", gap: 10 }}>
+        <Bar
+          label="Prévu"
+          value={formatDuration(prevu)}
+          segments={[{ width: w(prevu), color: "var(--text-mute)", opacity: 0.45 }]}
+        />
+        <Bar
+          label="Réalisé"
+          value={formatDuration(reel + horsPlan)}
+          segments={[
+            { width: w(reel), color: "var(--color-mint)", opacity: 0.9 },
+            { width: w(horsPlan), color: "var(--color-amber)", opacity: 0.9 },
+          ]}
+        />
+      </div>
+
+      {horsPlan > 0 && (
+        <p style={{ fontSize: "0.76rem", color: "var(--text-mute)", marginTop: 8 }}>
+          Dont {formatDuration(horsPlan)} hors plan.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function Bar({
+  label,
+  value,
+  segments,
+}: {
+  label: string;
+  value: string;
+  segments: { width: string; color: string; opacity: number }[];
+}) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <span style={{ fontSize: "0.76rem", color: "var(--text-mute)", width: 56, flexShrink: 0 }}>
+        {label}
+      </span>
+      <div
+        style={{
+          flex: 1,
+          height: 10,
+          borderRadius: 999,
+          background: "var(--bg-3)",
+          display: "flex",
+          overflow: "hidden",
+        }}
+      >
+        {segments.map((seg, i) => (
+          <div key={i} style={{ width: seg.width, background: seg.color, opacity: seg.opacity }} />
+        ))}
+      </div>
+      <span style={{ fontSize: "0.78rem", fontWeight: 600, width: 60, textAlign: "right", flexShrink: 0 }}>
+        {value}
+      </span>
     </div>
   );
 }

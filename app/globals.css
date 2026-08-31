@@ -146,3 +146,81 @@ textarea:focus-visible, select:focus-visible {
   .nav-links { display: none !important; }
   .nav-burger { display: inline-flex !important; }
 }
+
+/* ============================================================
+   Ma journée — grille desktop
+   Rail gauche : le contexte du jour (date, chiffres, timeline).
+   Colonne droite : la zone de travail (objectifs, débrief).
+   Le rail est collant : les repères du jour et le bouton
+   d'ajout restent visibles pendant qu'on fait défiler.
+   ============================================================ */
+.day-layout {
+  display: grid;
+  gap: 1.5rem;
+}
+
+/* Largeur commune à la navigation et au contenu : sans elle, les deux
+   avaient des bords différents et la page paraissait décalée. */
+.page-shell {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding-inline: 1.25rem;
+}
+
+.day-main {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .day-layout {
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 2.5rem;
+    align-items: start;
+  }
+}
+
+/* Le rail ne devient collant que si la fenêtre est assez haute pour
+   l'accueillir en entier. Sur un écran court — ou avec un fort zoom —
+   il redevient un bloc ordinaire qui défile avec la page.
+
+   C'est volontairement une condition de hauteur et non un défilement
+   interne : un panneau collant plus grand que la fenêtre oblige à
+   choisir entre couper son contenu et afficher une seconde barre de
+   défilement. Les deux sont pires que ne pas coller du tout.
+
+   L'offset de 4.5rem passe sous la barre de navigation, elle-même
+   collante. */
+@media (min-width: 1024px) and (min-height: 860px) {
+  .day-rail {
+    position: sticky;
+    top: 4.5rem;
+  }
+}
+
+.day-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+/* ============================================================
+   Débrief : les faits à gauche, le ressenti à droite.
+   La carte occupe toute la largeur sans se retrouver à moitié
+   vide, et chaque contrôle garde une taille crédible.
+   L'ordre de lecture préserve l'intention : on écrit ses vrais
+   chiffres avant de dire si la journée s'est bien passée.
+   ============================================================ */
+.debrief-grid {
+  display: grid;
+  gap: 1.6rem;
+}
+
+@media (min-width: 900px) {
+  .debrief-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+    align-items: start;
+  }
+}

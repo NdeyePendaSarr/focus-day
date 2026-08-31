@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Task, DebriefEntry } from "@/lib/types";
 import { repo } from "@/lib/repo";
-import { computeStats } from "@/lib/time";
+
 import type { GapReason } from "@/lib/types";
 import DayCatchUp from "@/components/DayCatchUp";
 
@@ -27,7 +27,8 @@ export default function EveningDebrief({
   onAddUnplanned: (name: string, minutes: number) => void;
 }) {
   const planned = tasks.filter((t) => t.origin !== "unplanned");
-  const stats = computeStats(planned);
+  const done = planned.filter((t) => t.status === "done").length;
+  const sansTempsReel = planned.filter((t) => t.actualMinutes == null).length;
   const [reached, setReached] = useState<boolean | null>(existing?.reachedGoals ?? null);
   const [didMore, setDidMore] = useState<boolean>(existing?.didMore ?? false);
   const [note, setNote] = useState(existing?.missingNote ?? "");
@@ -61,16 +62,17 @@ export default function EveningDebrief({
         Débrief du soir
       </h2>
       <p style={{ fontSize: "0.88rem", color: "var(--text-soft)", marginBottom: "1.3rem" }}>
-        Tu as terminé {stats.done}/{stats.total} objectifs ({stats.successRate}%). Prends un instant pour faire le point.
+        {resume(planned.length, done, sansTempsReel)}
       </p>
 
       {/* Les faits d'abord, le ressenti ensuite : répondre "oui, tout va
           bien" est plus difficile après avoir écrit ses vrais chiffres. */}
-      <div style={{ marginBottom: "1.6rem" }}>
-        <DayCatchUp tasks={tasks} onSetActual={onSetActual} onAddUnplanned={onAddUnplanned} />
-      </div>
+      <div className="debrief-grid">
+        <div>
+          <DayCatchUp tasks={tasks} onSetActual={onSetActual} onAddUnplanned={onAddUnplanned} />
+        </div>
 
-      <div style={{ display: "grid", gap: "1.2rem" }}>
+        <div style={{ display: "grid", gap: "1.2rem" }}>
         <div>
           <label className="field-label">As-tu atteint tes objectifs du jour ?</label>
           <div style={{ display: "flex", gap: 8 }}>
@@ -116,13 +118,38 @@ export default function EveningDebrief({
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem", justifyContent: "flex-end" }}>
-          {saved && <span style={{ color: "var(--color-mint)", fontSize: "0.85rem" }}>Débrief enregistré ✓</span>}
-          <button className="btn-primary" onClick={save} disabled={reached === null || saving}>
-            {saving ? "Enregistrement…" : "Enregistrer mon débrief"}
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem", justifyContent: "flex-end" }}>
+            {saved && <span style={{ color: "var(--color-mint)", fontSize: "0.85rem" }}>Débrief enregistré ✓</span>}
+            <button className="btn-primary" onClick={save} disabled={reached === null || saving}>
+              {saving ? "Enregistrement…" : "Enregistrer mon débrief"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
+}
+
+/**
+ * L'accroche du débrief.
+ *
+ * Elle décrit la journée, elle ne la note pas. Un pourcentage de
+ * réussite félicite ou accuse selon le chiffre, alors qu'un objectif
+ * non terminé peut venir d'une mauvaise estimation, d'un imprévu ou
+ * d'un changement de priorité — c'est justement ce que le débrief
+ * cherche à faire dire. Autant ne pas trancher avant de demander.
+ */
+function resume(total: number, done: number, sansTempsReel: number): string {
+  if (total === 0) return "Rien n'était planifié aujourd'hui. Note ce que tu as fait quand même.";
+
+  const objectifs = total > 1 ? "objectifs prévus" : "objectif prévu";
+  const bilan =
+    done === 0 ? "aucun terminé" : done === total ? "tous terminés" : `${done} terminé${done > 1 ? "s" : ""}`;
+
+  const suite =
+    sansTempsReel > 0
+      ? ` Il manque le temps réel de ${sansTempsReel} d'entre eux.`
+      : " Regarde l'écart avant de répondre.";
+
+  return `${total} ${objectifs}, ${bilan}.${suite}`;
 }

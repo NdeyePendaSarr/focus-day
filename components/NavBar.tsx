@@ -32,9 +32,8 @@ export default function NavBar() {
       }}
     >
       <div
+        className="page-shell"
         style={{
-          maxWidth: 960,
-          margin: "0 auto",
           padding: "0.9rem 1.25rem",
           display: "flex",
           alignItems: "center",

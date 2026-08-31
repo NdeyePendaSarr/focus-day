@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Task, TaskStatus, GapReason } from "@/lib/types";
+import { GAP_REASONS } from "@/lib/types";
 import ActualTimePanel from "@/components/ActualTimePanel";
 import { formatDuration, durationMinutes, timePosition, spillsIntoNextDay } from "@/lib/time";
 
@@ -53,8 +54,11 @@ export default function TaskCard({
         transition: "border-color .3s, box-shadow .3s",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem" }}>
-        <div style={{ minWidth: 0 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+        {/* flex "1 1 260px" : le titre se comprime et revient à la ligne
+            au lieu de repousser le bloc de droite sous la carte.
+            Sans base explicite, un titre long l'emporte sur la mise en page. */}
+        <div style={{ minWidth: 0, flex: "1 1 260px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
             <span
               style={{
@@ -84,11 +88,7 @@ export default function TaskCard({
             <span style={{ fontSize: "0.72rem", color: "var(--text-mute)" }}>
               {formatDuration(duration)}
             </span>
-            {task.actualMinutes != null && (
-              <span style={{ fontSize: "0.72rem", color: "var(--color-mint)", fontWeight: 600 }}>
-                réel {formatDuration(task.actualMinutes)}
-              </span>
-            )}
+
           </div>
           <h3
             style={{
@@ -122,7 +122,7 @@ export default function TaskCard({
           )}
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, flexShrink: 0 }}>
           <span
             style={{
               fontSize: "0.72rem",
@@ -133,6 +133,8 @@ export default function TaskCard({
           >
             ● {STATUS_LABEL[task.status]}
           </span>
+
+          <TaskGap task={task} slotMinutes={duration} />
         </div>
       </div>
 
@@ -178,5 +180,84 @@ export default function TaskCard({
         />
       )}
     </article>
+  );
+}
+
+/**
+ * Le rapport prévu / réel de la tâche.
+ *
+ * C'est l'information centrale du produit : elle occupe la place que
+ * les boutons laissaient vide, au lieu d'être écrite en gris clair à
+ * côté de l'heure. La référence est l'effort estimé, pas la durée du
+ * créneau — bloquer deux heures n'est pas estimer deux heures de travail.
+ */
+function TaskGap({ task, slotMinutes }: { task: Task; slotMinutes: number }) {
+  const reference = task.estimatedMinutes ?? slotMinutes;
+
+  if (task.actualMinutes == null) {
+    return (
+      <span style={{ fontSize: "0.72rem", color: "var(--text-mute)", whiteSpace: "nowrap" }}>
+        {formatDuration(reference)} estimées
+      </span>
+    );
+  }
+
+  const actual = task.actualMinutes;
+  const gap = actual - reference;
+  const echelle = Math.max(reference, actual, 1);
+  const w = (m: number) => `${(m / echelle) * 100}%`;
+
+  const reason = GAP_REASONS.find((r) => r.value === task.gapReason);
+
+  return (
+    <div style={{ width: 190, display: "grid", gap: 5 }}>
+      <MiniBar label="Prévu" width={w(reference)} color="var(--text-mute)" opacity={0.45} value={formatDuration(reference)} />
+      <MiniBar label="Réel" width={w(actual)} color="var(--color-mint)" opacity={0.9} value={formatDuration(actual)} />
+
+      {gap !== 0 && (
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 6, marginTop: 1 }}>
+          <span style={{ fontSize: "0.7rem", color: "var(--text-mute)" }}>{reason?.label ?? ""}</span>
+          <span
+            style={{
+              fontSize: "0.72rem",
+              fontWeight: 600,
+              color: gap > 0 ? "var(--color-amber)" : "var(--text-soft)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {gap > 0 ? "+" : "\u2212"}
+            {formatDuration(Math.abs(gap))}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MiniBar({
+  label,
+  width,
+  color,
+  opacity,
+  value,
+}: {
+  label: string;
+  width: string;
+  color: string;
+  opacity: number;
+  value: string;
+}) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <span style={{ fontSize: "0.68rem", color: "var(--text-mute)", width: 34, flexShrink: 0 }}>
+        {label}
+      </span>
+      <div style={{ flex: 1, height: 6, borderRadius: 999, background: "var(--bg-3)", overflow: "hidden" }}>
+        <div style={{ width, height: "100%", background: color, opacity }} />
+      </div>
+      <span style={{ fontSize: "0.68rem", color: "var(--text-soft)", width: 46, textAlign: "right", flexShrink: 0 }}>
+        {value}
+      </span>
+    </div>
   );
 }

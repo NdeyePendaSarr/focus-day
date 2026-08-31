@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import type { Task, TaskStatus, DebriefEntry } from "@/lib/types";
 import { useTasks, useNow } from "@/lib/useTasks";
 import { useReminders } from "@/lib/useReminders";
-import { todayISO, prettyDate, computeStats, reminderFor, durationMinutes } from "@/lib/time";
+import { todayISO, prettyDate, computeStats, reminderFor, durationMinutes, formatDuration } from "@/lib/time";
 import NavBar from "@/components/NavBar";
 import DayTimeline from "@/components/DayTimeline";
 import TaskCard from "@/components/TaskCard";
@@ -53,6 +53,14 @@ export default function HomePage() {
     ready && tasks.length > 0 && (debriefOpen || now >= 18 * 60 || Boolean(existingDebrief));
 
   const stats = computeStats(plannedTasks);
+
+  // Le hors-plan compte dans le réalisé : c'est du temps vécu, même
+  // s'il ne correspond à aucun créneau.
+  const minutesPrevues = plannedTasks.reduce(
+    (sum, t) => sum + (t.estimatedMinutes ?? durationMinutes(t.start, t.end)),
+    0
+  );
+  const minutesRealisees = tasks.reduce((sum, t) => sum + (t.actualMinutes ?? 0), 0);
   const activeReminders = plannedTasks
     .map((t) => reminderFor(t, now))
     .filter((m): m is string => Boolean(m));
@@ -85,20 +93,7 @@ export default function HomePage() {
   return (
     <>
       <NavBar />
-      <main style={{ maxWidth: 960, margin: "0 auto", padding: "1.5rem 1.25rem 4rem" }}>
-        {/* En-tête du jour */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "1rem", marginBottom: "1.5rem" }}>
-          <div>
-            <p style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--color-brand)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              {mounted ? prettyDate(today) : "\u00A0"}
-            </p>
-            <h1 style={{ fontFamily: "var(--font-display)", fontSize: "2rem", fontWeight: 700, marginTop: 4 }}>
-              Ta journée
-            </h1>
-          </div>
-          <button className="btn-primary" onClick={openNew}>+ Nouvel objectif</button>
-        </div>
-
+      <main className="page-shell" style={{ padding: "1.5rem 1.25rem 4rem" }}>
         {/* Bandeau permission notifications */}
         {permission !== "granted" && ready && (
           <div className="card-surface" style={{ padding: "0.9rem 1.1rem", marginBottom: "1.25rem", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
@@ -120,20 +115,41 @@ export default function HomePage() {
           </div>
         )}
 
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: "1.5rem" }}>
-          {/* Résumé + timeline */}
-          <section className="card-surface" style={{ padding: "1.3rem", display: "grid", gap: "1.2rem" }}>
-            <div style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap" }}>
+        <div className="day-layout">
+          {/* Rail : identité du jour, chiffres, timeline, action principale */}
+          <aside className="day-rail card-surface" style={{ padding: "1.15rem", display: "grid", gap: "1rem" }}>
+            <div>
+              <p style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--color-brand)" }}>
+                {mounted ? prettyDate(today) : "\u00A0"}
+              </p>
+              <h1 style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", fontWeight: 700, marginTop: 2 }}>
+                Ta journée
+              </h1>
+            </div>
+
+            <button className="btn-primary" onClick={openNew}>+ Nouvel objectif</button>
+
+            <div className="day-stats">
               <Stat label="Objectifs" value={stats.total} />
               <Stat label="Terminés" value={stats.done} color="var(--color-mint)" />
-              <Stat label="En cours" value={stats.inProgress} color="var(--color-amber)" />
-              <Stat label="Réussite" value={`${stats.successRate}%`} color="var(--color-brand)" />
             </div>
-            {ready && tasks.length > 0 && <DayTimeline tasks={tasks} now={now} />}
-          </section>
 
-          {/* Liste des tâches */}
-          <section style={{ display: "grid", gap: "0.85rem" }}>
+            {/* Le rapport de temps remplace le taux de réussite : un
+                pourcentage note la journée, ces deux durées la décrivent. */}
+            {ready && minutesPrevues > 0 && (
+              <p style={{ fontSize: "0.85rem", color: "var(--text-soft)" }}>
+                <strong style={{ color: "var(--color-mint)" }}>
+                  {formatDuration(minutesRealisees)}
+                </strong>{" "}
+                sur {formatDuration(minutesPrevues)} réalisées
+              </p>
+            )}
+
+            {ready && plannedTasks.length > 0 && <DayTimeline tasks={plannedTasks} now={now} />}
+          </aside>
+
+          {/* Zone de travail */}
+          <section className="day-main">
             {ready && tasks.length === 0 && (
               <div className="card-surface" style={{ padding: "2.5rem 1.5rem", textAlign: "center" }}>
                 <p style={{ fontFamily: "var(--font-display)", fontSize: "1.15rem", fontWeight: 600, marginBottom: 6 }}>
@@ -149,25 +165,31 @@ export default function HomePage() {
               <TaskCard key={t.id} task={t} now={now} onStatus={setStatus}
               onComplete={completeTask} onEdit={openEdit} onArchive={archiveTask} />
             ))}
+
+            {/* Le débrief appartient à la zone de travail : hors du
+                <section>, la grille le placerait sous le rail gauche. */}
+            {ready && tasks.length > 0 && !showDebrief && (
+              <button
+                className="btn-ghost"
+                style={{ justifySelf: "start", marginTop: "0.6rem" }}
+                onClick={() => setDebriefOpen(true)}
+              >
+                Faire mon débrief maintenant
+              </button>
+            )}
+
+            {showDebrief && (
+              <EveningDebrief
+                key={debriefKey}
+                date={today}
+                tasks={tasks}
+                onSetActual={setActual}
+                onAddUnplanned={addUnplanned}
+                existing={existingDebrief ?? undefined}
+                onSaved={() => setDebriefKey((k) => k + 1)}
+              />
+            )}
           </section>
-
-          {ready && tasks.length > 0 && !showDebrief && (
-            <button className="btn-ghost" onClick={() => setDebriefOpen(true)}>
-              Faire mon débrief maintenant
-            </button>
-          )}
-
-          {showDebrief && (
-            <EveningDebrief
-              key={debriefKey}
-              date={today}
-              tasks={tasks}
-              onSetActual={setActual}
-              onAddUnplanned={addUnplanned}
-              existing={existingDebrief ?? undefined}
-              onSaved={() => setDebriefKey((k) => k + 1)}
-            />
-          )}
         </div>
       </main>
 
@@ -179,10 +201,10 @@ export default function HomePage() {
 function Stat({ label, value, color }: { label: string; value: string | number; color?: string }) {
   return (
     <div>
-      <div style={{ fontFamily: "var(--font-display)", fontSize: "1.8rem", fontWeight: 700, color: color ?? "var(--text)" }}>
+      <div style={{ fontFamily: "var(--font-display)", fontSize: "1.35rem", fontWeight: 700, lineHeight: 1.1, color: color ?? "var(--text)" }}>
         {value}
       </div>
-      <div style={{ fontSize: "0.78rem", color: "var(--text-mute)" }}>{label}</div>
+      <div style={{ fontSize: "0.74rem", color: "var(--text-mute)" }}>{label}</div>
     </div>
   );
 }
