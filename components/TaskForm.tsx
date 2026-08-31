@@ -96,15 +96,20 @@ export default function TaskForm({
         style={{
           width: "100%",
           maxWidth: 460,
-          padding: "1.5rem",
+          padding: "1.25rem",
+          /* Le formulaire ne doit jamais dépasser la fenêtre : sur un
+             téléphone en paysage ou un petit écran, il défile dedans
+             au lieu de sortir du cadre. */
+          maxHeight: "90vh",
+          overflowY: "auto",
           animation: "var(--animate-slide-up)",
         }}
       >
-        <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem", fontWeight: 700, marginBottom: "1.2rem" }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.15rem", fontWeight: 700, marginBottom: "0.9rem" }}>
           {editing ? "Modifier l'objectif" : "Nouvel objectif"}
         </h2>
 
-        <div style={{ display: "grid", gap: "0.9rem" }}>
+        <div style={{ display: "grid", gap: "0.8rem" }}>
           <div>
             <label className="field-label">Nom de l&apos;objectif</label>
             <input
@@ -116,7 +121,7 @@ export default function TaskForm({
             />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.9rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "0.8rem" }}>
             <div>
               <label className="field-label">Début</label>
               <input type="time" className="field" value={draft.start} onChange={(e) => set("start", e.target.value)} />
@@ -141,22 +146,24 @@ export default function TaskForm({
             <label className="field-label">
               Combien de temps penses-tu y passer vraiment ?
             </label>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
               <input
                 type="number"
                 min={1}
                 step={5}
                 className="field"
-                style={{ width: 110 }}
+                style={{ width: 90 }}
                 placeholder={String(slotMinutes)}
                 value={draft.estimatedMinutes}
                 onChange={(e) => set("estimatedMinutes", e.target.value)}
               />
               <span style={{ fontSize: "0.8rem", color: "var(--text-mute)" }}>
-                minutes — le créneau en dure {formatDuration(slotMinutes)}
+                minutes — créneau : {formatDuration(slotMinutes)}
               </span>
             </div>
+          </div>
 
+          <div>
             <label className="field-label">Pourquoi c&apos;est important ?</label>
             <textarea
               className="field"
