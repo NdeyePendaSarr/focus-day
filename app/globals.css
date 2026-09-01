@@ -122,6 +122,10 @@ select,
 
 .field {
   width: 100%;
+  /* Sans min-width:0, un champ refuse de descendre sous sa largeur
+     naturelle. Safari iOS donne une largeur minimale confortable aux
+     input[type=time] : la colonne rétrécissait, pas le champ. */
+  min-width: 0;
   padding: 0.65rem 0.85rem;
   border-radius: 10px;
   background: var(--bg-3);
@@ -311,4 +315,19 @@ select,
   .day-title {
     font-size: 1.5rem;
   }
+}
+
+/* Ligne Début / Fin.
+   auto-fit + minmax : les deux champs se placent côte à côte tant
+   qu'ils tiennent, et passent l'un sous l'autre quand l'écran est
+   trop étroit. Mieux vaut une colonne et de l'espace perdu qu'un
+   champ qui sort du formulaire. */
+.time-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.8rem;
+}
+
+.time-row > * {
+  min-width: 0;
 }

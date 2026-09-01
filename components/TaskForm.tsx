@@ -121,7 +121,7 @@ export default function TaskForm({
             />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "0.8rem" }}>
+          <div className="time-row">
             <div>
               <label className="field-label">Début</label>
               <input type="time" className="field" value={draft.start} onChange={(e) => set("start", e.target.value)} />
