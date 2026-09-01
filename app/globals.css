@@ -109,6 +109,17 @@ textarea:focus-visible, select:focus-visible {
 }
 .btn-ghost:hover { background: var(--bg-3); color: var(--text); }
 
+/* Sans box-sizing, width:100% s'ajoute au padding et à la bordure :
+   un champ dans une colonne de grille déborde alors de ~29px. C'est ce
+   qui faisait sortir "Fin" du formulaire et disparaître l'espace entre
+   les deux horaires. Appliqué à tous les contrôles de saisie. */
+input,
+textarea,
+select,
+.field {
+  box-sizing: border-box;
+}
+
 .field {
   width: 100%;
   padding: 0.65rem 0.85rem;
