@@ -15,6 +15,14 @@ export function useNow() {
   return now;
 }
 
+/** Même ordre que le dépôt : les créneaux nocturnes de la veille en tête. */
+function sortForDay(list: Task[], date: string): Task[] {
+  return [...list].sort((a, b) => {
+    const key = (t: Task) => (t.date === date ? t.start : `-${t.start}`);
+    return key(a).localeCompare(key(b));
+  });
+}
+
 export function useTasks(date: string = todayISO()) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [ready, setReady] = useState(false);
@@ -63,8 +71,16 @@ export function useTasks(date: string = todayISO()) {
         status: "planned",
         createdAt: new Date().toISOString(),
       };
-      await repo.tasks.save(task);
-      await refresh();
+      // Affichage immédiat : l'écriture réseau se fait derrière. Attendre
+      // la sauvegarde PUIS un rechargement complet faisait patienter
+      // plusieurs secondes avant de voir apparaître son propre objectif.
+      setTasks((prev) => sortForDay([...prev, task], date));
+      try {
+        await repo.tasks.save(task);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Enregistrement impossible.");
+        await refresh();
+      }
       return task;
     },
     [date, refresh]
@@ -72,11 +88,16 @@ export function useTasks(date: string = todayISO()) {
 
   const updateTask = useCallback(
     async (id: string, patch: Partial<Task>) => {
-      // byId au lieu de all().find() : une seule ligne lue, pas toute la table.
-      const current = await repo.tasks.byId(id);
-      if (!current) return;
-      await repo.tasks.save({ ...current, ...patch });
-      await refresh();
+      setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+      try {
+        // byId au lieu de all().find() : une seule ligne lue, pas toute la table.
+        const current = await repo.tasks.byId(id);
+        if (!current) return;
+        await repo.tasks.save({ ...current, ...patch });
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Modification impossible.");
+        await refresh();
+      }
     },
     [refresh]
   );
@@ -118,7 +139,7 @@ export function useTasks(date: string = todayISO()) {
   const addUnplanned = useCallback(
     async (name: string, minutes: number) => {
       const now = new Date().toISOString();
-      await repo.tasks.save({
+      const task: Task = {
         id: uid(),
         date,
         name,
@@ -129,16 +150,25 @@ export function useTasks(date: string = todayISO()) {
         actualMinutes: minutes,
         createdAt: now,
         completedAt: now,
-      });
-      await refresh();
+      };
+      setTasks((prev) => sortForDay([...prev, task], date));
+      try {
+        await repo.tasks.save(task);
+      } catch {
+        await refresh();
+      }
     },
     [date, refresh]
   );
 
   const removeTask = useCallback(
     async (id: string) => {
-      await repo.tasks.remove(id);
-      await refresh();
+      setTasks((prev) => prev.filter((t) => t.id !== id));
+      try {
+        await repo.tasks.remove(id);
+      } catch {
+        await refresh();
+      }
     },
     [refresh]
   );

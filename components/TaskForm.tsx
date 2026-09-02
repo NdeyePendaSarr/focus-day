@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Task } from "@/lib/types";
 import { toMinutes, findConflict, spillsIntoNextDay, durationMinutes, formatDuration } from "@/lib/time";
+import DurationInput from "@/components/DurationInput";
 
 export type TaskDraft = {
   name: string;
@@ -29,20 +30,31 @@ export default function TaskForm({
   onSubmit: (draft: TaskDraft) => void;
 }) {
   const [draft, setDraft] = useState<TaskDraft>(EMPTY);
+  // Tant que l'estimation n'a pas été saisie à la main, elle suit le
+  // créneau : allonger un créneau de 1h à 2h doit mettre l'estimation
+  // à jour, sinon elle reste fausse sans que rien ne le signale.
+  const [estimationTouched, setEstimationTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (editing) {
+      // Si l'estimation vaut exactement la durée du créneau, c'est qu'elle
+      // n'a jamais été saisie : on la laisse vide pour qu'elle continue
+      // de suivre le créneau si celui-ci change.
+      const slot = durationMinutes(editing.start, editing.end);
+      const explicite = editing.estimatedMinutes != null && editing.estimatedMinutes !== slot;
       setDraft({
         name: editing.name,
         description: editing.description ?? "",
         why: editing.why ?? "",
         start: editing.start,
         end: editing.end,
-        estimatedMinutes: editing.estimatedMinutes ? String(editing.estimatedMinutes) : "",
+        estimatedMinutes: explicite ? String(editing.estimatedMinutes) : "",
       });
+      setEstimationTouched(explicite);
     } else {
       setDraft(EMPTY);
+      setEstimationTouched(false);
     }
     setError(null);
   }, [editing, open]);
@@ -146,21 +158,16 @@ export default function TaskForm({
             <label className="field-label">
               Combien de temps penses-tu y passer vraiment ?
             </label>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-              <input
-                type="number"
-                min={1}
-                step={5}
-                className="field"
-                style={{ width: 90 }}
-                placeholder={String(slotMinutes)}
-                value={draft.estimatedMinutes}
-                onChange={(e) => set("estimatedMinutes", e.target.value)}
-              />
-              <span style={{ fontSize: "0.8rem", color: "var(--text-mute)" }}>
-                minutes — créneau : {formatDuration(slotMinutes)}
-              </span>
-            </div>
+            <DurationInput
+              value={draft.estimatedMinutes}
+              onChange={(v) => {
+                setEstimationTouched(true);
+                set("estimatedMinutes", v);
+              }}
+              placeholder={formatDuration(slotMinutes)}
+              hint={`Vide = la durée du créneau (${formatDuration(slotMinutes)})`}
+              width={130}
+            />
           </div>
 
           <div>

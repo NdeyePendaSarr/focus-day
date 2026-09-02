@@ -186,3 +186,34 @@ export function findConflict<T extends { id: string; start: string; end: string 
     ) ?? null
   );
 }
+
+/**
+ * Interprète une durée saisie librement.
+ *
+ *   "90"      -> 90        "1h30"  -> 90
+ *   "1h"      -> 60        "1,5h"  -> 90
+ *   "45min"   -> 45        "2 h 05" -> 125
+ *
+ * Un nombre seul est compris comme des minutes : c'est la saisie la
+ * plus fréquente, elle ne doit rien coûter. Les autres formes évitent
+ * d'avoir à convertir de tête — ou pire, dans un autre onglet.
+ * Renvoie null si la saisie n'est pas interprétable.
+ */
+export function parseDuration(raw: string): number | null {
+  const s = raw.trim().toLowerCase().replace(",", ".");
+  if (!s) return null;
+
+  if (/^\d+(\.\d+)?$/.test(s)) return Math.round(parseFloat(s));
+
+  const hm = s.match(/^(\d+(?:\.\d+)?)\s*h\s*(\d+)?\s*(?:min|mn|m)?$/);
+  if (hm) {
+    const h = parseFloat(hm[1]);
+    const m = hm[2] ? parseInt(hm[2], 10) : 0;
+    return Math.round(h * 60 + m);
+  }
+
+  const only = s.match(/^(\d+)\s*(?:min|mn|m)$/);
+  if (only) return parseInt(only[1], 10);
+
+  return null;
+}

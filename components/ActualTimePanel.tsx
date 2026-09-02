@@ -3,7 +3,8 @@
 import { useState } from "react";
 import type { Task, GapReason } from "@/lib/types";
 import { GAP_REASONS } from "@/lib/types";
-import { formatDuration } from "@/lib/time";
+import { formatDuration, parseDuration } from "@/lib/time";
+import DurationInput from "@/components/DurationInput";
 
 /**
  * Saisie du réalisé, ouverte par « Terminer » / « Fait ».
@@ -45,7 +46,7 @@ export default function ActualTimePanel({
   const [reason, setReason] = useState<GapReason | null>(null);
 
   const reference = task.estimatedMinutes ?? slotMinutes;
-  const actual = Number(minutes) || 0;
+  const actual = parseDuration(minutes) ?? 0;
   const gap = actual - reference;
   const significant = reference > 0 && Math.abs(gap) / reference > TOLERANCE;
 
@@ -64,19 +65,13 @@ export default function ActualTimePanel({
       </label>
 
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-        <input
-          type="number"
-          min={0}
-          step={5}
-          className="field"
-          style={{ width: 100 }}
+        <DurationInput
           value={minutes}
-          onChange={(e) => setMinutes(e.target.value)}
+          onChange={setMinutes}
+          hint={`Tu avais prévu ${formatDuration(reference)}`}
+          width={120}
           autoFocus
         />
-        <span style={{ fontSize: "0.8rem", color: "var(--text-mute)" }}>
-          minutes — tu avais prévu {formatDuration(reference)}
-        </span>
       </div>
 
       {significant && (

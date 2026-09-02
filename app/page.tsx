@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import type { Task, TaskStatus, DebriefEntry } from "@/lib/types";
 import { useTasks, useNow } from "@/lib/useTasks";
 import { useReminders } from "@/lib/useReminders";
-import { todayISO, prettyDate, computeStats, reminderFor, durationMinutes, formatDuration } from "@/lib/time";
+import { todayISO, prettyDate, computeStats, reminderFor, durationMinutes, formatDuration, parseDuration } from "@/lib/time";
 import NavBar from "@/components/NavBar";
 import DayTimeline from "@/components/DayTimeline";
 import TaskCard from "@/components/TaskCard";
@@ -69,10 +69,8 @@ export default function HomePage() {
   const openEdit = (t: Task) => { setEditing(t); setFormOpen(true); };
 
   const handleSubmit = (d: TaskDraft) => {
-    // Champ laissé vide : on retient la durée du créneau comme estimation.
-    const estimated = d.estimatedMinutes.trim()
-      ? Number(d.estimatedMinutes)
-      : durationMinutes(d.start, d.end);
+    // Champ vide ou incompris : on retient la durée du créneau.
+    const estimated = parseDuration(d.estimatedMinutes) ?? durationMinutes(d.start, d.end);
     const base = {
       name: d.name,
       description: d.description,

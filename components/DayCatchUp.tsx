@@ -3,7 +3,8 @@
 import { useState } from "react";
 import type { Task, GapReason } from "@/lib/types";
 import { GAP_REASONS } from "@/lib/types";
-import { formatDuration, durationMinutes } from "@/lib/time";
+import { formatDuration, durationMinutes, parseDuration } from "@/lib/time";
+import DurationInput from "@/components/DurationInput";
 
 /**
  * Rattrapage du soir.
@@ -72,7 +73,7 @@ function MissingRow({
   const [minutes, setMinutes] = useState("");
   const [reason, setReason] = useState<GapReason | null>(null);
 
-  const actual = minutes === "" ? null : Number(minutes);
+  const actual = minutes.trim() === "" ? null : parseDuration(minutes);
   const gap = actual === null ? 0 : actual - reference;
   const significant = actual !== null && reference > 0 && Math.abs(gap) / reference > 0.15;
 
@@ -88,19 +89,12 @@ function MissingRow({
       <div style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: 6 }}>{task.name}</div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-        <input
-          type="number"
-          min={0}
-          step={5}
-          className="field"
-          style={{ width: 90 }}
-          placeholder="min"
+        <DurationInput
           value={minutes}
-          onChange={(e) => setMinutes(e.target.value)}
+          onChange={setMinutes}
+          hint={`Prévu ${formatDuration(reference)}`}
+          width={110}
         />
-        <span style={{ fontSize: "0.78rem", color: "var(--text-mute)" }}>
-          prévu {formatDuration(reference)}
-        </span>
         {/* Le zéro mérite son propre bouton : sans lui, une journée ratée
             ne laisse aucune trace, et c'est justement celle qui informe. */}
         <button className="chip" onClick={() => setMinutes("0")}>
@@ -152,7 +146,7 @@ function UnplannedBlock({
 
   const total = existing.reduce((sum, t) => sum + (t.actualMinutes ?? 0), 0);
 
-  const m = Number(minutes);
+  const m = parseDuration(minutes) ?? 0;
   // Le bouton est désactivé plutôt que silencieux : un clic sans effet
   // fait croire à un bug, alors qu'il manque simplement une durée.
   const canAdd = name.trim().length > 0 && m > 0;
@@ -211,19 +205,7 @@ function UnplannedBlock({
             onChange={(e) => setName(e.target.value)}
             autoFocus
           />
-          <input
-            type="number"
-            min={1}
-            step={5}
-            className="field"
-            style={{ width: 90 }}
-            placeholder="min"
-            value={minutes}
-            onChange={(e) => setMinutes(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") add();
-            }}
-          />
+          <DurationInput value={minutes} onChange={setMinutes} width={110} />
           <button className="chip chip-mint" onClick={add} disabled={!canAdd}>
             Ajouter
           </button>

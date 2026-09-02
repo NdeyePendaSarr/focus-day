@@ -15,6 +15,7 @@ import {
   overlaps,
   findConflict,
   todayISO,
+  parseDuration,
 } from "./time";
 
 /** Fabrique une tâche minimale pour les tests. */
@@ -193,5 +194,26 @@ describe("todayISO", () => {
   it("produit une date locale au format yyyy-mm-dd", () => {
     const d = new Date(2026, 7, 5); // 5 août 2026, heure locale
     expect(todayISO(d)).toBe("2026-08-05");
+  });
+});
+
+describe("parseDuration", () => {
+  it("comprend un nombre seul comme des minutes", () => {
+    expect(parseDuration("90")).toBe(90);
+  });
+  it("comprend les heures et minutes combinées", () => {
+    expect(parseDuration("1h30")).toBe(90);
+    expect(parseDuration("2 h 05")).toBe(125);
+  });
+  it("comprend les heures seules et décimales", () => {
+    expect(parseDuration("1h")).toBe(60);
+    expect(parseDuration("1,5h")).toBe(90);
+  });
+  it("comprend les minutes suffixées", () => {
+    expect(parseDuration("45min")).toBe(45);
+  });
+  it("renvoie null sur une saisie vide ou incomprise", () => {
+    expect(parseDuration("")).toBeNull();
+    expect(parseDuration("bientôt")).toBeNull();
   });
 });
