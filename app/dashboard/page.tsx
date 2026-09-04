@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Task, DebriefEntry } from "@/lib/types";
 import { GAP_REASONS } from "@/lib/types";
 import { repo } from "@/lib/repo";
-import { todayISO, shiftISO, durationMinutes, formatDuration } from "@/lib/time";
+import { todayISO, shiftISO, durationMinutes, formatDuration, prettyDate } from "@/lib/time";
 import NavBar from "@/components/NavBar";
 
 /** Fenêtre d'observation : assez large pour voir une tendance, assez
@@ -162,7 +162,7 @@ export default function DashboardPage() {
             Prévu et réalisé, jour par jour
           </h2>
           <p style={{ fontSize: "0.8rem", color: "var(--text-mute)", marginBottom: "1.1rem" }}>
-            Barre pleine = temps noté. Contour pointillé = journée planifiée
+            Ambre = prévu, indigo = réalisé. Trait pointillé = journée planifiée
             dont le temps réel n&apos;a jamais été renseigné. Aucune barre = rien
             de planifié ce jour-là.
           </p>
@@ -220,7 +220,7 @@ export default function DashboardPage() {
                       fontSize: "0.88rem",
                     }}
                   >
-                    <span style={{ color: "var(--text-soft)" }}>{e.date}</span>
+                    <span style={{ color: "var(--text-soft)" }}>{prettyDate(e.date)}</span>
                     <span>{e.reachedGoals ? "Objectifs atteints" : "Partiellement"}</span>
                   </div>
                 ))}
@@ -274,7 +274,25 @@ function Graphique({ jours }: { jours: Jour[] }) {
   const H = 130;
 
   return (
-    <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: H + 34 }}>
+    <div style={{ display: "flex", gap: 8 }}>
+      {/* Une échelle, même minimale : sans repère, la hauteur d'une
+          barre ne se traduit en durée qu'au survol. */}
+      <div
+        style={{
+          height: H,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          fontSize: "0.65rem",
+          color: "var(--text-mute)",
+          flexShrink: 0,
+        }}
+      >
+        <span>{formatDuration(max)}</span>
+        <span>0</span>
+      </div>
+
+    <div style={{ flex: 1, display: "flex", alignItems: "flex-end", gap: 4, height: H + 34 }}>
       {jours.map((j) => (
         <div
           key={j.date}
@@ -282,20 +300,23 @@ function Graphique({ jours }: { jours: Jour[] }) {
           style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}
         >
           <div style={{ display: "flex", alignItems: "flex-end", gap: 2, height: H, width: "100%" }}>
-            <Barre hauteur={(j.prevu / max) * H} couleur="var(--text-mute)" opacite={0.35} />
+            <Barre hauteur={(j.prevu / max) * H} couleur="var(--color-amber)" opacite={0.55} />
             {/* Un jour planifié sans aucun temps noté n'a pas un réel nul :
                 il a un réel inconnu. Un contour vide le dit, une barre à
                 zéro le ferait passer pour une journée ratée. */}
             {j.renseigne ? (
-              <Barre hauteur={(j.reel / max) * H} couleur="var(--color-mint)" opacite={0.9} />
+              <Barre hauteur={(j.reel / max) * H} couleur="var(--color-brand)" opacite={0.95} />
             ) : (
               <div
                 style={{
                   flex: 1,
-                  height: j.prevu > 0 ? (j.prevu / max) * H : 0,
-                  border: "1px dashed var(--border)",
-                  borderBottom: "none",
-                  borderRadius: "4px 4px 0 0",
+                  /* Hauteur fixe et minime : le réel est inconnu, pas égal
+                     au prévu. Reprendre la hauteur prévue affirmerait une
+                     valeur que personne n'a saisie. */
+                  height: j.prevu > 0 ? 10 : 0,
+                  border: "1px dashed var(--color-slate)",
+                  borderRadius: 3,
+                  opacity: 0.7,
                 }}
               />
             )}
@@ -311,6 +332,7 @@ function Graphique({ jours }: { jours: Jour[] }) {
           </span>
         </div>
       ))}
+    </div>
     </div>
   );
 }
