@@ -300,7 +300,7 @@ function Graphique({ jours }: { jours: Jour[] }) {
           style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}
         >
           <div style={{ display: "flex", alignItems: "flex-end", gap: 2, height: H, width: "100%" }}>
-            <Barre hauteur={(j.prevu / max) * H} couleur="var(--color-amber)" opacite={0.55} />
+            <Barre hauteur={(j.prevu / max) * H} couleur="#FFDE21" opacite={0.55} />
             {/* Un jour planifié sans aucun temps noté n'a pas un réel nul :
                 il a un réel inconnu. Un contour vide le dit, une barre à
                 zéro le ferait passer pour une journée ratée. */}
