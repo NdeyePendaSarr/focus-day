@@ -18,16 +18,20 @@ import DurationInput from "@/components/DurationInput";
  * quand le temps réel colle à l'estimation serait du bruit.
  */
 
-/** Repère par défaut : le temps écoulé depuis le démarrage réel, sinon l'estimation. */
-export function suggestActualMinutes(task: Task, fallbackMinutes: number): number {
-  if (task.startedAt) {
-    const elapsed = Math.round((Date.now() - new Date(task.startedAt).getTime()) / 60000);
-    // Un chronomètre lancé et oublié pendant deux jours ne prouve rien.
-    if (elapsed > 0 && elapsed <= 16 * 60) return elapsed;
-  }
-  return task.estimatedMinutes ?? fallbackMinutes;
+/**
+ * Temps écoulé depuis le clic sur « Démarrer », si ce clic a eu lieu et
+ * que le résultat reste plausible.
+ *
+ * Ce n'est PAS proposé par défaut : un chronomètre lancé puis oublié
+ * mesure l'intervalle entre deux clics, pas le travail. Il est offert
+ * comme raccourci, clairement étiqueté, à prendre ou à laisser.
+ */
+export function chronoMinutes(task: Task): number | null {
+  if (!task.startedAt) return null;
+  const elapsed = Math.round((Date.now() - new Date(task.startedAt).getTime()) / 60000);
+  if (elapsed <= 0 || elapsed > 16 * 60) return null;
+  return elapsed;
 }
-
 /** Écart considéré comme normal : en deçà, on ne demande pas de cause. */
 const TOLERANCE = 0.15;
 
@@ -42,11 +46,14 @@ export default function ActualTimePanel({
   onConfirm: (actualMinutes: number, gapReason?: GapReason) => void;
   onCancel: () => void;
 }) {
-  const [minutes, setMinutes] = useState(String(suggestActualMinutes(task, slotMinutes)));
+  const reference = task.estimatedMinutes ?? slotMinutes;
+  // Défaut = ce que tu avais prévu. La question devient "as-tu passé
+  // le temps que tu pensais ?", et l'écart se lit tout de suite.
+  const [minutes, setMinutes] = useState(formatDuration(reference));
   const [reason, setReason] = useState<GapReason | null>(null);
 
-  const reference = task.estimatedMinutes ?? slotMinutes;
   const actual = parseDuration(minutes) ?? 0;
+  const chrono = chronoMinutes(task);
   const gap = actual - reference;
   const significant = reference > 0 && Math.abs(gap) / reference > TOLERANCE;
 
@@ -72,6 +79,12 @@ export default function ActualTimePanel({
           width={120}
           autoFocus
         />
+
+        {chrono !== null && (
+          <button className="chip" onClick={() => setMinutes(formatDuration(chrono))}>
+            Chrono : {formatDuration(chrono)}
+          </button>
+        )}
       </div>
 
       {significant && (
