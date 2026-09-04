@@ -2,17 +2,32 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Task, DebriefEntry } from "@/lib/types";
+import { GAP_REASONS } from "@/lib/types";
 import { repo } from "@/lib/repo";
-import { useWeather } from "@/lib/useWeather";
+import { todayISO, shiftISO, durationMinutes, formatDuration } from "@/lib/time";
 import NavBar from "@/components/NavBar";
+
+/** Fenêtre d'observation : assez large pour voir une tendance, assez
+ *  courte pour que chaque jour reste lisible. */
+const FENETRE = 14;
+
+/** En dessous, on ne prétend pas dégager de tendance (voir la hiérarchie
+ *  observation / tendance / hypothèse : pas d'insight sans données). */
+const MINIMUM_TENDANCE = 5;
+
+type Jour = {
+  date: string;
+  prevu: number;
+  reel: number;
+  horsPlan: number;
+  renseigne: boolean;
+};
 
 export default function DashboardPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [debriefs, setDebriefs] = useState<DebriefEntry[]>([]);
   const [ready, setReady] = useState(false);
-  const { weather, status, load: loadWeather } = useWeather();
 
-  // Chargement post-montage : les données arrivent après hydratation.
   useEffect(() => {
     void (async () => {
       try {
@@ -20,7 +35,6 @@ export default function DashboardPage() {
           repo.tasks.all(),
           repo.debriefs.all(),
         ]);
-        // exclure les archivées des statistiques (elles ne comptent plus)
         setTasks(allTasks.filter((t) => !t.archived));
         setDebriefs(allDebriefs);
       } catch (e) {
@@ -31,143 +45,346 @@ export default function DashboardPage() {
     })();
   }, []);
 
-  const g = useMemo(() => {
-    const total = tasks.length;
-    const done = tasks.filter((t) => t.status === "done").length;
-    const missed = tasks.filter((t) => t.status === "missed").length;
-    const rate = total ? Math.round((done / total) * 100) : 0;
-    // regrouper par jour pour la mini-courbe (7 derniers jours actifs)
-    const byDay: Record<string, { total: number; done: number }> = {};
-    tasks.forEach((t) => {
-      byDay[t.date] ??= { total: 0, done: 0 };
-      byDay[t.date].total++;
-      if (t.status === "done") byDay[t.date].done++;
+  const d = useMemo(() => {
+    const today = todayISO();
+
+    // La fenêtre est continue : un jour sans rien y figure comme jour vide.
+    // C'est l'information la plus importante du graphique — un trou dans
+    // le suivi ne doit pas être masqué en rapprochant les barres.
+    const dates: string[] = [];
+    for (let i = FENETRE - 1; i >= 0; i--) dates.push(shiftISO(today, -i));
+
+    const jours: Jour[] = dates.map((date) => {
+      const duJour = tasks.filter((t) => t.date === date);
+      const planifies = duJour.filter((t) => t.origin !== "unplanned");
+      return {
+        date,
+        prevu: planifies.reduce(
+          (s, t) => s + (t.estimatedMinutes ?? durationMinutes(t.start, t.end)),
+          0
+        ),
+        reel: duJour.reduce((s, t) => s + (t.actualMinutes ?? 0), 0),
+        horsPlan: duJour
+          .filter((t) => t.origin === "unplanned")
+          .reduce((s, t) => s + (t.actualMinutes ?? 0), 0),
+        renseigne: duJour.some((t) => t.actualMinutes != null),
+      };
     });
-    const days = Object.entries(byDay)
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .slice(-7)
-      .map(([date, v]) => ({ date, rate: v.total ? Math.round((v.done / v.total) * 100) : 0 }));
-    return { total, done, missed, rate, days, activeDays: Object.keys(byDay).length };
+
+    const joursAvecPlan = jours.filter((j) => j.prevu > 0).length;
+    const joursRenseignes = jours.filter((j) => j.renseigne).length;
+
+    const prevuTotal = jours.reduce((s, j) => s + j.prevu, 0);
+    const reelTotal = jours.reduce((s, j) => s + j.reel, 0);
+    const horsPlanTotal = jours.reduce((s, j) => s + j.horsPlan, 0);
+
+    // Biais d'estimation : uniquement les tâches où les deux valeurs existent.
+    const mesurees = tasks.filter(
+      (t) => t.origin !== "unplanned" && t.actualMinutes != null
+    );
+    const refMesure = mesurees.reduce(
+      (s, t) => s + (t.estimatedMinutes ?? durationMinutes(t.start, t.end)),
+      0
+    );
+    const reelMesure = mesurees.reduce((s, t) => s + (t.actualMinutes ?? 0), 0);
+    const biais = refMesure > 0 ? reelMesure / refMesure : null;
+
+    // Causes d'écart déclarées
+    const causes = GAP_REASONS.map((r) => ({
+      label: r.label,
+      n: tasks.filter((t) => t.gapReason === r.value).length,
+    }))
+      .filter((c) => c.n > 0)
+      .sort((a, b) => b.n - a.n);
+
+    return {
+      jours,
+      joursAvecPlan,
+      joursRenseignes,
+      prevuTotal,
+      reelTotal,
+      horsPlanTotal,
+      biais,
+      nMesurees: mesurees.length,
+      causes,
+    };
   }, [tasks]);
 
   return (
     <>
       <NavBar />
-      <main style={{ maxWidth: 960, margin: "0 auto", padding: "1.5rem 1.25rem 4rem" }}>
-        <h1 style={{ fontFamily: "var(--font-display)", fontSize: "2rem", fontWeight: 700, marginBottom: "0.35rem" }}>
+      <main className="page-shell" style={{ padding: "1.5rem 1.25rem 4rem" }}>
+        <h1
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "1.9rem",
+            fontWeight: 700,
+            marginBottom: "0.3rem",
+          }}
+        >
           Tableau de bord
         </h1>
         <p style={{ color: "var(--text-soft)", fontSize: "0.92rem", marginBottom: "1.75rem" }}>
-          Ta vue d&apos;ensemble, tous jours confondus.
+          Les {FENETRE} derniers jours : ce que tu avais prévu, ce que tu as fait.
         </p>
 
-        {/* Cartes de stats */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
-          <BigStat label="Objectifs créés" value={ready ? g.total : "—"} />
-          <BigStat label="Réussis" value={ready ? g.done : "—"} color="var(--color-mint)" />
-          <BigStat label="Manqués" value={ready ? g.missed : "—"} color="var(--color-rose)" />
-          <BigStat label="Taux de réussite" value={ready ? `${g.rate}%` : "—"} color="var(--color-brand)" />
+        <div className="dash-stats">
+          <Chiffre
+            valeur={ready ? `${d.joursRenseignes} / ${FENETRE}` : "—"}
+            libelle="jours renseignés"
+            aide="Jours où tu as noté au moins un temps réel"
+          />
+          <Chiffre
+            valeur={ready ? formatDuration(d.prevuTotal) : "—"}
+            libelle="prévues"
+            aide="Somme de tes estimations"
+          />
+          <Chiffre
+            valeur={ready ? formatDuration(d.reelTotal) : "—"}
+            libelle="réalisées"
+            couleur="var(--color-mint)"
+            aide="Temps réellement noté, hors-plan compris"
+          />
+          <Chiffre
+            valeur={ready ? formatDuration(d.horsPlanTotal) : "—"}
+            libelle="hors plan"
+            couleur="var(--color-amber)"
+            aide="Fait sans l'avoir prévu"
+          />
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.25rem" }}>
-          {/* Courbe de réussite */}
-          <section className="card-surface" style={{ padding: "1.4rem" }}>
-            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.15rem", fontWeight: 600, marginBottom: "1.2rem" }}>
-              Réussite des derniers jours
-            </h2>
-            {!ready ? (
-              <p style={{ color: "var(--text-mute)", fontSize: "0.9rem" }}>Chargement…</p>
-            ) : g.days.length === 0 ? (
-              <p style={{ color: "var(--text-mute)", fontSize: "0.9rem" }}>Pas encore de données. Planifie et termine des objectifs pour voir ta progression.</p>
-            ) : (
-              <div style={{ display: "flex", alignItems: "flex-end", gap: 10, height: 140 }}>
-                {g.days.map((d) => (
-                  <div key={d.date} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                    <div style={{ width: "100%", display: "flex", alignItems: "flex-end", height: 100 }}>
-                      <div
-                        style={{
-                          width: "100%",
-                          height: `${Math.max(4, d.rate)}%`,
-                          background: "var(--color-brand)",
-                          borderRadius: "6px 6px 0 0",
-                          transition: "height 0.5s cubic-bezier(0.22,1,0.36,1)",
-                          opacity: 0.85,
-                        }}
-                        title={`${d.rate}%`}
-                      />
-                    </div>
-                    <span style={{ fontSize: "0.68rem", color: "var(--text-mute)" }}>{d.date.slice(5)}</span>
+        <section className="card-surface" style={{ padding: "1.3rem", marginTop: "1.25rem" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.05rem", fontWeight: 600 }}>
+            Prévu et réalisé, jour par jour
+          </h2>
+          <p style={{ fontSize: "0.8rem", color: "var(--text-mute)", marginBottom: "1.1rem" }}>
+            Les jours sans barre sont des jours sans rien de planifié ni de noté.
+          </p>
+
+          {!ready ? (
+            <p style={{ color: "var(--text-mute)", fontSize: "0.9rem" }}>Chargement…</p>
+          ) : (
+            <Graphique jours={d.jours} />
+          )}
+        </section>
+
+        <section className="card-surface" style={{ padding: "1.3rem", marginTop: "1.25rem" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.05rem", fontWeight: 600, marginBottom: "0.75rem" }}>
+            Ce que les données disent
+          </h2>
+          {!ready ? (
+            <p style={{ color: "var(--text-mute)", fontSize: "0.9rem" }}>Chargement…</p>
+          ) : (
+            <Lecture
+              biais={d.biais}
+              nMesurees={d.nMesurees}
+              joursRenseignes={d.joursRenseignes}
+              joursAvecPlan={d.joursAvecPlan}
+              horsPlan={d.horsPlanTotal}
+              reel={d.reelTotal}
+              causes={d.causes}
+            />
+          )}
+        </section>
+
+        <section className="card-surface" style={{ padding: "1.3rem", marginTop: "1.25rem" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.05rem", fontWeight: 600, marginBottom: "0.75rem" }}>
+            Tes derniers débriefs
+          </h2>
+          {!ready ? (
+            <p style={{ color: "var(--text-mute)", fontSize: "0.9rem" }}>Chargement…</p>
+          ) : debriefs.length === 0 ? (
+            <p style={{ color: "var(--text-mute)", fontSize: "0.9rem" }}>
+              Aucun débrief pour l&apos;instant.
+            </p>
+          ) : (
+            <div style={{ display: "grid", gap: 2 }}>
+              {[...debriefs]
+                .sort((a, b) => b.date.localeCompare(a.date))
+                .slice(0, 6)
+                .map((e) => (
+                  <div
+                    key={e.date}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: "1rem",
+                      padding: "0.6rem 0",
+                      borderBottom: "1px solid var(--border)",
+                      fontSize: "0.88rem",
+                    }}
+                  >
+                    <span style={{ color: "var(--text-soft)" }}>{e.date}</span>
+                    <span>{e.reachedGoals ? "Objectifs atteints" : "Partiellement"}</span>
                   </div>
                 ))}
-              </div>
-            )}
-          </section>
-
-          {/* Météo (idée du sujet d'examen) */}
-          <section className="card-surface" style={{ padding: "1.4rem" }}>
-            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.15rem", fontWeight: 600, marginBottom: "0.9rem" }}>
-              Météo du moment
-            </h2>
-            {status === "ok" && weather ? (
-              <div style={{ display: "flex", alignItems: "center", gap: "1.2rem" }}>
-                <span style={{ fontFamily: "var(--font-display)", fontSize: "2.6rem", fontWeight: 700, color: "var(--color-amber)" }}>
-                  {weather.temp}°
-                </span>
-                <div>
-                  <p style={{ fontWeight: 600 }}>{weather.label}</p>
-                  <p style={{ fontSize: "0.82rem", color: "var(--text-soft)" }}>Un coup d&apos;œil avant de planifier ta journée.</p>
-                </div>
-              </div>
-            ) : status === "loading" ? (
-              <p style={{ color: "var(--text-mute)", fontSize: "0.9rem" }}>Localisation en cours…</p>
-            ) : status === "denied" ? (
-              <div>
-                <p style={{ color: "var(--text-soft)", fontSize: "0.88rem", marginBottom: "0.8rem", lineHeight: 1.5 }}>
-                  Localisation refusée. Pour voir la météo, autorise l&apos;accès à ta position dans les réglages de ton navigateur, puis réessaie.
-                </p>
-                <button className="btn-ghost" onClick={loadWeather}>Réessayer</button>
-              </div>
-            ) : (
-              <div>
-                <p style={{ color: "var(--text-soft)", fontSize: "0.88rem", marginBottom: "0.9rem", lineHeight: 1.5 }}>
-                  Affiche la température locale pour t&apos;aider à planifier. Ta position sert uniquement à ça — rien n&apos;est enregistré.
-                </p>
-                <button className="btn-primary" onClick={loadWeather}>Voir la météo</button>
-              </div>
-            )}
-          </section>
-
-          {/* Journal des débriefs */}
-          <section className="card-surface" style={{ padding: "1.4rem" }}>
-            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.15rem", fontWeight: 600, marginBottom: "0.9rem" }}>
-              Tes derniers débriefs
-            </h2>
-            {!ready ? (
-              <p style={{ color: "var(--text-mute)", fontSize: "0.9rem" }}>Chargement…</p>
-            ) : debriefs.length === 0 ? (
-              <p style={{ color: "var(--text-mute)", fontSize: "0.9rem" }}>Aucun débrief pour l&apos;instant. Fais le point en fin de journée depuis « Ma journée ».</p>
-            ) : (
-              <div style={{ display: "grid", gap: 8 }}>
-                {debriefs.slice(-5).reverse().map((d) => (
-                  <div key={d.date} style={{ display: "flex", justifyContent: "space-between", gap: "1rem", padding: "0.6rem 0", borderBottom: "1px solid var(--border)", fontSize: "0.88rem" }}>
-                    <span style={{ color: "var(--text-soft)" }}>{d.date}</span>
-                    <span>{["😔","😕","😐","🙂","😄"][(d.mood ?? 3) - 1]} {d.reachedGoals ? "Objectifs atteints" : "Partiellement"}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        </div>
+            </div>
+          )}
+        </section>
       </main>
     </>
   );
 }
 
-function BigStat({ label, value, color }: { label: string; value: string | number; color?: string }) {
+/* ------------------------------------------------------------------ */
+
+function Chiffre({
+  valeur,
+  libelle,
+  couleur,
+  aide,
+}: {
+  valeur: string;
+  libelle: string;
+  couleur?: string;
+  aide: string;
+}) {
   return (
-    <div className="card-surface" style={{ padding: "1.2rem" }}>
-      <div style={{ fontFamily: "var(--font-display)", fontSize: "2rem", fontWeight: 700, color: color ?? "var(--text)" }}>{value}</div>
-      <div style={{ fontSize: "0.8rem", color: "var(--text-mute)", marginTop: 2 }}>{label}</div>
+    <div className="card-surface" style={{ padding: "1rem 1.1rem" }}>
+      <div
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: "1.5rem",
+          fontWeight: 700,
+          color: couleur ?? "var(--text)",
+          lineHeight: 1.15,
+        }}
+      >
+        {valeur}
+      </div>
+      <div style={{ fontSize: "0.82rem", color: "var(--text-soft)" }}>{libelle}</div>
+      <div style={{ fontSize: "0.72rem", color: "var(--text-mute)", marginTop: 4 }}>{aide}</div>
+    </div>
+  );
+}
+
+/**
+ * Deux barres par jour : ce qui était prévu, ce qui a été fait.
+ * Toutes les barres partagent la même échelle, sinon comparer deux
+ * journées n'aurait aucun sens.
+ */
+function Graphique({ jours }: { jours: Jour[] }) {
+  const max = Math.max(...jours.map((j) => Math.max(j.prevu, j.reel)), 60);
+  const H = 130;
+
+  return (
+    <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: H + 34 }}>
+      {jours.map((j) => (
+        <div
+          key={j.date}
+          title={`${j.date} — prévu ${formatDuration(j.prevu)}, réalisé ${formatDuration(j.reel)}`}
+          style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}
+        >
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 2, height: H, width: "100%" }}>
+            <Barre hauteur={(j.prevu / max) * H} couleur="var(--text-mute)" opacite={0.35} />
+            <Barre hauteur={(j.reel / max) * H} couleur="var(--color-mint)" opacite={0.9} />
+          </div>
+          <span
+            style={{
+              fontSize: "0.62rem",
+              color: j.renseigne ? "var(--text-soft)" : "var(--text-mute)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {j.date.slice(8)}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Barre({ hauteur, couleur, opacite }: { hauteur: number; couleur: string; opacite: number }) {
+  return (
+    <div
+      style={{
+        flex: 1,
+        height: Math.max(hauteur, hauteur > 0 ? 3 : 0),
+        background: couleur,
+        opacity: opacite,
+        borderRadius: "4px 4px 0 0",
+        minHeight: 0,
+      }}
+    />
+  );
+}
+
+/**
+ * La lecture des données.
+ *
+ * Chaque phrase indique sur quoi elle repose. En dessous d'un certain
+ * volume, on dit qu'on ne sait pas encore — une tendance annoncée sur
+ * trois mesures est une invention, pas un insight.
+ */
+function Lecture({
+  biais,
+  nMesurees,
+  joursRenseignes,
+  joursAvecPlan,
+  horsPlan,
+  reel,
+  causes,
+}: {
+  biais: number | null;
+  nMesurees: number;
+  joursRenseignes: number;
+  joursAvecPlan: number;
+  horsPlan: number;
+  reel: number;
+  causes: { label: string; n: number }[];
+}) {
+  const lignes: string[] = [];
+
+  if (nMesurees < MINIMUM_TENDANCE || biais === null) {
+    lignes.push(
+      `${nMesurees} objectif${nMesurees > 1 ? "s" : ""} mesuré${nMesurees > 1 ? "s" : ""} jusqu'ici. Il en faut au moins ${MINIMUM_TENDANCE} pour parler d'une tendance.`
+    );
+  } else if (biais > 1.15) {
+    lignes.push(
+      `Tu passes en moyenne ${biais.toFixed(1)}× le temps que tu estimes. Sur ${nMesurees} objectifs mesurés.`
+    );
+  } else if (biais < 0.85) {
+    lignes.push(
+      `Tu termines en moyenne en ${Math.round(biais * 100)} % du temps estimé. Tes estimations sont larges.`
+    );
+  } else {
+    lignes.push(`Tes estimations tombent juste, à ${Math.round(Math.abs(1 - biais) * 100)} % près.`);
+  }
+
+  if (joursAvecPlan > 0) {
+    lignes.push(
+      `${joursRenseignes} jour${joursRenseignes > 1 ? "s" : ""} renseigné${joursRenseignes > 1 ? "s" : ""} sur ${joursAvecPlan} jour${joursAvecPlan > 1 ? "s" : ""} planifié${joursAvecPlan > 1 ? "s" : ""}.`
+    );
+  }
+
+  if (horsPlan > 0 && reel > 0) {
+    lignes.push(
+      `${Math.round((horsPlan / reel) * 100)} % de ton temps noté n'était pas planifié.`
+    );
+  }
+
+  return (
+    <div style={{ display: "grid", gap: "0.7rem" }}>
+      {lignes.map((l, i) => (
+        <p key={i} style={{ fontSize: "0.9rem", color: "var(--text-soft)" }}>
+          {l}
+        </p>
+      ))}
+
+      {causes.length > 0 && (
+        <div style={{ marginTop: "0.4rem" }}>
+          <p style={{ fontSize: "0.8rem", color: "var(--text-mute)", marginBottom: 6 }}>
+            Causes d&apos;écart déclarées
+          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {causes.map((c) => (
+              <span key={c.label} className="chip">
+                {c.label} · {c.n}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
