@@ -74,9 +74,13 @@ export default function DashboardPage() {
     const joursAvecPlan = jours.filter((j) => j.prevu > 0).length;
     const joursRenseignes = jours.filter((j) => j.renseigne).length;
 
-    const prevuTotal = jours.reduce((s, j) => s + j.prevu, 0);
-    const reelTotal = jours.reduce((s, j) => s + j.reel, 0);
-    const horsPlanTotal = jours.reduce((s, j) => s + j.horsPlan, 0);
+    // Uniquement les jours renseignés : additionner le prévu de journées
+    // dont le réel est inconnu produirait un écart qui ne mesure rien.
+    // "Pas fait" et "pas noté" ne doivent jamais se confondre.
+    const mesures = jours.filter((j) => j.renseigne);
+    const prevuTotal = mesures.reduce((s, j) => s + j.prevu, 0);
+    const reelTotal = mesures.reduce((s, j) => s + j.reel, 0);
+    const horsPlanTotal = mesures.reduce((s, j) => s + j.horsPlan, 0);
 
     // Biais d'estimation : uniquement les tâches où les deux valeurs existent.
     const mesurees = tasks.filter(
@@ -137,13 +141,13 @@ export default function DashboardPage() {
           <Chiffre
             valeur={ready ? formatDuration(d.prevuTotal) : "—"}
             libelle="prévues"
-            aide="Somme de tes estimations"
+            aide="Sur les jours renseignés"
           />
           <Chiffre
             valeur={ready ? formatDuration(d.reelTotal) : "—"}
             libelle="réalisées"
             couleur="var(--color-mint)"
-            aide="Temps réellement noté, hors-plan compris"
+            aide="Sur les mêmes jours, hors-plan compris"
           />
           <Chiffre
             valeur={ready ? formatDuration(d.horsPlanTotal) : "—"}
@@ -158,7 +162,9 @@ export default function DashboardPage() {
             Prévu et réalisé, jour par jour
           </h2>
           <p style={{ fontSize: "0.8rem", color: "var(--text-mute)", marginBottom: "1.1rem" }}>
-            Les jours sans barre sont des jours sans rien de planifié ni de noté.
+            Barre pleine = temps noté. Contour pointillé = journée planifiée
+            dont le temps réel n&apos;a jamais été renseigné. Aucune barre = rien
+            de planifié ce jour-là.
           </p>
 
           {!ready ? (
@@ -272,12 +278,27 @@ function Graphique({ jours }: { jours: Jour[] }) {
       {jours.map((j) => (
         <div
           key={j.date}
-          title={`${j.date} — prévu ${formatDuration(j.prevu)}, réalisé ${formatDuration(j.reel)}`}
+          title={`${j.date} — prévu ${formatDuration(j.prevu)}, ${j.renseigne ? `réalisé ${formatDuration(j.reel)}` : "non renseigné"}`}
           style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}
         >
           <div style={{ display: "flex", alignItems: "flex-end", gap: 2, height: H, width: "100%" }}>
             <Barre hauteur={(j.prevu / max) * H} couleur="var(--text-mute)" opacite={0.35} />
-            <Barre hauteur={(j.reel / max) * H} couleur="var(--color-mint)" opacite={0.9} />
+            {/* Un jour planifié sans aucun temps noté n'a pas un réel nul :
+                il a un réel inconnu. Un contour vide le dit, une barre à
+                zéro le ferait passer pour une journée ratée. */}
+            {j.renseigne ? (
+              <Barre hauteur={(j.reel / max) * H} couleur="var(--color-mint)" opacite={0.9} />
+            ) : (
+              <div
+                style={{
+                  flex: 1,
+                  height: j.prevu > 0 ? (j.prevu / max) * H : 0,
+                  border: "1px dashed var(--border)",
+                  borderBottom: "none",
+                  borderRadius: "4px 4px 0 0",
+                }}
+              />
+            )}
           </div>
           <span
             style={{
