@@ -26,7 +26,13 @@ function reference(t: Task): number {
   return t.estimatedMinutes ?? durationMinutes(t.start, t.end);
 }
 
-/** Au-delà de 15 %, on considère l'écart comme significatif. */
+/**
+ * Seuil d'affichage : au-delà, le delta est mis en évidence.
+ *
+ * Il ne sert PAS à filtrer. Un seuil décide si un écart mérite d'être
+ * signalé, pas s'il existe : 1 h 45 au lieu de 2 h reste plus rapide,
+ * même si l'écart est trop faible pour être souligné.
+ */
 const TOLERANCE = 0.15;
 
 type Filtre = "tout" | "depasse" | "rapide" | "sans-mesure";
@@ -66,8 +72,10 @@ export default function HistoryPage() {
         if (filtre === "sans-mesure") return t.actualMinutes == null;
         const ref = reference(t);
         if (t.actualMinutes == null || ref === 0) return false;
-        const ecart = (t.actualMinutes - ref) / ref;
-        return filtre === "depasse" ? ecart > TOLERANCE : ecart < -TOLERANCE;
+        if (filtre === "depasse") return t.actualMinutes > ref;
+        // Un objectif à zéro minute n'est pas "plus rapide" : il n'a pas
+        // été fait. Le classer ici mélangerait deux situations opposées.
+        return t.actualMinutes > 0 && t.actualMinutes < ref;
       })
       .filter(
         (t) =>
