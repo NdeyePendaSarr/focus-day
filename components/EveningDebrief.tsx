@@ -96,23 +96,29 @@ export default function EveningDebrief({
         <div>
           <label className="field-label">Ta journée, dans l&apos;ensemble</label>
           <div style={{ display: "flex", gap: 6 }}>
-            {["😔", "😕", "😐", "🙂", "😄"].map((emo, i) => (
+            {MOODS.map((m) => (
               <button
-                key={i}
-                onClick={() => setMood(i + 1)}
-                aria-label={`Humeur ${i + 1} sur 5`}
+                key={m.valeur}
+                onClick={() => setMood(m.valeur)}
+                aria-label={m.label}
+                title={m.label}
                 style={{
                   flex: 1,
-                  fontSize: "1.4rem",
-                  padding: "0.5rem",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 4,
+                  padding: "0.55rem 0.3rem",
                   borderRadius: 10,
-                  border: `1px solid ${mood === i + 1 ? "var(--color-brand)" : "var(--border)"}`,
-                  background: mood === i + 1 ? "var(--bg-3)" : "transparent",
+                  border: `1px solid ${mood === m.valeur ? "var(--color-brand)" : "var(--border)"}`,
+                  background: mood === m.valeur ? "var(--bg-3)" : "transparent",
+                  color: mood === m.valeur ? "var(--color-brand)" : "var(--text-mute)",
                   cursor: "pointer",
                   transition: "all 0.2s",
                 }}
               >
-                {emo}
+                <Visage courbe={m.courbe} />
+                <span style={{ fontSize: "0.62rem", fontWeight: 600 }}>{m.court}</span>
               </button>
             ))}
           </div>
@@ -152,4 +158,37 @@ function resume(total: number, done: number, sansTempsReel: number): string {
       : " Regarde l'écart avant de répondre.";
 
   return `${total} ${objectifs}, ${bilan}.${suite}`;
+}
+
+/**
+ * Les émojis système ont été remplacés par des visages dessinés.
+ *
+ * Un émoji change d'apparence selon la plateforme, s'aligne mal sur la
+ * ligne de base et trahit immédiatement un produit non fini. Cinq
+ * visages en SVG suivent la couleur du texte et restent identiques
+ * partout — et le libellé sous chacun lève l'ambiguïté du dessin.
+ */
+const MOODS = [
+  { valeur: 1, courbe: 7, court: "Dure", label: "Journée difficile" },
+  { valeur: 2, courbe: 3, court: "Mitigée", label: "Journée mitigée" },
+  { valeur: 3, courbe: 0, court: "Neutre", label: "Journée neutre" },
+  { valeur: 4, courbe: -3, court: "Bonne", label: "Bonne journée" },
+  { valeur: 5, courbe: -7, court: "Très bonne", label: "Très bonne journée" },
+];
+
+/** courbe > 0 : bouche tournée vers le bas. < 0 : sourire. */
+function Visage({ courbe }: { courbe: number }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="9.2" stroke="currentColor" strokeWidth="1.6" />
+      <circle cx="9" cy="10" r="1.05" fill="currentColor" />
+      <circle cx="15" cy="10" r="1.05" fill="currentColor" />
+      <path
+        d={`M8.2 ${15.4 + courbe / 3} Q12 ${15.4 - courbe} 15.8 ${15.4 + courbe / 3}`}
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
 }

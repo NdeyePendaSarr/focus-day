@@ -106,9 +106,9 @@ export default function DayTimeline({ tasks, now }: { tasks: Task[]; now: number
               width: 16,
               height: 16,
               borderRadius: "50%",
-              background: "var(--color-amber)",
+              background: "var(--color-brand)",
               border: "3px solid var(--bg)",
-              boxShadow: "0 0 0 3px color-mix(in srgb, var(--color-amber) 30%, transparent)",
+              boxShadow: "0 0 0 3px color-mix(in srgb, var(--color-brand) 30%, transparent)",
               animation: "var(--animate-pulse-now)",
               zIndex: 3,
             }}
@@ -169,7 +169,7 @@ export default function DayTimeline({ tasks, now }: { tasks: Task[]; now: number
               transform: "translateY(-50%)",
               fontSize: "0.72rem",
               fontWeight: 600,
-              color: "var(--color-amber)",
+              color: "var(--color-brand)",
               right: 0,
             }}
           >

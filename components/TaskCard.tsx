@@ -95,15 +95,38 @@ export default function TaskCard({
             </span>
 
           </div>
+          {/* Une coche plutôt qu'un texte barré : le barré combiné à
+              l'opacité rendait le titre pénible à lire, alors que ces
+              lignes restent consultées longtemps après coup. */}
           <h3
             style={{
               fontFamily: "var(--font-display)",
-              fontSize: "1.1rem",
+              fontSize: "1.05rem",
               fontWeight: 600,
-              textDecoration: task.status === "done" ? "line-through" : "none",
-              opacity: task.status === "done" ? 0.6 : 1,
+              display: "flex",
+              alignItems: "baseline",
+              gap: 7,
+              color: task.status === "done" ? "var(--text-soft)" : "var(--text)",
             }}
           >
+            {task.status === "done" && (
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                style={{ color: "var(--color-mint)", flexShrink: 0 }}
+                aria-hidden="true"
+              >
+                <path
+                  d="M4 12.5 9.5 18 20 6.5"
+                  stroke="currentColor"
+                  strokeWidth="2.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            )}
             {task.name}
           </h3>
           {task.description && (
@@ -146,22 +169,22 @@ export default function TaskCard({
       {/* Actions de statut */}
       <div style={{ display: "flex", gap: 6, marginTop: 12, flexWrap: "wrap" }}>
         {task.status !== "in_progress" && task.status !== "done" && (
-          <button className="chip" onClick={() => onStatus(task.id, "in_progress")}>
+          <button className="btn-primary btn-sm" onClick={() => onStatus(task.id, "in_progress")}>
             Démarrer
           </button>
         )}
         {task.status === "in_progress" && (
-          <button className="chip chip-mint" onClick={() => setCapturing(true)}>
+          <button className="btn-primary btn-sm" onClick={() => setCapturing(true)}>
             Terminer
           </button>
         )}
         {task.status !== "done" && task.status !== "in_progress" && (
-          <button className="chip chip-mint" onClick={() => setCapturing(true)}>
+          <button className="btn-primary btn-sm" onClick={() => setCapturing(true)}>
             Fait
           </button>
         )}
         {task.status === "done" && (
-          <button className="chip" onClick={() => onStatus(task.id, "planned")}>
+          <button className="chip chip-quiet" onClick={() => onStatus(task.id, "planned")}>
             Rouvrir
           </button>
         )}
@@ -193,10 +216,10 @@ export default function TaskCard({
             )}
           </svg>
         </button>
-        <button className="chip" onClick={() => onEdit(task)}>
+        <button className="chip chip-quiet" onClick={() => onEdit(task)}>
           Modifier
         </button>
-        <button className="chip" onClick={() => onArchive(task.id)}>
+        <button className="chip chip-quiet" onClick={() => onArchive(task.id)}>
           Archiver
         </button>
       </div>

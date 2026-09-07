@@ -217,7 +217,7 @@ function ResumeJour({ items }: { items: Task[] }) {
         </span>
       ) : (
         <>
-          <span style={{ color: "#FFDE21" }}>{formatDuration(prevu)}</span>
+          <span style={{ color: "var(--color-plan)" }}>{formatDuration(prevu)}</span>
           <span style={{ color: "var(--text-mute)" }}> prévues · </span>
           <span style={{ color: "var(--color-brand)" }}>{formatDuration(reel)}</span>
           <span style={{ color: "var(--text-mute)" }}> réalisées</span>
@@ -249,8 +249,7 @@ function Ligne({ t, onNote }: { t: Task; onNote: () => void }) {
             style={{
               fontSize: "0.98rem",
               fontWeight: 600,
-              textDecoration: t.status === "done" ? "line-through" : "none",
-              opacity: t.status === "done" ? 0.65 : 1,
+              color: t.status === "done" ? "var(--text-soft)" : "var(--text)",
             }}
           >
             {t.name}
@@ -355,7 +354,7 @@ function Ecart({ t }: { t: Task }) {
 
   return (
     <p className="hist-gap">
-      <span style={{ color: "#FFDE21" }}>{formatDuration(ref)}</span>
+      <span style={{ color: "var(--color-plan)" }}>{formatDuration(ref)}</span>
       <span style={{ color: "var(--text-mute)" }}> prévues · </span>
       <span style={{ color: "var(--color-brand)" }}>
         {formatDuration(t.actualMinutes)}
