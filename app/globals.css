@@ -345,3 +345,242 @@ select,
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+
+/* ============================================================
+   Connexion / inscription
+   Deux panneaux sur grand écran : à gauche ce que fait le
+   produit, montré par des barres prévu/réalisé identiques à
+   celles du tableau de bord ; à droite le formulaire seul.
+   L'illustration n'est pas décorative — c'est la promesse.
+   ============================================================ */
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 940px) {
+  .auth-shell {
+    grid-template-columns: 1.05fr 1fr;
+  }
+}
+
+.auth-side {
+  display: none;
+  padding: 3rem;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2.5rem;
+  background:
+    radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--color-brand) 22%, transparent), transparent 60%),
+    radial-gradient(100% 80% at 100% 100%, color-mix(in srgb, #ffde21 14%, transparent), transparent 55%),
+    var(--bg-2);
+  border-right: 1px solid var(--border);
+}
+
+@media (min-width: 940px) {
+  .auth-side {
+    display: flex;
+  }
+}
+
+.auth-logo {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.auth-logo-mobile {
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 940px) {
+  .auth-logo-mobile {
+    display: none;
+  }
+}
+
+.auth-claim {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 2.6vw, 2.3rem);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.9rem;
+}
+
+.auth-sub {
+  color: var(--text-soft);
+  font-size: 0.95rem;
+  max-width: 42ch;
+  line-height: 1.6;
+}
+
+/* --- l'illustration : sept journées, prévu puis réalisé --- */
+.auth-art {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  height: 190px;
+}
+
+.auth-day {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  flex: 1;
+  height: 100%;
+}
+
+.auth-bar {
+  flex: 1;
+  border-radius: 5px 5px 0 0;
+  height: var(--h);
+  transform-origin: bottom;
+  animation: auth-grow 900ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.auth-bar-plan {
+  background: #ffde21;
+  opacity: 0.55;
+}
+
+.auth-bar-real {
+  background: var(--color-brand);
+}
+
+@keyframes auth-grow {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.auth-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-mute);
+}
+
+.auth-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+  margin-left: 10px;
+}
+
+.auth-dot-plan { background: #ffde21; opacity: 0.7; margin-left: 0; }
+.auth-dot-real { background: var(--color-brand); }
+
+/* --- le formulaire --- */
+.auth-form-side {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.25rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem 1.75rem;
+}
+
+.auth-title {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.auth-hint {
+  color: var(--text-soft);
+  font-size: 0.88rem;
+  margin-bottom: 1.5rem;
+}
+
+.auth-session {
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.85rem;
+  font-size: 0.88rem;
+  margin-bottom: 1.25rem;
+}
+
+.auth-pwd {
+  position: relative;
+}
+
+.auth-pwd .field {
+  padding-right: 5.5rem;
+}
+
+.auth-eye {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-mute);
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 0.25rem 0.4rem;
+  border-radius: 6px;
+}
+
+.auth-eye:hover {
+  color: var(--color-brand);
+  background: var(--bg-3);
+}
+
+.auth-msg {
+  font-size: 0.85rem;
+  margin-top: 0.9rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+}
+
+.auth-msg-error {
+  color: var(--color-rose);
+  background: color-mix(in srgb, var(--color-rose) 12%, transparent);
+}
+
+.auth-msg-ok {
+  color: var(--color-mint);
+  background: color-mix(in srgb, var(--color-mint) 12%, transparent);
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: 1.4rem;
+}
+
+.auth-switch {
+  margin-top: 1.1rem;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  text-align: center;
+}
+
+.auth-switch button {
+  background: none;
+  border: none;
+  color: var(--color-brand);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
+  padding: 0;
+}
+
+.auth-switch button:hover {
+  text-decoration: underline;
+}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTheme } from "./ThemeProvider";
+import { getSupabase } from "@/lib/supabase";
 
 const LINKS = [
   { href: "/", label: "Ma journée" },
@@ -16,6 +17,28 @@ export default function NavBar() {
   const path = usePathname();
   const { theme, toggle } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [connectee, setConnectee] = useState(false);
+
+  // Le bouton n'apparaît qu'en mode Supabase et une fois la session lue :
+  // en mode localStorage il n'y a personne à déconnecter.
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_DATA_SOURCE !== "supabase") return;
+    void (async () => {
+      try {
+        const { data } = await getSupabase().auth.getUser();
+        setConnectee(Boolean(data.user));
+      } catch {
+        setConnectee(false);
+      }
+    })();
+  }, []);
+
+  const seDeconnecter = async () => {
+    await getSupabase().auth.signOut();
+    // Rechargement complet : sans lui, des composants encore montés
+    // continueraient d'interroger Supabase sans session.
+    window.location.href = "/login";
+  };
 
   // Referme le menu à chaque changement de page
   useEffect(() => setMenuOpen(false), [path]);
@@ -79,6 +102,15 @@ export default function NavBar() {
               </Link>
             );
           })}
+          {connectee && (
+            <button
+              onClick={seDeconnecter}
+              className="btn-ghost"
+              style={{ marginLeft: 6, padding: "0.45rem 0.75rem", fontSize: "0.85rem" }}
+            >
+              Se déconnecter
+            </button>
+          )}
           <button
             onClick={toggle}
             aria-label={theme === "dark" ? "Passer en clair" : "Passer en sombre"}
@@ -140,6 +172,15 @@ export default function NavBar() {
           >
             {theme === "dark" ? "☀ Passer en clair" : "☾ Passer en sombre"}
           </button>
+          {connectee && (
+            <button
+              onClick={seDeconnecter}
+              className="btn-ghost"
+              style={{ justifySelf: "start", marginTop: 2 }}
+            >
+              Se déconnecter
+            </button>
+          )}
         </div>
       )}
     </header>
