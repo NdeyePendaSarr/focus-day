@@ -306,19 +306,25 @@ function Graphique({ jours }: { jours: Jour[] }) {
                 zéro le ferait passer pour une journée ratée. */}
             {j.renseigne ? (
               <Barre hauteur={(j.reel / max) * H} couleur="var(--color-brand)" opacite={0.95} />
-            ) : (
+            ) : j.prevu > 0 ? (
               <div
                 style={{
                   flex: 1,
                   /* Hauteur fixe et minime : le réel est inconnu, pas égal
                      au prévu. Reprendre la hauteur prévue affirmerait une
                      valeur que personne n'a saisie. */
-                  height: j.prevu > 0 ? 10 : 0,
+                  height: 10,
                   border: "1px dashed var(--color-slate)",
                   borderRadius: 3,
                   opacity: 0.7,
                 }}
               />
+            ) : (
+              /* Rien de planifié ce jour-là : pas de trait du tout. Une
+                 hauteur nulle laissait quand même apparaître les deux
+                 bordures, ce qui faisait passer un jour vide pour un jour
+                 planifié non renseigné. */
+              <span style={{ flex: 1 }} />
             )}
           </div>
           <span
