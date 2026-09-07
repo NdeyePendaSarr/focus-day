@@ -70,9 +70,15 @@ export default function LoginPage() {
 
   useEffect(() => {
     const raison = new URLSearchParams(window.location.search).get("auth");
-    if (raison === "lien-expire")
-      setError("Ce lien de confirmation a expiré. Reconnecte-toi pour en recevoir un nouveau.");
-    if (raison === "lien-invalide") setError("Lien de confirmation invalide.");
+    // Un lien de confirmation ne sert qu'une fois, et il est souvent
+    // ouvert avant l'utilisateur par un antivirus de messagerie ou un
+    // aperçu de lien. Dans ce cas la confirmation a bien eu lieu : le
+    // message doit inviter à se connecter, pas annoncer un échec.
+    if (raison === "lien-expire" || raison === "lien-invalide")
+      setInfo(
+        "Ce lien a déjà servi — c'est fréquent, les messageries les ouvrent " +
+          "automatiquement. Ton adresse est confirmée : connecte-toi normalement."
+      );
 
     void (async () => {
       try {
