@@ -5,6 +5,7 @@ import type { Task } from "@/lib/types";
 import { repo } from "@/lib/repo";
 import { prettyDate } from "@/lib/time";
 import NavBar from "@/components/NavBar";
+import NoteEditor from "@/components/NoteEditor";
 
 const STATUS_LABEL: Record<string, string> = {
   planned: "À faire", in_progress: "En cours", done: "Terminée", missed: "Manquée",
@@ -18,6 +19,8 @@ export default function HistoryPage() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "done" | "missed">("all");
   const [ready, setReady] = useState(false);
+  // La note consultée, ou null. L'historique ne permet que la lecture.
+  const [noteLue, setNoteLue] = useState<Task | null>(null);
 
   useEffect(() => {
     void (async () => {
@@ -105,6 +108,29 @@ export default function HistoryPage() {
                             Archivée
                           </span>
                         )}
+                        {t.note && (
+                          <button
+                            className="chip chip-icon"
+                            onClick={() => setNoteLue(t)}
+                            aria-label="Lire la note"
+                            title="Lire la note"
+                            style={{ color: "var(--color-brand)", borderColor: "var(--color-brand)" }}
+                          >
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                              <path
+                                d="M4 4.5A1.5 1.5 0 0 1 5.5 3h9L20 8.5v11a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19.5v-15Z"
+                                stroke="currentColor"
+                                strokeWidth="1.7"
+                                strokeLinejoin="round"
+                                fill="currentColor"
+                                fillOpacity={0.14}
+                              />
+                              <path d="M14 3v5.5h5.5" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+                              <path d="M8 12.5h8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                              <path d="M8 16h5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                            </svg>
+                          </button>
+                        )}
                         <span style={{ fontSize: "0.74rem", fontWeight: 600, color: STATUS_COLOR[t.status] }}>
                           ● {STATUS_LABEL[t.status]}
                         </span>
@@ -117,6 +143,14 @@ export default function HistoryPage() {
           </div>
         )}
       </main>
+
+      <NoteEditor
+        open={noteLue !== null}
+        titre={noteLue?.name ?? ""}
+        valeur={noteLue?.note ?? ""}
+        onClose={() => setNoteLue(null)}
+        readOnly
+      />
     </>
   );
 }

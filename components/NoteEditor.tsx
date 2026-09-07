@@ -44,13 +44,17 @@ export default function NoteEditor({
   onSave,
   onDelete,
   onClose,
+  readOnly = false,
 }: {
   open: boolean;
   titre: string;
   valeur: string;
-  onSave: (note: string) => void;
-  onDelete: () => void;
+  onSave?: (note: string) => void;
+  onDelete?: () => void;
   onClose: () => void;
+  /** Consultation seule : l'historique doit rester fiable, on ne
+   *  réécrit pas après coup ce qu'on a noté sur le moment. */
+  readOnly?: boolean;
 }) {
   const [texte, setTexte] = useState(valeur);
   const [apercu, setApercu] = useState(false);
@@ -94,53 +98,73 @@ export default function NoteEditor({
         <p className="note-eyebrow">Note</p>
         <h2 className="note-title">{titre}</h2>
 
-        <div className="note-toolbar">
-          <button className="chip" onClick={() => entourer("**")} title="Gras">
-            <strong>G</strong>
-          </button>
-          <button className="chip" onClick={() => entourer("*")} title="Italique">
-            <em>I</em>
-          </button>
-          <button className="chip" onClick={() => setApercu((v) => !v)}>
-            {apercu ? "Écrire" : "Aperçu"}
-          </button>
-        </div>
-
-        {apercu ? (
-          <div className="note-preview">
-            {texte.trim() ? renderNote(texte) : "Rien à afficher pour l'instant."}
-          </div>
+        {readOnly ? (
+          <>
+            <div className="note-preview">
+              {valeur.trim() ? renderNote(valeur) : "Cette note est vide."}
+            </div>
+            <p className="note-help">
+              Consultation seule — une note d&apos;un jour passé ne se
+              modifie plus.
+            </p>
+            <div className="note-actions">
+              <span style={{ flex: 1 }} />
+              <button className="btn-primary" onClick={onClose}>
+                Fermer
+              </button>
+            </div>
+          </>
         ) : (
-          <textarea
-            ref={champ}
-            className="field note-field"
-            rows={9}
-            placeholder="Ce que j'ai appris, ce qui a bloqué, ce à quoi penser la prochaine fois…"
-            value={texte}
-            onChange={(e) => setTexte(e.target.value)}
-            autoFocus
-          />
+          <>
+            <div className="note-toolbar">
+              <button className="chip" onClick={() => entourer("**")} title="Gras">
+                <strong>G</strong>
+              </button>
+              <button className="chip" onClick={() => entourer("*")} title="Italique">
+                <em>I</em>
+              </button>
+              <button className="chip" onClick={() => setApercu((v) => !v)}>
+                {apercu ? "Écrire" : "Aperçu"}
+              </button>
+            </div>
+
+            {apercu ? (
+              <div className="note-preview">
+                {texte.trim() ? renderNote(texte) : "Rien à afficher pour l'instant."}
+              </div>
+            ) : (
+              <textarea
+                ref={champ}
+                className="field note-field"
+                rows={9}
+                placeholder="Ce que j'ai appris, ce qui a bloqué, ce à quoi penser la prochaine fois…"
+                value={texte}
+                onChange={(e) => setTexte(e.target.value)}
+                autoFocus
+              />
+            )}
+
+            <p className="note-help">
+              Entoure un passage de <code>**</code> pour le mettre en gras, de{" "}
+              <code>*</code> pour l&apos;italique.
+            </p>
+
+            <div className="note-actions">
+              {valeur && onDelete && (
+                <button className="chip chip-rose" onClick={onDelete}>
+                  Supprimer
+                </button>
+              )}
+              <span style={{ flex: 1 }} />
+              <button className="chip" onClick={onClose}>
+                Annuler
+              </button>
+              <button className="btn-primary" onClick={() => onSave?.(texte.trim())}>
+                Enregistrer
+              </button>
+            </div>
+          </>
         )}
-
-        <p className="note-help">
-          Entoure un passage de <code>**</code> pour le mettre en gras, de{" "}
-          <code>*</code> pour l&apos;italique.
-        </p>
-
-        <div className="note-actions">
-          {valeur && (
-            <button className="chip chip-rose" onClick={onDelete}>
-              Supprimer
-            </button>
-          )}
-          <span style={{ flex: 1 }} />
-          <button className="chip" onClick={onClose}>
-            Annuler
-          </button>
-          <button className="btn-primary" onClick={() => onSave(texte.trim())}>
-            Enregistrer
-          </button>
-        </div>
       </div>
     </div>
   );
