@@ -127,6 +127,14 @@ export function useTasks(date: string = todayISO()) {
     [updateTask]
   );
 
+  /** Enregistre la note. Chaîne vide = suppression. */
+  const setNote = useCallback(
+    async (id: string, note: string) => {
+      await updateTask(id, { note: note || undefined });
+    },
+    [updateTask]
+  );
+
   /** Rattrapage : renseigne le temps réel sans toucher au statut. */
   const setActual = useCallback(
     async (id: string, actualMinutes: number, gapReason?: GapReason) => {
@@ -181,5 +189,5 @@ export function useTasks(date: string = todayISO()) {
     [updateTask]
   );
 
-  return { tasks, ready, error, addTask, updateTask, setStatus, completeTask, setActual, addUnplanned, removeTask, archiveTask, refresh };
+  return { tasks, ready, error, addTask, updateTask, setStatus, completeTask, setNote, setActual, addUnplanned, removeTask, archiveTask, refresh };
 }

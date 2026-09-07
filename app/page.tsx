@@ -14,7 +14,7 @@ import { repo } from "@/lib/repo";
 
 export default function HomePage() {
   const today = todayISO();
-  const { tasks, ready, addTask, updateTask, setStatus, completeTask, setActual, addUnplanned, archiveTask } = useTasks(today);
+  const { tasks, ready, addTask, updateTask, setStatus, completeTask, setNote, setActual, addUnplanned, archiveTask } = useTasks(today);
   const now = useNow();
   const { permission, requestPermission } = useReminders(tasks);
 
@@ -78,7 +78,6 @@ export default function HomePage() {
       start: d.start,
       end: d.end,
       estimatedMinutes: estimated,
-      note: d.note.trim() || undefined,
     };
     if (editing) {
       updateTask(editing.id, base);
@@ -165,7 +164,7 @@ export default function HomePage() {
             )}
             {plannedTasks.map((t) => (
               <TaskCard key={t.id} task={t} now={now} onStatus={setStatus}
-              onComplete={completeTask} onEdit={openEdit} onArchive={archiveTask} />
+              onComplete={completeTask} onNote={setNote} onEdit={openEdit} onArchive={archiveTask} />
             ))}
 
             {/* Le débrief appartient à la zone de travail : hors du

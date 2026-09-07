@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Task, TaskStatus, GapReason } from "@/lib/types";
 import { GAP_REASONS } from "@/lib/types";
 import ActualTimePanel from "@/components/ActualTimePanel";
+import NoteEditor, { renderNote } from "@/components/NoteEditor";
 import { formatDuration, durationMinutes, timePosition, spillsIntoNextDay } from "@/lib/time";
 
 const STATUS_LABEL: Record<TaskStatus, string> = {
@@ -25,6 +26,7 @@ export default function TaskCard({
   now,
   onStatus,
   onComplete,
+  onNote,
   onEdit,
   onArchive,
 }: {
@@ -33,10 +35,13 @@ export default function TaskCard({
   onStatus: (id: string, s: TaskStatus) => void;
   /** Termine la tâche ET enregistre le réalisé, en une seule opération. */
   onComplete: (id: string, actualMinutes: number, gapReason?: GapReason, note?: string) => void;
+  /** Enregistre ou efface la note. Chaîne vide = suppression. */
+  onNote: (id: string, note: string) => void;
   onEdit: (task: Task) => void;
   onArchive: (id: string) => void;
 }) {
   const [capturing, setCapturing] = useState(false);
+  const [noteOuverte, setNoteOuverte] = useState(false);
   const pos = timePosition(task, now);
   const duration = durationMinutes(task.start, task.end);
   const overnight = spillsIntoNextDay(task.start, task.end);
@@ -133,7 +138,7 @@ export default function TaskCard({
               whiteSpace: "pre-wrap",
             }}
           >
-            {task.note}
+            {renderNote(task.note)}
           </p>
         )}
         </div>
@@ -183,6 +188,21 @@ export default function TaskCard({
           Archiver
         </button>
       </div>
+
+      <NoteEditor
+        open={noteOuverte}
+        titre={task.name}
+        valeur={task.note ?? ""}
+        onSave={(n) => {
+          onNote(task.id, n);
+          setNoteOuverte(false);
+        }}
+        onDelete={() => {
+          onNote(task.id, "");
+          setNoteOuverte(false);
+        }}
+        onClose={() => setNoteOuverte(false)}
+      />
 
       {capturing && (
         <ActualTimePanel
