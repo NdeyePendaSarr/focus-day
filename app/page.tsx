@@ -78,6 +78,7 @@ export default function HomePage() {
       start: d.start,
       end: d.end,
       estimatedMinutes: estimated,
+      note: d.note.trim() || undefined,
     };
     if (editing) {
       updateTask(editing.id, base);

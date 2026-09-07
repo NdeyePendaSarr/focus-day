@@ -12,9 +12,10 @@ export type TaskDraft = {
   start: string;
   end: string;
   estimatedMinutes: string;
+  note: string;
 };
 
-const EMPTY: TaskDraft = { name: "", description: "", why: "", start: "09:00", end: "10:00", estimatedMinutes: "" };
+const EMPTY: TaskDraft = { name: "", description: "", why: "", start: "09:00", end: "10:00", estimatedMinutes: "", note: "" };
 
 export default function TaskForm({
   open,
@@ -50,6 +51,7 @@ export default function TaskForm({
         start: editing.start,
         end: editing.end,
         estimatedMinutes: explicite ? String(editing.estimatedMinutes) : "",
+        note: editing.note ?? "",
       });
       setEstimationTouched(explicite);
     } else {
@@ -179,6 +181,19 @@ export default function TaskForm({
               onChange={(e) => set("why", e.target.value)}
               placeholder="Pour être prête à l'examen sans stresser."
               style={{ resize: "vertical" }}
+            />
+          </div>
+
+          {/* Écrite après coup, mais modifiable ici : on peut vouloir la
+              compléter le lendemain, quand le recul est meilleur. */}
+          <div>
+            <label className="field-label">Ce que tu en retiens (optionnel)</label>
+            <textarea
+              className="field"
+              rows={2}
+              placeholder="Ce que j'ai appris, ce qui a bloqué…"
+              value={draft.note}
+              onChange={(e) => set("note", e.target.value)}
             />
           </div>
 

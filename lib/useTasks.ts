@@ -115,12 +115,13 @@ export function useTasks(date: string = todayISO()) {
 
   /** Termine une tâche en enregistrant le réalisé dans la même écriture. */
   const completeTask = useCallback(
-    async (id: string, actualMinutes: number, gapReason?: GapReason) => {
+    async (id: string, actualMinutes: number, gapReason?: GapReason, note?: string) => {
       await updateTask(id, {
         status: "done",
         completedAt: new Date().toISOString(),
         actualMinutes,
         gapReason,
+        ...(note ? { note } : {}),
       });
     },
     [updateTask]

@@ -32,7 +32,7 @@ export default function TaskCard({
   now: number;
   onStatus: (id: string, s: TaskStatus) => void;
   /** Termine la tâche ET enregistre le réalisé, en une seule opération. */
-  onComplete: (id: string, actualMinutes: number, gapReason?: GapReason) => void;
+  onComplete: (id: string, actualMinutes: number, gapReason?: GapReason, note?: string) => void;
   onEdit: (task: Task) => void;
   onArchive: (id: string) => void;
 }) {
@@ -120,6 +120,22 @@ export default function TaskCard({
               {task.why}
             </p>
           )}
+
+        {task.note && (
+          <p
+            style={{
+              marginTop: 8,
+              padding: "0.5rem 0.7rem",
+              background: "var(--bg-3)",
+              borderRadius: 8,
+              fontSize: "0.85rem",
+              color: "var(--text-soft)",
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {task.note}
+          </p>
+        )}
         </div>
 
         <div className="task-side">
@@ -172,9 +188,9 @@ export default function TaskCard({
         <ActualTimePanel
           task={task}
           slotMinutes={duration}
-          onConfirm={(m, r) => {
+          onConfirm={(m, r, n) => {
             setCapturing(false);
-            onComplete(task.id, m, r);
+            onComplete(task.id, m, r, n);
           }}
           onCancel={() => setCapturing(false)}
         />

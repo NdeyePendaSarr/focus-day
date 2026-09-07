@@ -43,7 +43,7 @@ export default function ActualTimePanel({
 }: {
   task: Task;
   slotMinutes: number;
-  onConfirm: (actualMinutes: number, gapReason?: GapReason) => void;
+  onConfirm: (actualMinutes: number, gapReason?: GapReason, note?: string) => void;
   onCancel: () => void;
 }) {
   const reference = task.estimatedMinutes ?? slotMinutes;
@@ -51,6 +51,10 @@ export default function ActualTimePanel({
   // le temps que tu pensais ?", et l'écart se lit tout de suite.
   const [minutes, setMinutes] = useState(formatDuration(reference));
   const [reason, setReason] = useState<GapReason | null>(null);
+  // Repliée par défaut : valider une tâche doit rester deux taps.
+  // La note est un bonus, jamais un péage.
+  const [noteOuverte, setNoteOuverte] = useState(false);
+  const [note, setNote] = useState(task.note ?? "");
 
   const actual = parseDuration(minutes) ?? 0;
   const chrono = chronoMinutes(task);
@@ -119,10 +123,37 @@ export default function ActualTimePanel({
         </div>
       )}
 
+      {noteOuverte ? (
+        <div style={{ marginTop: 12 }}>
+          <label className="field-label">Ce que tu en retiens</label>
+          <textarea
+            className="field"
+            rows={3}
+            placeholder="Ce que j'ai appris, ce qui a bloqué, ce à quoi penser la prochaine fois…"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+        </div>
+      ) : (
+        <button
+          className="chip"
+          style={{ marginTop: 12 }}
+          onClick={() => setNoteOuverte(true)}
+        >
+          {note ? "Modifier la note" : "+ Ajouter une note"}
+        </button>
+      )}
+
       <div style={{ display: "flex", gap: 6, marginTop: 12 }}>
         <button
           className="chip chip-mint"
-          onClick={() => onConfirm(actual, significant ? reason ?? undefined : undefined)}
+          onClick={() =>
+            onConfirm(
+              actual,
+              significant ? reason ?? undefined : undefined,
+              note.trim() || undefined
+            )
+          }
         >
           Valider
         </button>

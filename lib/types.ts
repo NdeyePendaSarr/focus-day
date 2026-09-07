@@ -44,6 +44,10 @@ export interface Task {
   estimatedMinutes?: number;
   /** Temps réellement passé, en minutes. Saisi, jamais déduit. */
   actualMinutes?: number;
+  /** Note écrite après coup : ce qu'on a appris, retenu, ou voulu
+   *  garder de cette tâche. Distincte de description (le plan) et de
+   *  gapNote (la cause d'un écart). */
+  note?: string;
   gapReason?: GapReason;
   gapNote?: string;
   /** "unplanned" : activité saisie après coup, jamais planifiée.
