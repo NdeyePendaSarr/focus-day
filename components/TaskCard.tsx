@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { Task, TaskStatus, GapReason } from "@/lib/types";
 import { GAP_REASONS } from "@/lib/types";
 import ActualTimePanel from "@/components/ActualTimePanel";
-import NoteEditor, { renderNote } from "@/components/NoteEditor";
+import NoteEditor from "@/components/NoteEditor";
 import { formatDuration, durationMinutes, timePosition, spillsIntoNextDay } from "@/lib/time";
 
 const STATUS_LABEL: Record<TaskStatus, string> = {
@@ -125,22 +125,6 @@ export default function TaskCard({
               {task.why}
             </p>
           )}
-
-        {task.note && (
-          <p
-            style={{
-              marginTop: 8,
-              padding: "0.5rem 0.7rem",
-              background: "var(--bg-3)",
-              borderRadius: 8,
-              fontSize: "0.85rem",
-              color: "var(--text-soft)",
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            {renderNote(task.note)}
-          </p>
-        )}
         </div>
 
         <div className="task-side">
@@ -181,6 +165,34 @@ export default function TaskCard({
             Rouvrir
           </button>
         )}
+        {/* Icône seule : afficher le texte de la note sur la carte la
+            faisait enfler dès qu'on écrivait plus de trois lignes.
+            Le marqueur signale seulement qu'il y a quelque chose à lire. */}
+        <button
+          className="chip chip-icon"
+          onClick={() => setNoteOuverte(true)}
+          aria-label={task.note ? "Lire ou modifier la note" : "Ajouter une note"}
+          title={task.note ? "Lire ou modifier la note" : "Ajouter une note"}
+          style={task.note ? { color: "var(--color-brand)", borderColor: "var(--color-brand)" } : undefined}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M4 4.5A1.5 1.5 0 0 1 5.5 3h9L20 8.5v11a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19.5v-15Z"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinejoin="round"
+              fill={task.note ? "currentColor" : "none"}
+              fillOpacity={task.note ? 0.14 : 0}
+            />
+            <path d="M14 3v5.5h5.5" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+            {task.note && (
+              <>
+                <path d="M8 12.5h8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                <path d="M8 16h5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+              </>
+            )}
+          </svg>
+        </button>
         <button className="chip" onClick={() => onEdit(task)}>
           Modifier
         </button>
