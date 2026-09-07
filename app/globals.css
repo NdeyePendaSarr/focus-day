@@ -442,7 +442,7 @@ select,
 
 .auth-bar-plan {
   background: #ffde21;
-  opacity: 0.55;
+  opacity: 0.85;
 }
 
 .auth-bar-real {
@@ -475,7 +475,7 @@ select,
   margin-left: 10px;
 }
 
-.auth-dot-plan { background: #ffde21; opacity: 0.7; margin-left: 0; }
+.auth-dot-plan { background: #ffde21; opacity: 0.85; margin-left: 0; }
 .auth-dot-real { background: var(--color-brand); }
 
 /* --- le formulaire --- */
