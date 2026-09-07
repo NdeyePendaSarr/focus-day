@@ -69,6 +69,11 @@ export default function LoginPage() {
   const [currentEmail, setCurrentEmail] = useState<string | null>(null);
 
   useEffect(() => {
+    const raison = new URLSearchParams(window.location.search).get("auth");
+    if (raison === "lien-expire")
+      setError("Ce lien de confirmation a expiré. Reconnecte-toi pour en recevoir un nouveau.");
+    if (raison === "lien-invalide") setError("Lien de confirmation invalide.");
+
     void (async () => {
       try {
         const { data } = await getSupabase().auth.getUser();
@@ -91,7 +96,12 @@ export default function LoginPage() {
         if (error) throw new Error(messageFr(error.message));
         window.location.href = "/";
       } else {
-        const { data, error } = await auth.signUp({ email, password });
+        const { data, error } = await auth.signUp({
+          email,
+          password,
+          // Sans cette adresse, Supabase utilise son "Site URL" global.
+          options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+        });
         if (error) throw new Error(messageFr(error.message));
         if (data.session) {
           window.location.href = "/";

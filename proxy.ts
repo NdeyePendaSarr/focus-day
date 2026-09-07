@@ -41,9 +41,13 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isLogin = request.nextUrl.pathname.startsWith("/login");
+  const chemin = request.nextUrl.pathname;
+  // /auth/callback échange le code de confirmation contre une session :
+  // le rediriger vers /login ferait perdre le code et la confirmation
+  // n'aboutirait jamais.
+  const libre = chemin.startsWith("/login") || chemin.startsWith("/auth");
 
-  if (!user && !isLogin) {
+  if (!user && !libre) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
