@@ -729,3 +729,41 @@ select,
   align-items: center;
   justify-content: center;
 }
+
+/* ============================================================
+   Historique
+   ============================================================ */
+.hist-day-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.7rem;
+}
+
+.hist-day-title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-brand);
+  text-transform: capitalize;
+}
+
+.hist-day-sum {
+  font-size: 0.8rem;
+}
+
+.hist-row {
+  padding: 0.85rem 1.1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.hist-gap {
+  font-size: 0.78rem;
+  margin-top: 5px;
+}
