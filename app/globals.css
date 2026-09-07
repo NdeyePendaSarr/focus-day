@@ -584,3 +584,55 @@ select,
 .auth-switch button:hover {
   text-decoration: underline;
 }
+
+/* --- en-tête mobile de la page de connexion --- */
+.auth-dot-logo {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--color-amber);
+  margin-right: 8px;
+  vertical-align: baseline;
+}
+
+.auth-mobile-head {
+  margin-bottom: 1.6rem;
+}
+
+.auth-mobile-head .auth-logo {
+  margin-bottom: 1.1rem;
+}
+
+.auth-art-sm {
+  height: 68px;
+  gap: 7px;
+}
+
+.auth-claim-sm {
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin-top: 1rem;
+}
+
+@media (min-width: 940px) {
+  .auth-mobile-head {
+    display: none;
+  }
+}
+
+/* Un fond dégradé plutôt qu'un aplat : sur mobile la carte est seule
+   à l'écran, un fond neutre la fait paraître posée sur rien. */
+.auth-form-side {
+  background:
+    radial-gradient(90% 60% at 50% 0%, color-mix(in srgb, var(--color-brand) 10%, transparent), transparent 70%),
+    radial-gradient(70% 50% at 100% 100%, color-mix(in srgb, #ffde21 10%, transparent), transparent 60%);
+}
+
+@media (min-width: 940px) {
+  .auth-form-side {
+    background: none;
+  }
+}

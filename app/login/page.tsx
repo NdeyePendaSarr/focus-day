@@ -38,9 +38,9 @@ const JOURS = [
   { prevu: 70, reel: 38 },
 ];
 
-function Illustration() {
+function Illustration({ compact = false }: { compact?: boolean }) {
   return (
-    <div className="auth-art" aria-hidden="true">
+    <div className={compact ? "auth-art auth-art-sm" : "auth-art"} aria-hidden="true">
       {JOURS.map((j, i) => (
         <div key={i} className="auth-day">
           <span
@@ -126,6 +126,7 @@ export default function LoginPage() {
       <section className="auth-side">
         <div>
           <p className="auth-logo">
+            <span className="auth-dot-logo" />
             Focus<span style={{ color: "var(--color-brand)" }}>Day</span>
           </p>
           <h1 className="auth-claim">
@@ -150,9 +151,18 @@ export default function LoginPage() {
       {/* Panneau de droite : le formulaire, et rien d'autre. */}
       <section className="auth-form-side">
         <div className="auth-card card-surface">
-          <p className="auth-logo auth-logo-mobile">
-            Focus<span style={{ color: "var(--color-brand)" }}>Day</span>
-          </p>
+          {/* Sur mobile le panneau de gauche disparaît : on en garde
+              l'essentiel ici, sans quoi la carte flotte sur du vide. */}
+          <div className="auth-mobile-head">
+            <p className="auth-logo">
+              <span className="auth-dot-logo" />
+              Focus<span style={{ color: "var(--color-brand)" }}>Day</span>
+            </p>
+            <Illustration compact />
+            <p className="auth-claim-sm">
+              Ce que tu avais prévu. Ce que tu as vraiment fait.
+            </p>
+          </div>
 
           <h2 className="auth-title">
             {mode === "signin" ? "Content de te revoir" : "Crée ton compte"}
