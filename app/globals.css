@@ -484,23 +484,12 @@ select,
 
 /* ============================================================
    Connexion / inscription
-   Deux panneaux sur grand écran : à gauche ce que fait le
-   produit, montré par des barres prévu/réalisé identiques à
-   celles du tableau de bord ; à droite le formulaire seul.
-   L'illustration n'est pas décorative — c'est la promesse.
+   Sur grand écran, une colonne bleu profond (accroche et cartes de
+   portfolio en éventail, voir plus bas « .auth-split ») et le
+   formulaire seul. Sur mobile, le formulaire avec l'accroche en tête.
    ============================================================ */
-/* Un seul fond pour toute la page, halo compris : deux panneaux de fonds
-   différents séparés par un trait donnaient deux pages côte à côte. */
-.auth-page {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background:
-    radial-gradient(900px 620px at 12% 8%, color-mix(in srgb, var(--color-brand-bright) 13%, transparent), transparent 62%),
-    radial-gradient(760px 520px at 92% 96%, color-mix(in srgb, var(--color-brand-bright) 8%, transparent), transparent 60%),
-    var(--bg);
-}
 
+/* Barre de logo, visible seulement quand la colonne bleue est masquée. */
 .auth-topbar {
   width: 100%;
   max-width: 1200px;
@@ -512,57 +501,11 @@ select,
   margin-bottom: 0;
 }
 
-/* Conteneur borné et centré : en pleine largeur, à 1920 px, le texte
-   collait au bord gauche et le formulaire flottait loin à droite. Les deux
-   colonnes sont centrées verticalement sur le même axe. */
-.auth-shell {
-  flex: 1;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1.5rem 1.5rem 1.75rem;
-  box-sizing: border-box;
-  display: grid;
-  grid-template-columns: 1fr;
-  align-items: center;
-  gap: 3rem;
-}
-
-@media (min-width: 940px) {
-  .auth-shell {
-    grid-template-columns: 1.15fr 0.85fr;
-    gap: 4.5rem;
-  }
-}
-
-.auth-side {
-  display: none;
-  flex-direction: column;
-  align-items: flex-start;
-  min-width: 0;
-}
-
-@media (min-width: 940px) {
-  .auth-side {
-    display: flex;
-  }
-}
-
 .auth-logo {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 1.2rem;
   margin-bottom: 2rem;
-}
-
-.auth-logo-mobile {
-  margin-bottom: 1.5rem;
-}
-
-@media (min-width: 940px) {
-  .auth-logo-mobile {
-    display: none;
-  }
 }
 
 .auth-claim {
@@ -584,53 +527,6 @@ select,
   line-height: 1.6;
 }
 
-/* --- l'aperçu : une carte de portfolio --- */
-/* L'objet que l'on montre : légèrement penché, ombre plus marquée. */
-.auth-preview {
-  width: 100%;
-  max-width: 380px;
-  padding: 1.3rem 1.5rem;
-  display: grid;
-  gap: 0.35rem;
-  justify-items: start;
-  box-shadow: var(--shadow-lg), 0 2px 6px rgba(0, 0, 0, 0.04);
-  transform: rotate(-1.5deg);
-  margin-left: 0.4rem;
-}
-.auth-preview-label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--text-mute);
-}
-.auth-preview-title {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.15rem;
-  letter-spacing: -0.015em;
-  margin-top: 0.15rem;
-}
-.auth-preview-hours {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 2.4rem;
-  letter-spacing: -0.03em;
-  line-height: 1.05;
-  color: var(--color-brand);
-}
-.auth-preview-facts {
-  font-size: 0.85rem;
-  color: var(--text);
-}
-.auth-preview-note {
-  font-size: 0.85rem;
-  font-style: italic;
-  color: var(--text-soft);
-  padding-left: 0.75rem;
-  border-left: 2px solid var(--brand-tint-border);
-  margin-top: 0.3rem;
-}
 /* --- le formulaire --- */
 .auth-form-side {
   display: flex;
@@ -1271,8 +1167,9 @@ select,
 }
 
 /* ============================================================
-   Connexion — maquette v2 : colonne bleu profond pleine hauteur,
-   cartes de portfolio en éventail en guise d'image.
+   Connexion : colonne bleu profond pleine hauteur, cartes de
+   portfolio en éventail en guise d'image. L'image de la page est le
+   produit lui-même, pas une photo d'ambiance interchangeable.
    ============================================================ */
 .auth-split {
   min-height: 100vh;
