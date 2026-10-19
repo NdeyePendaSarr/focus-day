@@ -883,8 +883,9 @@ select,
 
 .hist-day-title {
   font-family: var(--font-display);
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--color-brand);
   text-transform: capitalize;
 }
@@ -894,7 +895,7 @@ select,
 }
 
 .hist-row {
-  padding: 0.85rem 1.1rem;
+  padding: 1rem 1.3rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1201,7 +1202,8 @@ select,
 /* Ma journée — en-tête                                                */
 /* ------------------------------------------------------------------ */
 
-.day-hero {
+.day-hero,
+.page-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
@@ -1210,9 +1212,27 @@ select,
   margin: 0.75rem 0 2.25rem;
 }
 
-.day-hero-sub {
+.day-hero-sub,
+.page-header-sub {
   margin-top: 0.85rem;
   font-size: 1.02rem;
   color: var(--text-soft);
   max-width: 560px;
+}
+
+/* Titre de section dans une carte. */
+.section-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+/* Grand chiffre d'une carte de statistique. */
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
 }

@@ -6,6 +6,7 @@ import { repo } from "@/lib/repo";
 import { prettyDate, durationMinutes, formatDuration } from "@/lib/time";
 import NavBar from "@/components/NavBar";
 import NoteEditor from "@/components/NoteEditor";
+import PageHeader from "@/components/PageHeader";
 import ErrorBanner from "@/components/ErrorBanner";
 import { useGoals } from "@/lib/useGoals";
 import { errorDetail } from "@/lib/errors";
@@ -181,26 +182,12 @@ export default function HistoryPage() {
     <>
       <NavBar />
       <main className="page-shell" style={{ padding: "1.5rem 1.25rem 4rem" }}>
-        <h1
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "2rem",
-            fontWeight: 700,
-            marginBottom: "0.35rem",
-          }}
-        >
-          Historique
-        </h1>
-        <p
-          style={{
-            color: "var(--text-soft)",
-            fontSize: "0.92rem",
-            marginBottom: "1.5rem",
-          }}
-        >
-          Tes journées passées : ce que tu avais prévu, ce que tu as fait, et ce
-          que tu en as noté.
-        </p>
+        <PageHeader
+          eyebrow="Historique"
+          before="Tes journées"
+          accent="passées"
+          sub="Ce que tu avais prévu, ce que tu as fait, et ce que tu en as noté."
+        />
 
         <div
           style={{

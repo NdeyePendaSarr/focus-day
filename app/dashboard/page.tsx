@@ -6,6 +6,7 @@ import { GAP_REASONS } from "@/lib/types";
 import { repo } from "@/lib/repo";
 import { todayISO, shiftISO, durationMinutes, formatDuration, prettyDate } from "@/lib/time";
 import NavBar from "@/components/NavBar";
+import PageHeader from "@/components/PageHeader";
 
 /** Fenêtre d'observation : assez large pour voir une tendance, assez
  *  courte pour que chaque jour reste lisible. */
@@ -118,19 +119,12 @@ export default function DashboardPage() {
     <>
       <NavBar />
       <main className="page-shell" style={{ padding: "1.5rem 1.25rem 4rem" }}>
-        <h1
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "1.9rem",
-            fontWeight: 700,
-            marginBottom: "0.3rem",
-          }}
-        >
-          Tableau de bord
-        </h1>
-        <p style={{ color: "var(--text-soft)", fontSize: "0.92rem", marginBottom: "1.75rem" }}>
-          Les {FENETRE} derniers jours : ce que tu avais prévu, ce que tu as fait.
-        </p>
+        <PageHeader
+          eyebrow={`Les ${FENETRE} derniers jours`}
+          before="Ton"
+          accent="tableau de bord"
+          sub="Ce que tu avais prévu, ce que tu as fait — jour par jour."
+        />
 
         <div className="dash-stats">
           <Chiffre
@@ -157,12 +151,12 @@ export default function DashboardPage() {
           />
         </div>
 
-        <section className="card-surface" style={{ padding: "1.3rem", marginTop: "1.25rem" }}>
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.05rem", fontWeight: 600 }}>
+        <section className="card-surface" style={{ padding: "1.5rem", marginTop: "1.25rem" }}>
+          <h2 className="section-title">
             Prévu et réalisé, jour par jour
           </h2>
           <p style={{ fontSize: "0.8rem", color: "var(--text-mute)", marginBottom: "1.1rem" }}>
-            Ambre = prévu, indigo = réalisé. Trait pointillé = journée planifiée
+            Gris = prévu, bleu = réalisé. Trait pointillé = journée planifiée
             dont le temps réel n&apos;a jamais été renseigné. Aucune barre = rien
             de planifié ce jour-là.
           </p>
@@ -174,8 +168,8 @@ export default function DashboardPage() {
           )}
         </section>
 
-        <section className="card-surface" style={{ padding: "1.3rem", marginTop: "1.25rem" }}>
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.05rem", fontWeight: 600, marginBottom: "0.75rem" }}>
+        <section className="card-surface" style={{ padding: "1.5rem", marginTop: "1.25rem" }}>
+          <h2 className="section-title" style={{ marginBottom: "0.75rem" }}>
             Ce que les données disent
           </h2>
           {!ready ? (
@@ -193,8 +187,8 @@ export default function DashboardPage() {
           )}
         </section>
 
-        <section className="card-surface" style={{ padding: "1.3rem", marginTop: "1.25rem" }}>
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.05rem", fontWeight: 600, marginBottom: "0.75rem" }}>
+        <section className="card-surface" style={{ padding: "1.5rem", marginTop: "1.25rem" }}>
+          <h2 className="section-title" style={{ marginBottom: "0.75rem" }}>
             Tes derniers débriefs
           </h2>
           {!ready ? (
@@ -246,16 +240,8 @@ function Chiffre({
   aide: string;
 }) {
   return (
-    <div className="card-surface" style={{ padding: "1rem 1.1rem" }}>
-      <div
-        style={{
-          fontFamily: "var(--font-display)",
-          fontSize: "1.5rem",
-          fontWeight: 700,
-          color: couleur ?? "var(--text)",
-          lineHeight: 1.15,
-        }}
-      >
+    <div className="card-surface" style={{ padding: "1.2rem 1.3rem" }}>
+      <div className="stat-value" style={{ color: couleur ?? "var(--text)" }}>
         {valeur}
       </div>
       <div style={{ fontSize: "0.82rem", color: "var(--text-soft)" }}>{libelle}</div>
@@ -351,7 +337,7 @@ function Barre({ hauteur, couleur, opacite }: { hauteur: number; couleur: string
         height: Math.max(hauteur, hauteur > 0 ? 3 : 0),
         background: couleur,
         opacity: opacite,
-        borderRadius: "4px 4px 0 0",
+        borderRadius: "6px 6px 0 0",
         minHeight: 0,
       }}
     />
