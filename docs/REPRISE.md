@@ -28,10 +28,13 @@ mesure du **hors-plan**, ce temps passé sur ce qui n'était pas prévu
 qu'aucun concurrent ne montre ; et une philosophie de description plutôt
 que de notation.
 
-**Statut.** Projet personnel de Ndeye Penda SARR, développeuse frontend et
-étudiante en Master 2 Business Intelligence. Destiné à devenir la pièce
-maîtresse de son portfolio, avec une ouverture possible à des tiers — un
-ami l'utilise déjà, une classe pourrait suivre d'ici fin septembre.
+**Statut.** Produit conçu et développé par Ndeye Penda SARR, développeuse
+frontend et étudiante en Master 2 Business Intelligence. Il est destiné à
+être utilisé par d'autres, pas seulement par elle : des comptes tiers
+existent déjà. Chaque écran se pense donc depuis quelqu'un qui arrive sans
+rien savoir (voir `BRIEF-PIVOT.md`, « Pour qui on construit »). Depuis le
+19 octobre 2026, FocusDay est un carnet de suivi d'apprentissage qui
+produit un portfolio (voir `BRIEF-PIVOT.md` §2).
 
 ---
 
