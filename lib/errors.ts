@@ -19,6 +19,8 @@ export type WriteAction =
   | "archive"
   | "remove";
 
+export type GoalWriteAction = "goal_add" | "goal_edit" | "goal_status";
+
 export function writeFailureMessage(action: WriteAction, name: string): string {
   const n = `« ${name.trim() || "sans titre"} »`;
   switch (action) {
@@ -40,6 +42,18 @@ export function writeFailureMessage(action: WriteAction, name: string): string {
       return `L'archivage de ${n} n'a pas été enregistré. Il faut le refaire.`;
     case "remove":
       return `${n} n'a pas été supprimé. Il faut recommencer.`;
+  }
+}
+
+export function goalFailureMessage(action: GoalWriteAction, title: string): string {
+  const n = `« ${title.trim() || "sans titre"} »`;
+  switch (action) {
+    case "goal_add":
+      return `Le parcours ${n} n'a pas été créé. Il faut le recréer.`;
+    case "goal_edit":
+      return `Ta modification du parcours ${n} n'a pas été enregistrée. Il faut la refaire.`;
+    case "goal_status":
+      return `Le changement d'état du parcours ${n} n'a pas été enregistré. Il faut le refaire.`;
   }
 }
 

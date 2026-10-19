@@ -10,7 +10,7 @@
  * ÉTAPE B : on ajoute supabaseRepo, qui satisfait la même interface.
  */
 
-import type { Task, DebriefEntry } from "@/lib/types";
+import type { Task, DebriefEntry, Goal } from "@/lib/types";
 import { spillsIntoNextDay, shiftISO } from "@/lib/time";
 import { supabaseRepo } from "@/lib/repo.supabase";
 
@@ -48,9 +48,17 @@ export interface DebriefRepo {
   save(entry: DebriefEntry): Promise<void>;
 }
 
+export interface GoalRepo {
+  /** Tous les parcours, actifs ou non : l'historique doit pouvoir
+   *  nommer ceux d'une formation terminée. */
+  all(): Promise<Goal[]>;
+  save(goal: Goal): Promise<void>;
+}
+
 export interface Repo {
   tasks: TaskRepo;
   debriefs: DebriefRepo;
+  goals: GoalRepo;
 }
 
 /* ------------------------------------------------------------------ */
@@ -59,6 +67,7 @@ export interface Repo {
 
 const TASKS_KEY = "focusday.tasks";
 const DEBRIEF_KEY = "focusday.debriefs";
+const GOALS_KEY = "focusday.goals";
 
 function read<T>(key: string): T[] {
   if (typeof window === "undefined") return [];
@@ -153,9 +162,24 @@ const localDebriefs: DebriefRepo = {
   },
 };
 
+const localGoals: GoalRepo = {
+  async all() {
+    return read<Goal>(GOALS_KEY).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  },
+
+  async save(goal) {
+    const list = read<Goal>(GOALS_KEY);
+    const i = list.findIndex((g) => g.id === goal.id);
+    if (i >= 0) list[i] = goal;
+    else list.push(goal);
+    write(GOALS_KEY, list);
+  },
+};
+
 export const localRepo: Repo = {
   tasks: localTasks,
   debriefs: localDebriefs,
+  goals: localGoals,
 };
 
 /* ------------------------------------------------------------------ */

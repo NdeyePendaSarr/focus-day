@@ -10,6 +10,7 @@ const LINKS = [
   { href: "/", label: "Ma journée" },
   { href: "/dashboard", label: "Tableau de bord" },
   { href: "/history", label: "Historique" },
+  { href: "/parcours", label: "Parcours" },
   { href: "/archive", label: "Archives" },
 ];
 

@@ -54,8 +54,30 @@ export interface Task {
    *  C'est elle qui mesure la part de journée hors-plan. */
   origin?: "planned" | "unplanned";
 
+  /** Parcours auquel la session contribue (table goals). Optionnel :
+   *  tout ne relève pas d'une formation. */
+  goalId?: string;
+
   archived?: boolean;  // rangée hors de la journée active, sans être supprimée
   archivedAt?: string; // ISO
+}
+
+/** État d'un parcours. Mêmes valeurs que la contrainte goals.status.
+ *  "abandoned" existe en base mais n'est proposé nulle part : arrêter
+ *  une formation n'a pas à être qualifié d'abandon. */
+export type GoalStatus = "active" | "paused" | "done" | "abandoned";
+
+/**
+ * Un parcours : une formation, une certification, un projet. En base,
+ * la table goals — d'où le nom du type, qui suit le dépôt.
+ */
+export interface Goal {
+  id: string;
+  title: string;
+  why?: string;
+  targetDate?: string;  // "2026-12-15"
+  status: GoalStatus;
+  createdAt: string;    // ISO
 }
 
 export interface DebriefEntry {

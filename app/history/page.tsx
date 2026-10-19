@@ -6,6 +6,7 @@ import { repo } from "@/lib/repo";
 import { prettyDate, durationMinutes, formatDuration } from "@/lib/time";
 import NavBar from "@/components/NavBar";
 import NoteEditor from "@/components/NoteEditor";
+import { useGoals } from "@/lib/useGoals";
 
 const STATUS_LABEL: Record<string, string> = {
   planned: "À faire",
@@ -37,6 +38,10 @@ const TOLERANCE = 0.15;
 
 type Filtre = "tout" | "depasse" | "rapide" | "sans-mesure";
 
+/** "" = tous, "aucun" = sans parcours, sinon l'id du parcours. */
+type FiltreParcours = string;
+const SANS_PARCOURS = "aucun";
+
 const FILTRES: { valeur: Filtre; label: string }[] = [
   { valeur: "tout", label: "Tout" },
   { valeur: "depasse", label: "Dépassé" },
@@ -48,6 +53,14 @@ export default function HistoryPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [query, setQuery] = useState("");
   const [filtre, setFiltre] = useState<Filtre>("tout");
+  const [parcours, setParcours] = useState<FiltreParcours>("");
+  // Tous les parcours, archivés compris : l'historique doit nommer ceux
+  // d'une formation terminée.
+  const { goals } = useGoals();
+  const goalTitle = useMemo(() => {
+    const map = new Map(goals.map((g) => [g.id, g.title]));
+    return (id?: string) => (id ? map.get(id) : undefined);
+  }, [goals]);
   const [ready, setReady] = useState(false);
   // La note consultée, ou null. L'historique ne permet que la lecture.
   const [noteLue, setNoteLue] = useState<Task | null>(null);
@@ -67,6 +80,11 @@ export default function HistoryPage() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return tasks
+      .filter((t) => {
+        if (parcours === "") return true;
+        if (parcours === SANS_PARCOURS) return !t.goalId;
+        return t.goalId === parcours;
+      })
       .filter((t) => {
         if (filtre === "tout") return true;
         if (filtre === "sans-mesure") return t.actualMinutes == null;
@@ -88,7 +106,7 @@ export default function HistoryPage() {
           (t.note ?? "").toLowerCase().includes(q)
       )
       .sort((a, b) => (b.date + b.start).localeCompare(a.date + a.start));
-  }, [tasks, query, filtre]);
+  }, [tasks, query, filtre, parcours]);
 
   const byDate = useMemo(() => {
     const map: Record<string, Task[]> = {};
@@ -138,6 +156,23 @@ export default function HistoryPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
+          {/* Absent tant qu'aucun parcours n'existe : un filtre à une
+              seule valeur ne filtrerait rien. */}
+          {goals.length > 0 && (
+            <select
+              className="field"
+              aria-label="Filtrer par parcours"
+              value={parcours}
+              onChange={(e) => setParcours(e.target.value)}
+              style={{ flex: "0 1 220px", minWidth: 0 }}
+            >
+              <option value="">Tous les parcours</option>
+              {goals.map((g) => (
+                <option key={g.id} value={g.id}>{g.title}</option>
+              ))}
+              <option value={SANS_PARCOURS}>Sans parcours</option>
+            </select>
+          )}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {FILTRES.map((f) => (
               <button
@@ -173,7 +208,7 @@ export default function HistoryPage() {
 
                 <div style={{ display: "grid", gap: 8 }}>
                   {items.map((t) => (
-                    <Ligne key={t.id} t={t} onNote={() => setNoteLue(t)} />
+                    <Ligne key={t.id} t={t} goalTitle={goalTitle(t.goalId)} onNote={() => setNoteLue(t)} />
                   ))}
                 </div>
               </section>
@@ -227,7 +262,7 @@ function ResumeJour({ items }: { items: Task[] }) {
   );
 }
 
-function Ligne({ t, onNote }: { t: Task; onNote: () => void }) {
+function Ligne({ t, goalTitle, onNote }: { t: Task; goalTitle?: string; onNote: () => void }) {
   const horsPlan = t.origin === "unplanned";
 
   return (
@@ -254,6 +289,11 @@ function Ligne({ t, onNote }: { t: Task; onNote: () => void }) {
           >
             {t.name}
           </h3>
+          {goalTitle && (
+            <span className="goal-tag" title={`Parcours : ${goalTitle}`} style={{ maxWidth: 220 }}>
+              {goalTitle}
+            </span>
+          )}
         </div>
 
         {t.why && (

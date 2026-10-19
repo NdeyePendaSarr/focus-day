@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import type { Task, TaskStatus, DebriefEntry } from "@/lib/types";
 import { useTasks, useNow } from "@/lib/useTasks";
+import { useGoals } from "@/lib/useGoals";
 import { useReminders } from "@/lib/useReminders";
 import { todayISO, prettyDate, computeStats, reminderFor, durationMinutes, formatDuration, parseDuration } from "@/lib/time";
 import NavBar from "@/components/NavBar";
@@ -18,6 +19,11 @@ export default function HomePage() {
   const today = todayISO();
   const { tasks, ready, loadError, writeFailures, dismissWriteFailure, refresh, addTask, updateTask, setStatus, completeTask, setNote, setActual, addUnplanned, archiveTask } = useTasks(today);
   const now = useNow();
+  // Une erreur de chargement des parcours n'est pas affichée ici : elle
+  // ne prive que du sélecteur et des étiquettes, la page /parcours la
+  // signale. Une écriture n'a jamais lieu depuis cette page.
+  const { goals } = useGoals();
+  const goalTitle = (id?: string) => (id ? goals.find((g) => g.id === id)?.title : undefined);
   const { permission, requestPermission } = useReminders(tasks);
 
   // La date affichée dépend de l'heure réelle : au prerender statique, `today`
@@ -85,6 +91,7 @@ export default function HomePage() {
       start: d.start,
       end: d.end,
       estimatedMinutes: estimated,
+      goalId: d.goalId || undefined,
     };
     if (editing) {
       updateTask(editing.id, base);
@@ -203,7 +210,7 @@ export default function HomePage() {
               </div>
             )}
             {plannedTasks.map((t) => (
-              <TaskCard key={t.id} task={t} now={now} onStatus={setStatus}
+              <TaskCard key={t.id} task={t} goalTitle={goalTitle(t.goalId)} now={now} onStatus={setStatus}
               onComplete={completeTask} onNote={setNote} onEdit={openEdit} onArchive={archiveTask} />
             ))}
 
@@ -246,7 +253,7 @@ export default function HomePage() {
         </div>
       </main>
 
-      <TaskForm open={formOpen} editing={editing} existingTasks={tasks} onClose={() => { setFormOpen(false); setEditing(null); }} onSubmit={handleSubmit} />
+      <TaskForm open={formOpen} editing={editing} existingTasks={tasks} goals={goals} onClose={() => { setFormOpen(false); setEditing(null); }} onSubmit={handleSubmit} />
     </>
   );
 }

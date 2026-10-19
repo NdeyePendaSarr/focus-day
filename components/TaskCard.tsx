@@ -23,6 +23,7 @@ const STATUS_COLOR: Record<TaskStatus, string> = {
 
 export default function TaskCard({
   task,
+  goalTitle,
   now,
   onStatus,
   onComplete,
@@ -31,6 +32,8 @@ export default function TaskCard({
   onArchive,
 }: {
   task: Task;
+  /** Nom du parcours rattaché, s'il y en a un. */
+  goalTitle?: string;
   now: number;
   onStatus: (id: string, s: TaskStatus) => void;
   /** Termine la tâche ET enregistre le réalisé, en une seule opération. */
@@ -129,6 +132,11 @@ export default function TaskCard({
             )}
             {task.name}
           </h3>
+          {goalTitle && (
+            <span className="goal-tag" style={{ marginTop: 4 }} title={`Parcours : ${goalTitle}`}>
+              {goalTitle}
+            </span>
+          )}
           {task.description && (
             <p style={{ fontSize: "0.88rem", color: "var(--text-soft)", marginTop: 2 }}>
               {task.description}

@@ -8,10 +8,12 @@
  *   Task.name      <-> sessions.title
  *   Task.date      <-> sessions.local_date
  *   Task.start/end <-> sessions.planned_start / planned_end
+ *   Task.goalId    <-> sessions.goal_id
+ *   Goal.targetDate <-> goals.target_date
  */
 
-import type { Task, TaskStatus, DebriefEntry } from "@/lib/types";
-import type { Repo, TaskRepo, DebriefRepo } from "@/lib/repo";
+import type { Task, TaskStatus, DebriefEntry, Goal, GoalStatus } from "@/lib/types";
+import type { Repo, TaskRepo, DebriefRepo, GoalRepo } from "@/lib/repo";
 import { spillsIntoNextDay, shiftISO } from "@/lib/time";
 import { getSupabase, currentUserId } from "@/lib/supabase";
 
@@ -21,6 +23,7 @@ import { getSupabase, currentUserId } from "@/lib/supabase";
 
 type SessionRow = {
   id: string;
+  goal_id: string | null;
   local_date: string;
   title: string;
   description: string | null;
@@ -59,6 +62,7 @@ function toTask(r: SessionRow): Task {
     gapReason: (r.gap_reason ?? undefined) as Task["gapReason"],
     gapNote: r.gap_note ?? undefined,
     origin: (r.origin ?? "planned") as Task["origin"],
+    goalId: r.goal_id ?? undefined,
     status: r.status as TaskStatus,
     createdAt: r.created_at,
     startedAt: r.started_at ?? undefined,
@@ -85,6 +89,7 @@ function toRow(t: Task, userId: string) {
     gap_reason: t.gapReason ?? null,
     gap_note: t.gapNote ?? null,
     origin: t.origin ?? "planned",
+    goal_id: t.goalId ?? null,
     archived: t.archived ?? false,
     archived_at: t.archivedAt ?? null,
     started_at: t.startedAt ?? null,
@@ -94,7 +99,7 @@ function toRow(t: Task, userId: string) {
 }
 
 const SESSION_COLS =
-  "id, local_date, title, description, why, planned_start, planned_end, estimated_minutes, actual_minutes, note, gap_reason, gap_note, origin, status, archived, archived_at, started_at, completed_at, created_at";
+  "id, goal_id, local_date, title, description, why, planned_start, planned_end, estimated_minutes, actual_minutes, note, gap_reason, gap_note, origin, status, archived, archived_at, started_at, completed_at, created_at";
 
 /**
  * Supabase renvoie des objets d'erreur simples, pas des instances d'Error.
@@ -263,7 +268,62 @@ const supabaseDebriefs: DebriefRepo = {
 
 /* ------------------------------------------------------------------ */
 
+/* ------------------------------------------------------------------ */
+/* Parcours (table goals)                                              */
+/* ------------------------------------------------------------------ */
+
+type GoalRow = {
+  id: string;
+  title: string;
+  why: string | null;
+  target_date: string | null;
+  status: string;
+  created_at: string;
+};
+
+const GOAL_COLS = "id, title, why, target_date, status, created_at";
+
+function toGoal(r: GoalRow): Goal {
+  return {
+    id: r.id,
+    title: r.title,
+    why: r.why ?? undefined,
+    targetDate: r.target_date ?? undefined,
+    status: r.status as GoalStatus,
+    createdAt: r.created_at,
+  };
+}
+
+const supabaseGoals: GoalRepo = {
+  async all() {
+    const { data, error } = await getSupabase()
+      .from("goals")
+      .select(GOAL_COLS)
+      .order("created_at", { ascending: true });
+    if (error) fail(error);
+    return (data as GoalRow[]).map(toGoal);
+  },
+
+  async save(goal) {
+    const userId = await requireUserId();
+    // updated_at est tenu par le trigger goals_touch.
+    const { error } = await getSupabase().from("goals").upsert({
+      id: goal.id,
+      user_id: userId,
+      title: goal.title,
+      why: goal.why ?? null,
+      target_date: goal.targetDate ?? null,
+      status: goal.status,
+      created_at: goal.createdAt,
+    });
+    if (error) fail(error);
+  },
+};
+
+/* ------------------------------------------------------------------ */
+
 export const supabaseRepo: Repo = {
   tasks: supabaseTasks,
   debriefs: supabaseDebriefs,
+  goals: supabaseGoals,
 };

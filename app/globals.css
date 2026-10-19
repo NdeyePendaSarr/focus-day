@@ -825,3 +825,51 @@ select,
   color: var(--text);
   transform: none;
 }
+
+/* ------------------------------------------------------------------ */
+/* Parcours                                                            */
+/* ------------------------------------------------------------------ */
+
+/* Étiquette de parcours : discrète, une ligne, tronquée plutôt que de
+   repousser le titre voisin. */
+.goal-tag {
+  display: inline-block;
+  max-width: 100%;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--text-soft);
+  background: var(--bg-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+.parcours-section-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.parcours-empty {
+  font-size: 0.88rem;
+  color: var(--text-mute);
+}
+
+.parcours-list {
+  display: grid;
+  gap: 8px;
+}
+
+.parcours-card {
+  padding: 0.9rem 1.15rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  flex-wrap: wrap;
+}

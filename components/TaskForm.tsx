@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Task } from "@/lib/types";
+import type { Task, Goal } from "@/lib/types";
+import { selectableGoals } from "@/lib/goals";
 import { toMinutes, findConflict, spillsIntoNextDay, durationMinutes, formatDuration } from "@/lib/time";
 import DurationInput from "@/components/DurationInput";
 
@@ -12,20 +13,24 @@ export type TaskDraft = {
   start: string;
   end: string;
   estimatedMinutes: string;
+  /** "" = aucun parcours. */
+  goalId: string;
 };
 
-const EMPTY: TaskDraft = { name: "", description: "", why: "", start: "09:00", end: "10:00", estimatedMinutes: "" };
+const EMPTY: TaskDraft = { name: "", description: "", why: "", start: "09:00", end: "10:00", estimatedMinutes: "", goalId: "" };
 
 export default function TaskForm({
   open,
   editing,
   existingTasks = [],
+  goals = [],
   onClose,
   onSubmit,
 }: {
   open: boolean;
   editing: Task | null;
   existingTasks?: Task[];
+  goals?: Goal[];
   onClose: () => void;
   onSubmit: (draft: TaskDraft) => void;
 }) {
@@ -50,6 +55,7 @@ export default function TaskForm({
         start: editing.start,
         end: editing.end,
         estimatedMinutes: explicite ? String(editing.estimatedMinutes) : "",
+        goalId: editing.goalId ?? "",
       });
       setEstimationTouched(explicite);
     } else {
@@ -74,6 +80,7 @@ export default function TaskForm({
   const conflict = findConflict(existingTasks, draft.start, draft.end, editing?.id);
   // Pré-remplissage implicite : laisser le champ vide vaut "la durée du créneau".
   const slotMinutes = durationMinutes(draft.start, draft.end);
+  const options = selectableGoals(goals, editing?.goalId);
 
   const submit = () => {
     if (!draft.name.trim()) return setError("Donne un nom à ton objectif.");
@@ -129,6 +136,7 @@ export default function TaskForm({
               autoFocus
               value={draft.name}
               onChange={(e) => set("name", e.target.value)}
+              maxLength={200}
               placeholder="Réviser le chapitre 3"
             />
           </div>
@@ -168,6 +176,29 @@ export default function TaskForm({
               hint={`Vide = la durée du créneau (${formatDuration(slotMinutes)})`}
               width={130}
             />
+          </div>
+
+          {/* Optionnel : tout ne relève pas d'une formation. Sans parcours
+              créé, le champ cède la place à une indication. */}
+          <div>
+            <label className="field-label" htmlFor="task-goal">Parcours (optionnel)</label>
+            {options.length > 0 ? (
+              <select
+                id="task-goal"
+                className="field"
+                value={draft.goalId}
+                onChange={(e) => set("goalId", e.target.value)}
+              >
+                <option value="">Aucun parcours</option>
+                {options.map((g) => (
+                  <option key={g.id} value={g.id}>{g.title}</option>
+                ))}
+              </select>
+            ) : (
+              <p style={{ fontSize: "0.8rem", color: "var(--text-mute)" }}>
+                Aucun parcours en cours. Crée-en un dans l&apos;onglet Parcours pour y rattacher tes objectifs.
+              </p>
+            )}
           </div>
 
           <div>
