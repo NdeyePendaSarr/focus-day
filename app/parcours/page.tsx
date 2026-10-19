@@ -6,6 +6,7 @@ import { useGoals } from "@/lib/useGoals";
 import { prettyDate } from "@/lib/time";
 import NavBar from "@/components/NavBar";
 import ErrorBanner from "@/components/ErrorBanner";
+import PageHeader from "@/components/PageHeader";
 
 const STATUS_LABEL: Record<GoalStatus, string> = {
   active: "En cours",
@@ -52,19 +53,19 @@ export default function ParcoursPage() {
           </div>
         )}
 
-        <h1 style={{ fontFamily: "var(--font-display)", fontSize: "2rem", fontWeight: 700, marginBottom: "0.35rem" }}>
-          Parcours
-        </h1>
-        <p style={{ color: "var(--text-soft)", fontSize: "0.92rem", marginBottom: "1.5rem", maxWidth: 640 }}>
-          Une formation, une certification, un projet. Rattache-y tes objectifs
-          du jour pour garder la trace de ce que tu y as consacré.
-        </p>
+        <PageHeader
+          eyebrow="Parcours"
+          before="Ce que tu"
+          accent="apprends"
+          sub="Une formation, une certification, un projet. Rattache-y tes objectifs du jour pour garder la trace de ce que tu y as consacré."
+        />
 
-        <section className="card-surface" style={{ padding: "1.15rem", marginBottom: "1.75rem", maxWidth: 640 }}>
+        <section className="card-surface" style={{ padding: "1.5rem", marginBottom: "2rem", maxWidth: 640 }}>
           <h2 className="parcours-section-title" style={{ marginBottom: "0.8rem" }}>Nouveau parcours</h2>
           <GoalForm
             initial={EMPTY}
             submitLabel="Créer le parcours"
+            hero
             onSubmit={(d) => addGoal(toGoalFields(d))}
           />
         </section>
@@ -135,9 +136,13 @@ function GoalForm({
   submitLabel,
   onSubmit,
   onCancel,
+  hero = false,
 }: {
   initial: Draft;
   submitLabel: string;
+  /** Bouton principal de l'écran : dégradé et halo. Un seul par écran,
+   *  donc pas pour le formulaire de modification. */
+  hero?: boolean;
   /** false = écriture ratée : la saisie est conservée. */
   onSubmit: (d: Draft) => void | Promise<boolean>;
   onCancel?: () => void;
@@ -194,7 +199,7 @@ function GoalForm({
       {error && <p style={{ color: "var(--color-rose)", fontSize: "0.85rem" }}>{error}</p>}
       <div style={{ display: "flex", gap: "0.7rem", justifyContent: "flex-end" }}>
         {onCancel && <button className="btn-ghost" onClick={onCancel}>Annuler</button>}
-        <button className="btn-primary" onClick={() => void submit()} disabled={pending}>
+        <button className={hero ? "btn-hero" : "btn-primary"} onClick={() => void submit()} disabled={pending}>
           {pending ? "Enregistrement…" : submitLabel}
         </button>
       </div>

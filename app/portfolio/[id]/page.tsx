@@ -43,14 +43,15 @@ export default function PortfolioDetailPage() {
           <p className="parcours-empty" style={{ marginTop: "1rem" }}>Ce parcours n&apos;existe pas ou plus.</p>
         ) : (
           <>
-            <div style={{ margin: "0.75rem 0 1.5rem" }}>
+            <div style={{ margin: "1rem 0 1.75rem" }}>
+              <span className="eyebrow" style={{ marginBottom: "0.9rem" }}>Parcours</span>
               <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-                <h1 style={{ fontFamily: "var(--font-display)", fontSize: "2rem", fontWeight: 700, overflowWrap: "anywhere" }}>
+                <h1 className="display-title" style={{ fontSize: "clamp(2rem, 4.5vw, 2.8rem)", overflowWrap: "anywhere" }}>
                   {s.goal.title}
                 </h1>
                 {s.goal.status === "done" && <span className="pf-done-tag">Terminé</span>}
               </div>
-              {s.goal.why && <p className="pf-why" style={{ fontSize: "0.92rem" }}>{s.goal.why}</p>}
+              {s.goal.why && <p className="pf-why" style={{ fontSize: "0.95rem", marginTop: "0.6rem" }}>{s.goal.why}</p>}
               {s.goal.targetDate && (
                 <p style={{ fontSize: "0.8rem", color: "var(--text-mute)", marginTop: 4 }}>
                   Échéance visée : {prettyDate(s.goal.targetDate)}

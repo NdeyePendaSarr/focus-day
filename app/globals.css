@@ -106,6 +106,9 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--page-wash), var(--bg); color: var(--text);
   background-repeat: no-repeat;
+  /* Sans hauteur minimale, une page courte (chargement, état vide)
+     coupe le halo de fond net, à la hauteur du contenu. */
+  min-height: 100vh;
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   transition: background 0.4s ease, color 0.4s ease;
@@ -955,8 +958,9 @@ select,
 
 .parcours-section-title {
   font-family: var(--font-display);
-  font-size: 1.05rem;
-  font-weight: 600;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
   margin-bottom: 0.75rem;
 }
 
@@ -971,7 +975,7 @@ select,
 }
 
 .parcours-card {
-  padding: 0.9rem 1.15rem;
+  padding: 1.15rem 1.4rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1018,7 +1022,7 @@ select,
 }
 
 .pf-card {
-  padding: 1.1rem 1.2rem;
+  padding: 1.4rem 1.5rem;
   display: grid;
   gap: 0.6rem;
   align-content: start;
@@ -1044,8 +1048,9 @@ select,
 
 .pf-title {
   font-family: var(--font-display);
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
   overflow-wrap: anywhere;
 }
 
@@ -1058,13 +1063,18 @@ select,
 
 .pf-hours {
   font-family: var(--font-display);
-  font-size: 1.8rem;
-  font-weight: 700;
+  font-size: 2.1rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
   line-height: 1.1;
   color: var(--color-brand);
 }
 
 .pf-hours-unit {
+  /* Le chiffre est très serré (-0,03em) : sans interlettrage propre,
+     l'unité se colle visuellement au nombre (« 5 h 30consacrées »). */
+  letter-spacing: normal;
+  margin-left: 0.2em;
   font-size: 0.85rem;
   font-weight: 500;
   color: var(--text-soft);
@@ -1235,4 +1245,9 @@ select,
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.1;
+}
+
+/* Impression : la pastille et les grands titres restent, sans ombre. */
+@media print {
+  .eyebrow { border-color: #ccc; }
 }

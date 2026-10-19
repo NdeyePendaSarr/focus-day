@@ -7,6 +7,7 @@ import { formatDuration } from "@/lib/time";
 import NavBar from "@/components/NavBar";
 import ErrorBanner from "@/components/ErrorBanner";
 import PortfolioStats from "@/components/PortfolioStats";
+import PageHeader from "@/components/PageHeader";
 
 export default function PortfolioPage() {
   const { portfolio, goals, ready, loadError, retry } = usePortfolio();
@@ -27,19 +28,17 @@ export default function PortfolioPage() {
           </div>
         )}
 
-        <div className="pf-head">
-          <div>
-            <h1 style={{ fontFamily: "var(--font-display)", fontSize: "2rem", fontWeight: 700, marginBottom: "0.35rem" }}>
-              Portfolio
-            </h1>
-            <p style={{ color: "var(--text-soft)", fontSize: "0.92rem", maxWidth: 640 }}>
-              Ce que tu as consacré à chacun de tes parcours, et ce que tu en as retenu.
-            </p>
-          </div>
-          {goals.length > 0 && (
-            <button className="btn-ghost no-print" onClick={() => window.print()}>Imprimer</button>
-          )}
-        </div>
+        <PageHeader
+          eyebrow="Portfolio"
+          before="Ce que tu y as"
+          accent="consacré"
+          sub="Chacun de tes parcours, les heures que tu y as mises, et ce que tu en as retenu."
+          action={
+            goals.length > 0 ? (
+              <button className="btn-ghost" onClick={() => window.print()}>Imprimer</button>
+            ) : undefined
+          }
+        />
 
         {/* Les heures sont déclaratives : le dire une fois, clairement,
             plutôt que de laisser croire à un total exhaustif. */}
@@ -141,7 +140,7 @@ function EmptyPortfolio() {
         rattaches-y tes objectifs. Chaque séance validée s&apos;ajoute ici, avec
         ce que tu en as retenu.
       </p>
-      <Link href="/parcours" className="btn-primary" style={{ display: "inline-block" }}>
+      <Link href="/parcours" className="btn-hero" style={{ display: "inline-block" }}>
         Créer un parcours
       </Link>
     </div>
