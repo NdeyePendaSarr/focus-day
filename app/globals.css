@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ============================================================
-   FocusDay — Design system « Aube & Crépuscule »
+   FocusDay — Design system « Bleu profond »
    ============================================================ */
 /* PALETTE
    Trois registres seulement :
@@ -9,13 +9,23 @@
      plan   — un neutre franc pour la référence (le prévu)
      signal — ambre pour ce qui sort du plan, rose pour l'échec
 
-   Les valeurs par défaut de Tailwind (#6366f1, #f59e0b, #10b981) ont été
-   remplacées : elles sont reconnaissables au premier coup d'œil et
-   signalent un projet non conçu. Les teintes de signal sont désaturées
-   pour qu'elles accompagnent l'indigo au lieu de le concurrencer. */
+   La marque est un bleu profond (#000080) sur blanc. Il est presque
+   aussi sombre que le texte (contraste 1,05 avec #1c1d21) : seul, il ne
+   se distingue du texte que par sa teinte. D'où --color-brand-bright,
+   un bleu vif qui porte le mot en couleur des titres (en couleur plate)
+   et le haut du dégradé du bouton principal. En thème sombre, #000080 est illisible (1,18 sur #101114) :
+   la marque y devient un bleu clair, et les fonds pleins un bleu moyen
+   qui garde le texte blanc lisible.
+
+   Les couleurs de signal (mint, ambre, rose) ne changent pas : elles
+   portent du sens.
+
+   Les valeurs de marque ci-dessous sont celles du thème clair ; le
+   thème sombre les redéfinit plus bas. */
 @theme {
-  --color-brand: #5b5bd6;
-  --color-brand-soft: #7b7be8;
+  --color-brand: #000080;
+  --color-brand-soft: #1e2a9e;
+  --color-brand-bright: #2a3bd1;
   --color-plan: #8b90a8;
   --color-amber: #d99a2b;
   --color-amber-soft: #e8b355;
@@ -23,7 +33,7 @@
   --color-rose: #d9536a;
   --color-slate: #7a8299;
 
-  --font-display: var(--font-space);
+  --font-display: var(--font-jakarta);
   --font-body: var(--font-inter);
 
   --animate-slide-up: slideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1);
@@ -40,26 +50,62 @@
 }
 
 :root {
-  --bg: #f7f7f8; --bg-2: #ffffff; --bg-3: #f0f0f2;
-  --text: #1c1d21; --text-soft: #5f6270; --text-mute: #8e919d;
-  --border: #e4e4e8; --border-strong: #cdced4;
-  --shadow: 0 4px 20px rgba(30,41,59,0.06);
-  --shadow-lg: 0 12px 40px rgba(30,41,59,0.12);
+  /* Sur blanc : les cartes se détachent par l'ombre et la bordure. */
+  --bg: #ffffff; --bg-2: #ffffff; --bg-3: #f3f4fa;
+  /* text-mute passe de #8e919d (3,1:1 sur blanc, sous le seuil AA) à
+     #6b7190 (4,8:1) : il porte beaucoup de petits textes. */
+  --text: #1c1d21; --text-soft: #5f6270; --text-mute: #6b7190;
+  --border: #e6e8f2; --border-strong: #cfd3e3;
+
+  /* Fond plein d'un bouton : texte blanc 16:1. */
+  --brand-fill: #000080;
+  --brand-fill-hover: #1e2a9e;
+  /* Pastilles, sélections : teinte très claire de la marque. */
+  --brand-tint: #eef0ff;
+  --brand-tint-border: #dfe3ff;
+  /* Réservés au bouton principal, UN par écran. */
+  --brand-gradient: linear-gradient(135deg, #2a3bd1, #000080);
+  --brand-halo: 0 12px 28px -10px rgba(0, 0, 128, 0.55);
+
+  --radius-lg: 22px;
+  --radius-md: 14px;
+  --shadow: 0 18px 44px -24px rgba(0, 0, 128, 0.22), 0 1px 3px rgba(16, 17, 20, 0.04);
+  --shadow-lg: 0 26px 54px -24px rgba(0, 0, 128, 0.32);
+  --page-wash: radial-gradient(1100px 480px at 10% -8%, rgba(42, 59, 209, 0.08), transparent 62%);
 }
 [data-theme="dark"] {
-  /* Fond quasi neutre plutôt que bleuté : l'ancien #0f1420 était de la
-     même famille que la marque, ce qui noyait l'accent indigo. */
+  /* Fond quasi neutre plutôt que bleuté : un fond de la même famille que
+     la marque noierait l'accent. */
   --bg: #101114; --bg-2: #17181d; --bg-3: #1d1e24;
-  --text: #e9eaee; --text-soft: #a2a5b0; --text-mute: #71747f;
+  /* text-mute : #71747f (4,0:1) -> #868a97 (5,5:1 sur le fond). */
+  --text: #e9eaee; --text-soft: #a2a5b0; --text-mute: #868a97;
   --border: #262830; --border-strong: #343742;
-  --shadow: 0 4px 20px rgba(0,0,0,0.3);
-  --shadow-lg: 0 12px 40px rgba(0,0,0,0.45);
+
+  /* #000080 est illisible ici (1,18:1). Marque éclaircie :
+     #8b97ff = 7,2:1 sur le fond, 6,7:1 sur les cartes. */
+  --color-brand: #8b97ff;
+  --color-brand-soft: #a9b2ff;
+  --color-brand-bright: #a9b2ff;
+  /* Un fond plein ne peut pas prendre #8b97ff : le texte blanc y
+     tomberait à 2,6:1. Bleu moyen, texte blanc 8,1:1. */
+  --brand-fill: #2f3bc8;
+  --brand-fill-hover: #4450e6;
+  --brand-tint: #1b1f3d;
+  --brand-tint-border: #2a3060;
+  /* Texte blanc : 5,9:1 sur #4450e6, 8,1:1 sur #2f3bc8. */
+  --brand-gradient: linear-gradient(135deg, #4450e6, #2f3bc8);
+  --brand-halo: 0 12px 28px -10px rgba(68, 80, 230, 0.6);
+
+  --shadow: 0 18px 44px -24px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 26px 54px -24px rgba(0, 0, 0, 0.7);
+  --page-wash: radial-gradient(1100px 480px at 10% -8%, rgba(68, 80, 230, 0.12), transparent 62%);
 }
 
 * { border-color: var(--border); }
 html { scroll-behavior: smooth; }
 body {
-  background: var(--bg); color: var(--text);
+  background: var(--page-wash), var(--bg); color: var(--text);
+  background-repeat: no-repeat;
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   transition: background 0.4s ease, color 0.4s ease;
@@ -102,20 +148,78 @@ textarea:focus-visible, select:focus-visible {
 
 .btn-primary {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.95rem;
   padding: 0.7rem 1.4rem;
-  border-radius: 12px;
-  background: var(--color-brand);
+  border-radius: 999px;
+  background: var(--brand-fill);
   color: #fff;
   border: none;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.22,1,0.36,1);
 }
-.btn-primary:hover { background: var(--color-brand-soft); transform: translateY(-2px); box-shadow: 0 8px 20px color-mix(in srgb, var(--color-brand) 35%, transparent); }
+.btn-primary:hover { background: var(--brand-fill-hover); transform: translateY(-1px); }
+
+/* Le bouton principal de l'écran — UN seul par écran. Dégradé et halo
+   lui sont réservés : sur les puces, les filtres ou « Archiver », ils
+   ne signaleraient plus rien. */
+.btn-hero {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.98rem;
+  padding: 0.85rem 1.6rem;
+  border-radius: 999px;
+  background: var(--brand-gradient);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--brand-halo);
+  transition: transform 0.25s cubic-bezier(0.22,1,0.36,1), box-shadow 0.25s ease;
+}
+.btn-hero:hover { transform: translateY(-2px); box-shadow: 0 16px 34px -10px color-mix(in srgb, var(--color-brand-bright) 60%, transparent); }
+
+/* Pastille d'intitulé au-dessus d'un grand titre. */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.38rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-brand);
+  background: var(--brand-tint);
+  border: 1px solid var(--brand-tint-border);
+}
+.eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-brand-bright);
+}
+
+/* Grand titre : très gras, très serré. */
+.display-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  color: var(--text);
+}
+/* Le mot en couleur d'un titre : couleur plate, jamais un dégradé
+   découpé dans le texte. background-clip: text se dégrade mal quand il
+   échoue — le mot peut disparaître. #2a3bd1 : 7,9:1 sur blanc ;
+   #a9b2ff en sombre : 9,4:1. */
+.accent {
+  color: var(--color-brand-bright);
+}
 .btn-ghost {
   font-weight: 500; font-size: 0.9rem;
-  padding: 0.6rem 1rem; border-radius: 10px;
+  padding: 0.6rem 1.1rem; border-radius: 999px;
   background: transparent; color: var(--text-soft);
   border: 1px solid var(--border); cursor: pointer;
   transition: all 0.2s ease;
@@ -139,8 +243,8 @@ select,
      naturelle. Safari iOS donne une largeur minimale confortable aux
      input[type=time] : la colonne rétrécissait, pas le champ. */
   min-width: 0;
-  padding: 0.65rem 0.85rem;
-  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  border-radius: 12px;
   background: var(--bg-3);
   border: 1px solid var(--border);
   color: var(--text);
@@ -148,7 +252,7 @@ select,
   font-size: 0.92rem;
   transition: border-color 0.2s;
 }
-.field:focus { outline: none; border-color: var(--color-brand); }
+.field:focus { outline: none; border-color: var(--color-brand); box-shadow: 0 0 0 3px var(--brand-tint); }
 .field-label {
   display: block;
   font-size: 0.78rem;
@@ -160,7 +264,7 @@ select,
 .card-surface {
   background: var(--bg-2);
   border: 1px solid var(--border);
-  border-radius: 18px;
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
 }
 
@@ -1091,4 +1195,24 @@ select,
   flex-shrink: 0;
   accent-color: var(--color-brand);
   cursor: pointer;
+}
+
+/* ------------------------------------------------------------------ */
+/* Ma journée — en-tête                                                */
+/* ------------------------------------------------------------------ */
+
+.day-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1.25rem 2rem;
+  flex-wrap: wrap;
+  margin: 0.75rem 0 2.25rem;
+}
+
+.day-hero-sub {
+  margin-top: 0.85rem;
+  font-size: 1.02rem;
+  color: var(--text-soft);
+  max-width: 560px;
 }

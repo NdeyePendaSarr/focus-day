@@ -56,8 +56,8 @@ export default function TaskCard({
       style={{
         background: "var(--bg-2)",
         border: `1px solid ${isCurrent ? "var(--color-amber)" : "var(--border)"}`,
-        borderRadius: 16,
-        padding: "1rem 1.15rem",
+        borderRadius: "var(--radius-lg)",
+        padding: "1.2rem 1.35rem",
         boxShadow: isCurrent ? "0 0 0 3px color-mix(in srgb, var(--color-amber) 15%, transparent)" : "var(--shadow)",
         transition: "border-color .3s, box-shadow .3s",
       }}

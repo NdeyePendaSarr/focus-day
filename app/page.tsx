@@ -160,20 +160,24 @@ export default function HomePage() {
           </div>
         )}
 
+        {/* En-tête : la date en pastille, un grand titre, et le bouton
+            principal de l'écran — le seul à porter le dégradé. */}
+        <div className="day-hero">
+          <div style={{ minWidth: 0 }}>
+            <span className="eyebrow">{mounted ? prettyDate(today) : "Ma journée"}</span>
+            <h1 className="display-title" style={{ marginTop: "0.9rem" }}>
+              Ta <span className="accent">journée</span>.
+            </h1>
+            <p className="day-hero-sub">
+              Pose tes créneaux, valide le temps réel, garde ce que tu en retiens.
+            </p>
+          </div>
+          <button className="btn-hero" onClick={openNew}>+ Nouvel objectif</button>
+        </div>
+
         <div className="day-layout">
-          {/* Rail : identité du jour, chiffres, timeline, action principale */}
-          <aside className="day-rail card-surface" style={{ padding: "1.15rem", display: "grid", gap: "1rem" }}>
-            <div>
-              <p style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--color-brand)" }}>
-                {mounted ? prettyDate(today) : "\u00A0"}
-              </p>
-              <h1 className="day-title">
-                Ta journée
-              </h1>
-            </div>
-
-            <button className="btn-primary" onClick={openNew}>+ Nouvel objectif</button>
-
+          {/* Rail : chiffres du jour et timeline */}
+          <aside className="day-rail card-surface" style={{ padding: "1.4rem", display: "grid", gap: "1.1rem" }}>
             <div className="day-stats">
               <Stat label="Objectifs" value={stats.total} />
               <Stat label="Terminés" value={stats.done} color="var(--color-mint)" />
@@ -203,10 +207,9 @@ export default function HomePage() {
                 <p style={{ fontFamily: "var(--font-display)", fontSize: "1.15rem", fontWeight: 600, marginBottom: 6 }}>
                   Ta journée est une page blanche.
                 </p>
-                <p style={{ color: "var(--text-soft)", fontSize: "0.9rem", marginBottom: "1.2rem" }}>
+                <p style={{ color: "var(--text-soft)", fontSize: "0.9rem" }}>
                   Ajoute ton premier objectif avec son créneau — et le pourquoi qui te motive.
                 </p>
-                <button className="btn-primary" onClick={openNew}>+ Nouvel objectif</button>
               </div>
             )}
             {plannedTasks.map((t) => (

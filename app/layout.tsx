@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Inter } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
-const space = Space_Grotesk({
+// Titres : très gras et très serrés. next/font l'auto-héberge au build,
+// aucune dépendance npm ajoutée.
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-space",
-  weight: ["500", "600", "700"],
+  variable: "--font-jakarta",
+  weight: ["500", "600", "700", "800"],
 });
 const inter = Inter({
   subsets: ["latin"],
@@ -23,8 +25,13 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="fr" suppressHydrationWarning>
-      <body className={`${space.variable} ${inter.variable}`}>
+    // Les variables de police sur <html> et non sur <body> : --font-display
+    // et --font-body sont définies sur :root et y lisent --font-jakarta et
+    // --font-inter. Posées sur <body>, elles étaient invisibles depuis
+    // :root, les deux polices restaient vides et l'app s'affichait en
+    // police système.
+    <html lang="fr" className={`${jakarta.variable} ${inter.variable}`} suppressHydrationWarning>
+      <body>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
