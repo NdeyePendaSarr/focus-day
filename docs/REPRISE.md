@@ -304,6 +304,40 @@ construit ailleurs.
 Toute modification est vérifiée par `tsc --noEmit`, ESLint et les tests
 avant livraison. Le SQL éventuel s'exécute **avant** le code.
 
+### Ordre de mise en production — migration, PUIS déploiement
+
+`lib/repo.supabase.ts` écrit **chaque colonne** de `sessions` à chaque
+enregistrement (`toRow`, upsert de la ligne entière). Une colonne
+ajoutée côté code mais absente de la base fait donc échouer **toutes**
+les écritures de séances, pas seulement la nouvelle fonctionnalité :
+plus personne ne peut créer, valider ni noter un objectif en production.
+
+1. Lancer la migration `supabase/NN_*.sql` dans l'éditeur Supabase.
+2. Vérifier la colonne (chaque migration se termine par sa requête de
+   vérification).
+3. Seulement ensuite, pousser sur `main` — Vercel déploie au push.
+
+Même règle pour un test local en `NEXT_PUBLIC_DATA_SOURCE=supabase` : le
+serveur local écrit dans la base de production.
+
+Cas vécu : `sessions.actual_source` (migration 04, 19 octobre 2026).
+
+### Le schéma de référence
+
+`supabase/historique/` contient l'instantané d'août : il a divergé de la
+production (colonnes `note`, `description`, défaut `auth.uid()` sur
+`user_id`) et n'est plus une source de confiance. Le schéma réel est
+`supabase/schema.sql`, produit par un dump de la production :
+
+```
+npx supabase db dump --db-url "$env:SUPABASE_DB_URL" --schema public -f supabase/schema.sql
+```
+
+La chaîne de connexion reste dans une variable de la session PowerShell,
+jamais dans un fichier ni dans le dépôt. Après chaque migration
+appliquée, refaire le dump et le commiter : le diff git montre alors
+tout écart avec la production au lieu de le laisser découvrir plus tard.
+
 Commits en français, format conventionnel (`feat`, `fix`, `refactor`,
 `style`, `docs`, `chore`), corps expliquant le *pourquoi*.
 
