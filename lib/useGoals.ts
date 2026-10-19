@@ -7,9 +7,17 @@ import { goalFailureMessage, errorDetail, type GoalWriteAction } from "@/lib/err
 import type { WriteFailure } from "@/lib/useTasks";
 
 /**
- * Les parcours de l'utilisateur. Même contrat que useTasks : la
- * modification s'affiche avant l'écriture, et une écriture ratée n'est
- * pas rejouée — la liste est rechargée et le bandeau dit quoi refaire.
+ * Les parcours de l'utilisateur.
+ *
+ * La création attend l'écriture avant d'afficher : un parcours affiché
+ * mais absent de la base pourrait être choisi dans un formulaire, et la
+ * session partirait avec un goal_id inconnu — violation de clé
+ * étrangère, deuxième échec en cascade. Créer un parcours est rare, la
+ * demi-seconde d'attente ne coûte rien.
+ *
+ * Les modifications restent affichées d'abord, mais un échec restaure
+ * explicitement l'état précédent, sans dépendre d'une relecture qui
+ * peut elle aussi échouer.
  */
 export function useGoals() {
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -32,41 +40,44 @@ export function useGoals() {
     void refresh();
   }, [refresh]);
 
-  const persist = useCallback(
-    async (goal: Goal, action: GoalWriteAction) => {
-      setGoals((prev) =>
-        prev.some((g) => g.id === goal.id)
-          ? prev.map((g) => (g.id === goal.id ? goal : g))
-          : [...prev, goal]
-      );
+  const reportWrite = useCallback((action: GoalWriteAction, title: string, e: unknown) => {
+    setWriteFailures((prev) => [
+      ...prev,
+      { id: uid(), message: goalFailureMessage(action, title), detail: errorDetail(e) },
+    ]);
+  }, []);
+
+  /** Renvoie false si l'écriture a échoué : le formulaire garde alors
+   *  sa saisie au lieu de se vider. */
+  const addGoal = useCallback(
+    async (data: Pick<Goal, "title" | "why" | "targetDate">): Promise<boolean> => {
+      const goal: Goal = { ...data, id: uid(), status: "active", createdAt: new Date().toISOString() };
       try {
         await repo.goals.save(goal);
       } catch (e) {
-        setWriteFailures((prev) => [
-          ...prev,
-          { id: uid(), message: goalFailureMessage(action, goal.title), detail: errorDetail(e) },
-        ]);
-        await refresh();
+        reportWrite("goal_add", goal.title, e);
+        return false;
       }
+      setGoals((prev) => [...prev, goal]);
+      return true;
     },
-    [refresh]
-  );
-
-  const addGoal = useCallback(
-    async (data: Pick<Goal, "title" | "why" | "targetDate">) => {
-      await persist(
-        { ...data, id: uid(), status: "active", createdAt: new Date().toISOString() },
-        "goal_add"
-      );
-    },
-    [persist]
+    [reportWrite]
   );
 
   const updateGoal = useCallback(
-    async (goal: Goal, patch: Partial<Goal>) => {
-      await persist({ ...goal, ...patch }, "status" in patch ? "goal_status" : "goal_edit");
+    async (previous: Goal, patch: Partial<Goal>) => {
+      const next = { ...previous, ...patch };
+      const swap = (g: Goal) => setGoals((list) => list.map((x) => (x.id === g.id ? g : x)));
+      swap(next);
+      try {
+        await repo.goals.save(next);
+      } catch (e) {
+        swap(previous);
+        reportWrite("status" in patch ? "goal_status" : "goal_edit", previous.title, e);
+        await refresh();
+      }
     },
-    [persist]
+    [refresh, reportWrite]
   );
 
   const dismissWriteFailure = useCallback((id: string) => {

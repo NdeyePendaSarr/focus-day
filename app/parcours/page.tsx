@@ -138,18 +138,23 @@ function GoalForm({
 }: {
   initial: Draft;
   submitLabel: string;
-  onSubmit: (d: Draft) => void;
+  /** false = écriture ratée : la saisie est conservée. */
+  onSubmit: (d: Draft) => void | Promise<boolean>;
   onCancel?: () => void;
 }) {
   const [draft, setDraft] = useState<Draft>(initial);
   const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
   const set = (k: keyof Draft, v: string) => setDraft((d) => ({ ...d, [k]: v }));
 
-  const submit = () => {
+  const submit = async () => {
     if (!draft.title.trim()) return setError("Donne un nom à ton parcours.");
     setError(null);
-    onSubmit(draft);
-    if (!onCancel) setDraft(EMPTY); // création : le formulaire se vide
+    setPending(true);
+    const ok = await onSubmit(draft);
+    setPending(false);
+    // Création réussie : le formulaire se vide. Ratée : il garde la saisie.
+    if (!onCancel && ok !== false) setDraft(EMPTY);
   };
 
   return (
@@ -189,7 +194,9 @@ function GoalForm({
       {error && <p style={{ color: "var(--color-rose)", fontSize: "0.85rem" }}>{error}</p>}
       <div style={{ display: "flex", gap: "0.7rem", justifyContent: "flex-end" }}>
         {onCancel && <button className="btn-ghost" onClick={onCancel}>Annuler</button>}
-        <button className="btn-primary" onClick={submit}>{submitLabel}</button>
+        <button className="btn-primary" onClick={() => void submit()} disabled={pending}>
+          {pending ? "Enregistrement…" : submitLabel}
+        </button>
       </div>
     </div>
   );

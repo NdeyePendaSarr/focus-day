@@ -49,7 +49,9 @@ export function goalFailureMessage(action: GoalWriteAction, title: string): stri
   const n = `« ${title.trim() || "sans titre"} »`;
   switch (action) {
     case "goal_add":
-      return `Le parcours ${n} n'a pas été créé. Il faut le recréer.`;
+      // La création attend l'écriture : en cas d'échec, la saisie reste
+      // dans le formulaire, il suffit de renvoyer.
+      return `Le parcours ${n} n'a pas été créé. Ta saisie est restée dans le formulaire : tu peux réessayer.`;
     case "goal_edit":
       return `Ta modification du parcours ${n} n'a pas été enregistrée. Il faut la refaire.`;
     case "goal_status":
