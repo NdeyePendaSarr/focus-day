@@ -56,6 +56,13 @@ l'action non enregistrée. Reste ouvert :
   rétablie).
 - Tableau de bord, Historique, Archives : un échec de chargement ne
   produit qu'un `console.error`.
+- **Écriture coupée par un rechargement.** Constaté au test réel du
+  19 octobre : une séance validée puis la page rechargée dans la
+  seconde n'a pas été enregistrée, sans aucun message — le bandeau
+  disparaît avec la page. `updateTask` fait deux allers-retours (lecture
+  `byId`, puis `save`) ; fermer l'onglet ou recharger entre les deux
+  perd la saisie. Pistes : un avertissement `beforeunload` tant qu'une
+  écriture est en cours, et/ou écrire sans relire d'abord.
 
 ### 4. Politique de mot de passe
 
