@@ -23,8 +23,13 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="fr" suppressHydrationWarning>
-      <body className={`${space.variable} ${inter.variable}`}>
+    // Les variables de police sur <html> et non sur <body> : --font-display
+    // et --font-body sont définies sur :root et y lisent --font-space et
+    // --font-inter. Posées sur <body>, elles étaient invisibles depuis
+    // :root, les deux polices restaient vides et l'app s'affichait en
+    // police système.
+    <html lang="fr" className={`${space.variable} ${inter.variable}`} suppressHydrationWarning>
+      <body>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
