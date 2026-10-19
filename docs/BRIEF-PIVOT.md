@@ -69,6 +69,23 @@ réellement neuve, et donc la seule qui justifie le produit.
 
 ---
 
+### Pour qui on construit
+
+**FocusDay n'est pas un projet personnel.** Il est destiné à être utilisé
+par d'autres, et des comptes tiers existent déjà (un ami en a un).
+
+Chaque chantier doit donc être pensé depuis ce que voit **quelqu'un qui
+arrive sans rien savoir** : un compte vide, aucun parcours, aucune
+séance, aucune idée de ce qu'est une estimation ou un parcours. Pas
+seulement depuis le compte de la fondatrice et ses 90 séances.
+
+Concrètement, avant de livrer un écran :
+- son état vide explique quoi faire, au lieu d'afficher un zéro ;
+- le cas « un parcours, trois séances » — celui du premier jour — est
+  vérifié autant que le cas plein ;
+- un échec est visible et dit quoi refaire : un nouvel utilisateur ne
+  peut pas envoyer un message WhatsApp pour demander si c'est passé.
+
 ## 3. Ce qu'on ne construit PAS
 
 Ces trois idées ont été écartées en connaissance de cause. Ne pas les
@@ -209,3 +226,23 @@ pas de lien de session.
 
 Signaler les erreurs de conception plutôt que d'exécuter sans discuter —
 plusieurs ont été corrigées comme ça, et chacune a fait gagner du temps.
+
+---
+
+## 7. Après les trois chantiers
+
+Décidé le 19 octobre 2026. Une fois le rattachement par lot des
+anciennes séances livré, **plus aucune fonctionnalité** : on traite
+`PRE-LANCEMENT.md` dans l'ordre, avant d'ouvrir à qui que ce soit
+d'autre.
+
+En premier, et ensemble :
+1. **Envoi d'emails par Brevo.** Le relais intégré de Supabase plafonne
+   à 2 emails par heure pour tout le projet : au-delà, une inscription
+   réussit côté client et aucun email ne part, sans que personne ne le
+   sache.
+2. **Mot de passe oublié.** Aujourd'hui, quelqu'un qui perd son mot de
+   passe est bloqué pour de bon. Dépend du point 1 : sans SMTP, le lien
+   de réinitialisation ne part pas.
+
+Puis la suite de `PRE-LANCEMENT.md` dans son ordre suggéré.
