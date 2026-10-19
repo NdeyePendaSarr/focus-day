@@ -40,6 +40,19 @@ export interface TaskRepo {
   saveMany(tasks: Task[]): Promise<void>;
 
   remove(id: string): Promise<void>;
+
+  /**
+   * Rattache des séances à un parcours (goalId null = les détacher).
+   *
+   * Ne modifie QUE le parcours de ces séances. save/saveMany, eux,
+   * réécrivent toutes les colonnes que le modèle connaît à partir de la
+   * copie du navigateur : sur un lot de séances anciennes, la moindre
+   * divergence entre cette copie et la base serait écrasée d'un coup.
+   *
+   * Renvoie le nombre de séances modifiées ; échoue si ce n'est pas le
+   * nombre demandé.
+   */
+  setGoal(ids: string[], goalId: string | null): Promise<number>;
 }
 
 export interface DebriefRepo {
@@ -141,6 +154,19 @@ const localTasks: TaskRepo = {
       TASKS_KEY,
       read<Task>(TASKS_KEY).filter((t) => t.id !== id)
     );
+  },
+
+  async setGoal(ids, goalId) {
+    const wanted = new Set(ids);
+    let n = 0;
+    const tasks = read<Task>(TASKS_KEY).map((t) => {
+      if (!wanted.has(t.id)) return t;
+      n++;
+      return { ...t, goalId: goalId ?? undefined };
+    });
+    if (n !== ids.length) throw new Error(`${n} séance(s) trouvée(s) sur ${ids.length} demandées.`);
+    write(TASKS_KEY, tasks);
+    return n;
   },
 };
 

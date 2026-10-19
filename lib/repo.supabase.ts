@@ -202,6 +202,32 @@ const supabaseTasks: TaskRepo = {
     const { error } = await getSupabase().from("sessions").delete().eq("id", id);
     if (error) fail(error);
   },
+
+  async setGoal(ids, goalId) {
+    if (ids.length === 0) return 0;
+    // UPDATE ciblé, jamais un upsert : seule la colonne goal_id est
+    // envoyée, toutes les autres colonnes de ces lignes restent telles
+    // qu'elles sont en base (le trigger sessions_touch avance updated_at).
+    // Par paquets de 100 pour garder l'URL du filtre .in() raisonnable.
+    let n = 0;
+    for (let i = 0; i < ids.length; i += 100) {
+      const chunk = ids.slice(i, i + 100);
+      const { data, error } = await getSupabase()
+        .from("sessions")
+        .update({ goal_id: goalId })
+        .in("id", chunk)
+        .select("id");
+      if (error) fail(error);
+      n += (data ?? []).length;
+    }
+    // La RLS filtre en silence : une séance d'un autre compte, ou déjà
+    // supprimée, n'est simplement pas modifiée. Le dire plutôt que de
+    // laisser croire que tout le lot est passé.
+    if (n !== ids.length) {
+      throw new Error(`${n} séance(s) modifiée(s) sur ${ids.length} demandées.`);
+    }
+    return n;
+  },
 };
 
 /* ------------------------------------------------------------------ */

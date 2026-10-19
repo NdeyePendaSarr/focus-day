@@ -6,7 +6,9 @@ import { repo } from "@/lib/repo";
 import { prettyDate, durationMinutes, formatDuration } from "@/lib/time";
 import NavBar from "@/components/NavBar";
 import NoteEditor from "@/components/NoteEditor";
+import ErrorBanner from "@/components/ErrorBanner";
 import { useGoals } from "@/lib/useGoals";
+import { errorDetail } from "@/lib/errors";
 
 const STATUS_LABEL: Record<string, string> = {
   planned: "À faire",
@@ -65,17 +67,76 @@ export default function HistoryPage() {
   // La note consultée, ou null. L'historique ne permet que la lecture.
   const [noteLue, setNoteLue] = useState<Task | null>(null);
 
+  const reload = async () => {
+    try {
+      setTasks(await repo.tasks.all());
+    } catch (e) {
+      console.error("Chargement de l'historique impossible", e);
+    } finally {
+      setReady(true);
+    }
+  };
+
   useEffect(() => {
-    void (async () => {
-      try {
-        setTasks(await repo.tasks.all());
-      } catch (e) {
-        console.error("Chargement de l'historique impossible", e);
-      } finally {
-        setReady(true);
-      }
-    })();
+    void reload();
   }, []);
+
+  /* --- Rattachement par lot ---------------------------------------- */
+  // Pour les séances d'avant les parcours. Le choix reste manuel, ligne
+  // par ligne : un rattachement par mots-clés laissait 62 h sur 177 dans
+  // « Autres ». La recherche sert seulement à trouver les candidates.
+  const [lot, setLot] = useState(false);
+  const [coches, setCoches] = useState<Set<string>>(new Set());
+  const [cible, setCible] = useState(""); // "" = détacher
+  const [envoi, setEnvoi] = useState(false);
+  const [lotOk, setLotOk] = useState<string | null>(null);
+  const [lotEchec, setLotEchec] = useState<{ message: string; detail?: string } | null>(null);
+
+  // Changer la recherche ou un filtre vide la sélection : on ne doit
+  // jamais rattacher une séance qu'on ne voit plus à l'écran.
+  const basculer = (id: string) =>
+    setCoches((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const fermerLot = () => {
+    setLot(false);
+    setCoches(new Set());
+    setLotOk(null);
+  };
+
+  const rattacher = async () => {
+    const ids = [...coches];
+    if (ids.length === 0) return;
+    const titre = goals.find((g) => g.id === cible)?.title;
+    setEnvoi(true);
+    setLotOk(null);
+    setLotEchec(null);
+    try {
+      // Chemin dédié : ne modifie que goal_id, jamais la ligne entière.
+      await repo.tasks.setGoal(ids, cible || null);
+      const wanted = new Set(ids);
+      setTasks((prev) => prev.map((t) => (wanted.has(t.id) ? { ...t, goalId: cible || undefined } : t)));
+      setCoches(new Set());
+      setLotOk(
+        titre
+          ? `${ids.length} ${ids.length < 2 ? "séance rattachée" : "séances rattachées"} à « ${titre} ».`
+          : `${ids.length} ${ids.length < 2 ? "séance détachée" : "séances détachées"} de leur parcours.`
+      );
+    } catch (e) {
+      setLotEchec({
+        message:
+          "Le rattachement n'a pas abouti entièrement. La liste a été rechargée depuis la base : vérifie ce qui a été rattaché avant de recommencer.",
+        detail: errorDetail(e),
+      });
+      await reload();
+    } finally {
+      setEnvoi(false);
+    }
+  };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -154,7 +215,7 @@ export default function HistoryPage() {
             style={{ flex: 1, minWidth: 200 }}
             placeholder="Rechercher dans les objectifs et les notes…"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => { setQuery(e.target.value); setCoches(new Set()); }}
           />
           {/* Absent tant qu'aucun parcours n'existe : un filtre à une
               seule valeur ne filtrerait rien. */}
@@ -163,7 +224,7 @@ export default function HistoryPage() {
               className="field"
               aria-label="Filtrer par parcours"
               value={parcours}
-              onChange={(e) => setParcours(e.target.value)}
+              onChange={(e) => { setParcours(e.target.value); setCoches(new Set()); }}
               style={{ flex: "0 1 220px", minWidth: 0 }}
             >
               <option value="">Tous les parcours</option>
@@ -173,18 +234,80 @@ export default function HistoryPage() {
               <option value={SANS_PARCOURS}>Sans parcours</option>
             </select>
           )}
+          {goals.length > 0 && !lot && (
+            <button className="btn-ghost" onClick={() => setLot(true)}>
+              Rattacher à un parcours
+            </button>
+          )}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {FILTRES.map((f) => (
               <button
                 key={f.valeur}
                 className={filtre === f.valeur ? "btn-primary" : "btn-ghost"}
-                onClick={() => setFiltre(f.valeur)}
+                onClick={() => { setFiltre(f.valeur); setCoches(new Set()); }}
               >
                 {f.label}
               </button>
             ))}
           </div>
         </div>
+
+        {lotEchec && (
+          <div style={{ marginBottom: "1rem" }}>
+            <ErrorBanner
+              message={lotEchec.message}
+              detail={lotEchec.detail}
+              actionLabel="J'ai compris"
+              onAction={() => setLotEchec(null)}
+            />
+          </div>
+        )}
+
+        {lot && (
+          <div className="card-surface lot-bar">
+            <p style={{ fontSize: "0.88rem", fontWeight: 600 }}>
+              {coches.size} {coches.size < 2 ? "séance cochée" : "séances cochées"}
+            </p>
+            <button
+              className="chip"
+              onClick={() =>
+                setCoches(
+                  coches.size === filtered.length ? new Set() : new Set(filtered.map((t) => t.id))
+                )
+              }
+            >
+              {coches.size === filtered.length && filtered.length > 0
+                ? "Tout décocher"
+                : `Tout cocher (${filtered.length} affichées)`}
+            </button>
+            {/* Tous les parcours, terminés compris : les séances anciennes
+                appartiennent souvent à une formation déjà finie. */}
+            <select
+              className="field"
+              aria-label="Parcours cible"
+              value={cible}
+              onChange={(e) => setCible(e.target.value)}
+              style={{ flex: "0 1 240px", minWidth: 0 }}
+            >
+              <option value="">Aucun parcours (détacher)</option>
+              {goals.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.title}
+                  {g.status === "done" ? " — terminé" : g.status !== "active" ? " — en pause" : ""}
+                </option>
+              ))}
+            </select>
+            <button className="btn-primary" onClick={() => void rattacher()} disabled={coches.size === 0 || envoi}>
+              {envoi
+                ? "Enregistrement…"
+                : cible
+                  ? `Rattacher ${coches.size} ${coches.size < 2 ? "séance" : "séances"}`
+                  : `Détacher ${coches.size} ${coches.size < 2 ? "séance" : "séances"}`}
+            </button>
+            <button className="chip chip-quiet" onClick={fermerLot}>Terminer</button>
+            {lotOk && <p className="lot-ok">{lotOk}</p>}
+          </div>
+        )}
 
         {byDate.length === 0 ? (
           <div
@@ -208,7 +331,14 @@ export default function HistoryPage() {
 
                 <div style={{ display: "grid", gap: 8 }}>
                   {items.map((t) => (
-                    <Ligne key={t.id} t={t} goalTitle={goalTitle(t.goalId)} onNote={() => setNoteLue(t)} />
+                    <Ligne
+                      key={t.id}
+                      t={t}
+                      goalTitle={goalTitle(t.goalId)}
+                      onNote={() => setNoteLue(t)}
+                      coche={lot ? coches.has(t.id) : undefined}
+                      onCoche={() => basculer(t.id)}
+                    />
                   ))}
                 </div>
               </section>
@@ -262,11 +392,33 @@ function ResumeJour({ items }: { items: Task[] }) {
   );
 }
 
-function Ligne({ t, goalTitle, onNote }: { t: Task; goalTitle?: string; onNote: () => void }) {
+function Ligne({
+  t,
+  goalTitle,
+  onNote,
+  coche,
+  onCoche,
+}: {
+  t: Task;
+  goalTitle?: string;
+  onNote: () => void;
+  /** undefined = hors du mode « rattacher » : pas de case. */
+  coche?: boolean;
+  onCoche: () => void;
+}) {
   const horsPlan = t.origin === "unplanned";
 
   return (
-    <div className="hist-row card-surface">
+    <div className="hist-row card-surface" style={coche ? { borderColor: "var(--color-brand)" } : undefined}>
+      {coche !== undefined && (
+        <input
+          type="checkbox"
+          className="lot-check"
+          checked={coche}
+          onChange={onCoche}
+          aria-label={`Cocher « ${t.name} »`}
+        />
+      )}
       <div style={{ minWidth: 0, flex: "1 1 260px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <span
