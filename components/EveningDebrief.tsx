@@ -145,7 +145,7 @@ export default function EveningDebrief({
           )}
 
           <div style={{ display: "flex", alignItems: "center", gap: "1rem", justifyContent: "flex-end" }}>
-            {saved && <span style={{ color: "var(--color-mint)", fontSize: "0.85rem" }}>Débrief enregistré ✓</span>}
+            {saved && <span style={{ color: "var(--color-mint-text)", fontSize: "0.85rem" }}>Débrief enregistré ✓</span>}
             <button className="btn-primary" onClick={save} disabled={reached === null || saving}>
               {saving ? "Enregistrement…" : "Enregistrer mon débrief"}
             </button>

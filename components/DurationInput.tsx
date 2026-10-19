@@ -44,7 +44,7 @@ export default function DurationInput({
       <span
         style={{
           fontSize: "0.72rem",
-          color: invalid ? "var(--color-rose)" : "var(--text-mute)",
+          color: invalid ? "var(--color-rose-text)" : "var(--text-mute)",
           minHeight: "1em",
         }}
       >

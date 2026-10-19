@@ -16,9 +16,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "FocusDay — ta journée, pilotée par le temps",
+  // Ce qui s'affiche dans l'onglet et dans l'aperçu d'un lien partagé
+  // (WhatsApp, etc.) : la même promesse que la page de connexion.
+  title: "FocusDay — ce que tu apprends, tu le gardes",
   description:
-    "Planifie tes objectifs par créneaux, reçois des rappels quand l'heure approche, et débriefe ta journée. Un coach de productivité, pas une todo-list.",
+    "Carnet de suivi d'apprentissage : note tes séances de formation et ce que tu en retiens. Pour chaque parcours, retrouve les heures que tu y as consacrées et tes notes, en portfolio.",
 };
 
 export default function RootLayout({

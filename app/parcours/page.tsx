@@ -196,7 +196,7 @@ function GoalForm({
           style={{ maxWidth: 200 }}
         />
       </div>
-      {error && <p style={{ color: "var(--color-rose)", fontSize: "0.85rem" }}>{error}</p>}
+      {error && <p style={{ color: "var(--color-rose-text)", fontSize: "0.85rem" }}>{error}</p>}
       <div style={{ display: "flex", gap: "0.7rem", justifyContent: "flex-end" }}>
         {onCancel && <button className="btn-ghost" onClick={onCancel}>Annuler</button>}
         <button className={hero ? "btn-hero" : "btn-primary"} onClick={() => void submit()} disabled={pending}>

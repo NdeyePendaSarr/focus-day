@@ -180,14 +180,14 @@ export default function HomePage() {
           <aside className="day-rail card-surface" style={{ padding: "1.4rem", display: "grid", gap: "1.1rem" }}>
             <div className="day-stats">
               <Stat label="Objectifs" value={stats.total} />
-              <Stat label="Terminés" value={stats.done} color="var(--color-mint)" />
+              <Stat label="Terminés" value={stats.done} color="var(--color-mint-text)" />
             </div>
 
             {/* Le rapport de temps remplace le taux de réussite : un
                 pourcentage note la journée, ces deux durées la décrivent. */}
             {ready && minutesPrevues > 0 && (
               <p style={{ fontSize: "0.85rem", color: "var(--text-soft)", marginTop: "0.4rem" }}>
-                <strong style={{ color: "var(--color-mint)" }}>
+                <strong style={{ color: "var(--color-mint-text)" }}>
                   {formatDuration(minutesRealisees)}
                 </strong>{" "}
                 sur {formatDuration(minutesPrevues)} réalisées

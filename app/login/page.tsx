@@ -37,7 +37,7 @@ function PortfolioPreview() {
         {"48 h "}
         <span className="pf-hours-unit">consacrées</span>
       </p>
-      <p className="auth-preview-facts">31 séances · 22 jours actifs · 14 notes</p>
+      <p className="auth-preview-facts">22 séances · 19 jours actifs · 14 notes</p>
       <p className="auth-preview-note">
         « CALCULATE modifie le contexte de filtre : revoir ALL et REMOVEFILTERS. »
       </p>

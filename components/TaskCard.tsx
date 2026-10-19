@@ -16,9 +16,9 @@ const STATUS_LABEL: Record<TaskStatus, string> = {
 
 const STATUS_COLOR: Record<TaskStatus, string> = {
   planned: "var(--text-soft)",
-  in_progress: "var(--color-amber)",
-  done: "var(--color-mint)",
-  missed: "var(--color-rose)",
+  in_progress: "var(--color-amber-text)",
+  done: "var(--color-mint-text)",
+  missed: "var(--color-rose-text)",
 };
 
 export default function TaskCard({
@@ -301,7 +301,7 @@ function TaskGap({ task, slotMinutes }: { task: Task; slotMinutes: number }) {
             style={{
               fontSize: "0.72rem",
               fontWeight: 600,
-              color: gap > 0 ? "var(--color-amber)" : "var(--text-soft)",
+              color: gap > 0 ? "var(--color-amber-text)" : "var(--text-soft)",
               whiteSpace: "nowrap",
             }}
           >

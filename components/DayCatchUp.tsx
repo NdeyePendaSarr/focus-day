@@ -237,7 +237,7 @@ function UnplannedBlock({
                 {t.name}
                 {goalTitle(t.goalId) && <span className="goal-tag">{goalTitle(t.goalId)}</span>}
               </span>
-              <span style={{ color: "var(--color-amber)", fontWeight: 600 }}>
+              <span style={{ color: "var(--color-amber-text)", fontWeight: 600 }}>
                 {formatDuration(t.actualMinutes ?? 0)}
               </span>
             </div>

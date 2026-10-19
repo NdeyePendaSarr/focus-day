@@ -140,13 +140,13 @@ export default function DashboardPage() {
           <Chiffre
             valeur={ready ? formatDuration(d.reelTotal) : "—"}
             libelle="réalisées"
-            couleur="var(--color-mint)"
+            couleur="var(--color-mint-text)"
             aide="Sur les mêmes jours, hors-plan compris"
           />
           <Chiffre
             valeur={ready ? formatDuration(d.horsPlanTotal) : "—"}
             libelle="hors plan"
-            couleur="var(--color-amber)"
+            couleur="var(--color-amber-text)"
             aide="Fait sans l'avoir prévu"
           />
         </div>

@@ -67,6 +67,16 @@
   --brand-gradient: linear-gradient(135deg, #2a3bd1, #000080);
   --brand-halo: 0 12px 28px -10px rgba(0, 0, 128, 0.55);
 
+  /* Couleurs d'état employées comme TEXTE. Les teintes de base (barres,
+     pastilles, bordures, icônes) ne changent pas ; mais sur blanc elles
+     sont sous le seuil AA pour du texte : ambre 2,4:1, mint 3,3:1, rose
+     3,9:1. Ces variantes foncées gardent la teinte, donc le sens, et
+     tiennent 4,9:1 au moins sur blanc, sur les champs et sur leur propre
+     teinte de fond à 14 %. */
+  --color-amber-text: #8f5e0a;
+  --color-mint-text: #26704f;
+  --color-rose-text: #b33a4f;
+
   --radius-lg: 22px;
   --radius-md: 14px;
   --shadow: 0 18px 44px -24px rgba(0, 0, 128, 0.22), 0 1px 3px rgba(16, 17, 20, 0.04);
@@ -95,6 +105,12 @@
   /* Texte blanc : 5,9:1 sur #4450e6, 8,1:1 sur #2f3bc8. */
   --brand-gradient: linear-gradient(135deg, #4450e6, #2f3bc8);
   --brand-halo: 0 12px 28px -10px rgba(68, 80, 230, 0.6);
+
+  /* En sombre : l'ambre de base suffit (7,3:1) ; mint et rose sont
+     éclaircis pour tenir sur leur teinte de fond (5,4:1 et 4,9:1). */
+  --color-amber-text: #d99a2b;
+  --color-mint-text: #4fae88;
+  --color-rose-text: #e8697e;
 
   --shadow: 0 18px 44px -24px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 26px 54px -24px rgba(0, 0, 0, 0.7);
@@ -646,7 +662,7 @@ select,
 }
 
 .auth-msg-error {
-  color: var(--color-rose);
+  color: var(--color-rose-text);
   background: color-mix(in srgb, var(--color-rose) 12%, transparent);
 }
 
@@ -673,7 +689,7 @@ select,
 }
 
 .auth-msg-ok {
-  color: var(--color-mint);
+  color: var(--color-mint-text);
   background: color-mix(in srgb, var(--color-mint) 12%, transparent);
 }
 
@@ -1013,7 +1029,7 @@ select,
   border-radius: 999px;
   font-size: 0.72rem;
   font-weight: 600;
-  color: var(--color-mint);
+  color: var(--color-mint-text);
   background: color-mix(in srgb, var(--color-mint) 14%, transparent);
   white-space: nowrap;
 }
@@ -1169,7 +1185,7 @@ select,
 .lot-ok {
   width: 100%;
   font-size: 0.82rem;
-  color: var(--color-mint);
+  color: var(--color-mint-text);
 }
 
 .lot-check {

@@ -212,7 +212,7 @@ export default function TaskForm({
 
 
           {error && (
-            <p style={{ color: "var(--color-rose)", fontSize: "0.85rem" }}>{error}</p>
+            <p style={{ color: "var(--color-rose-text)", fontSize: "0.85rem" }}>{error}</p>
           )}
           {!error && spillsIntoNextDay(draft.start, draft.end) && (
             <p style={{ color: "var(--color-brand)", fontSize: "0.82rem" }}>
@@ -220,7 +220,7 @@ export default function TaskForm({
             </p>
           )}
           {!error && conflict && (
-            <p style={{ color: "var(--color-amber)", fontSize: "0.82rem" }}>
+            <p style={{ color: "var(--color-amber-text)", fontSize: "0.82rem" }}>
               ⚠ Ce créneau chevauche « {conflict.name} » ({conflict.start}–{conflict.end}). Tu peux quand même l&apos;ajouter.
             </p>
           )}

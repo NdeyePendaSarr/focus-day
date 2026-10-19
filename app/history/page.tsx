@@ -19,9 +19,9 @@ const STATUS_LABEL: Record<string, string> = {
 };
 const STATUS_COLOR: Record<string, string> = {
   planned: "var(--text-mute)",
-  in_progress: "var(--color-amber)",
-  done: "var(--color-mint)",
-  missed: "var(--color-rose)",
+  in_progress: "var(--color-amber-text)",
+  done: "var(--color-mint-text)",
+  missed: "var(--color-rose-text)",
 };
 
 /** Effort de référence : l'estimation si elle existe, sinon le créneau. */
@@ -413,7 +413,7 @@ function Ligne({
               fontFamily: "var(--font-display)",
               fontSize: "0.8rem",
               fontWeight: 600,
-              color: horsPlan ? "var(--color-amber)" : "var(--color-brand)",
+              color: horsPlan ? "var(--color-amber-text)" : "var(--color-brand)",
               whiteSpace: "nowrap",
             }}
           >
@@ -512,7 +512,7 @@ function Ligne({
 function Ecart({ t }: { t: Task }) {
   if (t.origin === "unplanned") {
     return (
-      <p className="hist-gap" style={{ color: "var(--color-amber)" }}>
+      <p className="hist-gap" style={{ color: "var(--color-amber-text)" }}>
         {formatDuration(t.actualMinutes ?? 0)} hors plan
       </p>
     );
@@ -544,7 +544,7 @@ function Ecart({ t }: { t: Task }) {
           style={{
             marginLeft: 8,
             fontWeight: 600,
-            color: gap > 0 ? "var(--color-amber)" : "var(--text-soft)",
+            color: gap > 0 ? "var(--color-amber-text)" : "var(--text-soft)",
           }}
         >
           {gap > 0 ? "+" : "\u2212"}

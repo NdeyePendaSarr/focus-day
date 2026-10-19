@@ -119,7 +119,7 @@ export default function ActualTimePanel({
           style={{
             fontSize: "0.82rem",
             marginTop: 10,
-            color: gap > 0 ? "var(--color-amber)" : "var(--color-mint)",
+            color: gap > 0 ? "var(--color-amber-text)" : "var(--color-mint-text)",
           }}
         >
           {gap > 0 ? "+" : "−"}
