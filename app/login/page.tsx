@@ -31,7 +31,10 @@ function messageFr(brut: string): string {
 function PortfolioPreview() {
   return (
     <div className="auth-preview card-surface" aria-hidden="true">
-      <span className="eyebrow">Portfolio</span>
+      {/* Une étiquette discrète, pas une seconde pastille : la pastille
+          de la page doit rester unique. « Exemple » : ces chiffres sont
+          inventés et ne doivent pas passer pour ceux de quelqu'un. */}
+      <p className="auth-preview-label">Exemple de portfolio</p>
       <p className="auth-preview-title">Certification Power BI</p>
       <p className="auth-preview-hours">
         {"48 h "}
@@ -115,25 +118,32 @@ export default function LoginPage() {
   };
 
   return (
+    <div className="auth-page">
+      {/* Le logo sur toute la largeur, au-dessus des deux colonnes : posé
+          dans la colonne de gauche, il décalait tout ce qui le suivait. */}
+      <div className="auth-topbar">
+        <p className="auth-logo">
+          <span className="auth-dot-logo" />
+          Focus<span style={{ color: "var(--color-brand)" }}>Day</span>
+        </p>
+      </div>
+
     <main className="auth-shell">
-      {/* Panneau de gauche : la promesse, puis ce qu'elle produit. C'est la
-          première chose que voit quelqu'un à qui l'on donne le lien. */}
+      {/* Colonne de gauche : la promesse, puis ce qu'elle produit. C'est la
+          première chose que voit quelqu'un à qui l'on donne le lien : tout
+          doit tenir dans le premier écran, carte comprise. */}
       <section className="auth-side">
-        <div>
-          <p className="auth-logo">
-            <span className="auth-dot-logo" />
-            Focus<span style={{ color: "var(--color-brand)" }}>Day</span>
-          </p>
-          <span className="eyebrow">Carnet d&apos;apprentissage</span>
-          <h1 className="auth-claim">
-            Ce que tu apprends, <span className="accent">tu le gardes</span>.
-          </h1>
-          <p className="auth-sub">
-            Note tes séances de formation et ce que tu en retiens. Pour chaque
-            parcours, FocusDay garde les heures que tu y as consacrées et tes
-            notes : un portfolio que tu peux montrer.
-          </p>
-        </div>
+        <span className="eyebrow">Carnet d&apos;apprentissage</span>
+        {/* Coupure maîtrisée : la virgule finit la première ligne, et seul
+            « gardes » est en couleur. */}
+        <h1 className="auth-claim">
+          Ce que tu apprends,
+          <br /> tu le <span className="accent">gardes</span>.
+        </h1>
+        <p className="auth-sub">
+          Note tes séances et ce que tu en retiens. FocusDay en fait un
+          portfolio que tu peux montrer.
+        </p>
 
         <PortfolioPreview />
       </section>
@@ -144,28 +154,27 @@ export default function LoginPage() {
           {/* Sur mobile le panneau de gauche disparaît : on en garde
               l'essentiel ici, sans quoi la carte flotte sur du vide. */}
           <div className="auth-mobile-head">
-            <p className="auth-logo">
-              <span className="auth-dot-logo" />
-              Focus<span style={{ color: "var(--color-brand)" }}>Day</span>
-            </p>
             <p className="auth-claim-sm">
-              Ce que tu apprends, <span className="accent">tu le gardes</span>.
+              {/* Espaces insécables : « tu le gardes » ne se coupe jamais,
+                  sinon « tu » reste orphelin en fin de ligne. */}
+              Ce que tu apprends,
+              <br /> tu{" "}le{" "}<span className="accent">gardes</span>.
             </p>
           </div>
 
           <h2 className="auth-title">
-            {mode === "signin" ? "Content de te revoir" : "Crée ton compte"}
+            {mode === "signin" ? "Te revoilà" : "Crée ton compte"}
           </h2>
           <p className="auth-hint">
             {mode === "signin"
-              ? "Connecte-toi pour retrouver tes journées et tes parcours."
+              ? "Connecte-toi pour retrouver tes séances et tes parcours."
               : "Quelques secondes, et tu peux planifier ta première séance."}
           </p>
 
           {currentEmail && (
             <div className="auth-session">
               <span>
-                Déjà connectée : <strong>{currentEmail}</strong>
+                Session ouverte : <strong>{currentEmail}</strong>
               </span>
               <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
                 <button className="chip" onClick={() => router.push("/")}>
@@ -247,5 +256,6 @@ export default function LoginPage() {
         </div>
       </section>
     </main>
+    </div>
   );
 }

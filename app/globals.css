@@ -489,29 +489,57 @@ select,
    celles du tableau de bord ; à droite le formulaire seul.
    L'illustration n'est pas décorative — c'est la promesse.
    ============================================================ */
-.auth-shell {
+/* Un seul fond pour toute la page, halo compris : deux panneaux de fonds
+   différents séparés par un trait donnaient deux pages côte à côte. */
+.auth-page {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(900px 620px at 12% 8%, color-mix(in srgb, var(--color-brand-bright) 13%, transparent), transparent 62%),
+    radial-gradient(760px 520px at 92% 96%, color-mix(in srgb, var(--color-brand-bright) 8%, transparent), transparent 60%),
+    var(--bg);
+}
+
+.auth-topbar {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.4rem 1.5rem 0;
+  box-sizing: border-box;
+}
+.auth-topbar .auth-logo {
+  margin-bottom: 0;
+}
+
+/* Conteneur borné et centré : en pleine largeur, à 1920 px, le texte
+   collait au bord gauche et le formulaire flottait loin à droite. Les deux
+   colonnes sont centrées verticalement sur le même axe. */
+.auth-shell {
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 1.75rem;
+  box-sizing: border-box;
   display: grid;
   grid-template-columns: 1fr;
+  align-items: center;
+  gap: 3rem;
 }
 
 @media (min-width: 940px) {
   .auth-shell {
-    grid-template-columns: 1.05fr 1fr;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 4.5rem;
   }
 }
 
 .auth-side {
   display: none;
-  padding: 3.5rem;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 2.5rem;
-  background:
-    radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--color-brand-bright) 14%, transparent), transparent 60%),
-    radial-gradient(100% 80% at 100% 100%, color-mix(in srgb, var(--color-brand-bright) 8%, transparent), transparent 55%),
-    var(--bg-2);
-  border-right: 1px solid var(--border);
+  align-items: flex-start;
+  min-width: 0;
 }
 
 @media (min-width: 940px) {
@@ -539,36 +567,49 @@ select,
 
 .auth-claim {
   font-family: var(--font-display);
-  font-size: clamp(2.2rem, 3.6vw, 3.2rem);
+  font-size: clamp(2.4rem, 3.5vw, 3.4rem);
   font-weight: 800;
   line-height: 1.04;
   letter-spacing: -0.035em;
-  margin: 1rem 0 1.1rem;
+  margin: 1rem 0 1rem;
+  text-wrap: balance;
 }
 
 .auth-sub {
+  text-wrap: pretty;
+  margin-bottom: 2rem;
   color: var(--text-soft);
-  font-size: 1.02rem;
+  font-size: 1.05rem;
   max-width: 42ch;
   line-height: 1.6;
 }
 
 /* --- l'aperçu : une carte de portfolio --- */
+/* L'objet que l'on montre : légèrement penché, ombre plus marquée. */
 .auth-preview {
-  max-width: 400px;
-  padding: 1.5rem 1.6rem;
+  width: 100%;
+  max-width: 380px;
+  padding: 1.3rem 1.5rem;
   display: grid;
-  gap: 0.45rem;
+  gap: 0.35rem;
   justify-items: start;
-  box-shadow: var(--shadow-lg);
-  animation: var(--animate-slide-up);
+  box-shadow: var(--shadow-lg), 0 2px 6px rgba(0, 0, 0, 0.04);
+  transform: rotate(-1.5deg);
+  margin-left: 0.4rem;
+}
+.auth-preview-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-mute);
 }
 .auth-preview-title {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   letter-spacing: -0.015em;
-  margin-top: 0.4rem;
+  margin-top: 0.15rem;
 }
 .auth-preview-hours {
   font-family: var(--font-display);
@@ -593,9 +634,8 @@ select,
 /* --- le formulaire --- */
 .auth-form-side {
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding: 2rem 1.25rem;
+  min-width: 0;
 }
 
 .auth-card {
@@ -613,6 +653,7 @@ select,
 }
 
 .auth-hint {
+  text-wrap: pretty;
   color: var(--text-soft);
   font-size: 0.88rem;
   margin-bottom: 1.5rem;
@@ -625,6 +666,11 @@ select,
   padding: 0.85rem;
   font-size: 0.88rem;
   margin-bottom: 1.25rem;
+}
+
+.auth-card .field {
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
 }
 
 .auth-pwd {
@@ -735,11 +781,8 @@ select,
   margin-bottom: 1.6rem;
 }
 
-.auth-mobile-head .auth-logo {
-  margin-bottom: 1.1rem;
-}
-
 .auth-claim-sm {
+  text-wrap: balance;
   font-family: var(--font-display);
   font-size: 1.5rem;
   font-weight: 800;
@@ -753,19 +796,6 @@ select,
   }
 }
 
-/* Un fond dégradé plutôt qu'un aplat : sur mobile la carte est seule
-   à l'écran, un fond neutre la fait paraître posée sur rien. */
-.auth-form-side {
-  background:
-    radial-gradient(90% 60% at 50% 0%, color-mix(in srgb, var(--color-brand) 10%, transparent), transparent 70%),
-    radial-gradient(70% 50% at 100% 100%, color-mix(in srgb, var(--color-brand) 7%, transparent), transparent 60%);
-}
-
-@media (min-width: 940px) {
-  .auth-form-side {
-    background: none;
-  }
-}
 
 /* ============================================================
    Éditeur de note
