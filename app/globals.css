@@ -790,7 +790,7 @@ select,
   line-height: 1.1;
 }
 
-@media (min-width: 940px) {
+@media (min-width: 1100px) {
   .auth-mobile-head {
     display: none;
   }
@@ -1268,4 +1268,220 @@ select,
 /* Impression : la pastille et les grands titres restent, sans ombre. */
 @media print {
   .eyebrow { border-color: #ccc; }
+}
+
+/* ============================================================
+   Connexion — maquette v2 : colonne bleu profond pleine hauteur,
+   cartes de portfolio en éventail en guise d'image.
+   ============================================================ */
+.auth-split {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr;
+  background: var(--bg);
+}
+/* Deux colonnes seulement à partir de 1100 px : en dessous, la colonne
+   bleue est trop étroite pour l'éventail de cartes. */
+@media (min-width: 1100px) {
+  .auth-split {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  }
+}
+
+/* Le bleu reste le même en thème sombre : c'est l'image de la page,
+   pas une surface d'interface. Texte blanc : 16:1 sur #000080,
+   7,9:1 sur #2a3bd1. */
+.auth-panel {
+  display: none;
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+  padding: 1.6rem clamp(2rem, 5vw, 4.5rem) 2rem;
+  background:
+    radial-gradient(620px 460px at 88% 12%, rgba(124, 140, 255, 0.38), transparent 62%),
+    radial-gradient(560px 480px at 0% 100%, rgba(42, 59, 209, 0.65), transparent 62%),
+    linear-gradient(160deg, #1d2bb8 0%, #000080 55%, #000058 100%);
+}
+@media (min-width: 1100px) {
+  .auth-panel {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.auth-logo-light {
+  color: #fff;
+  margin-bottom: 0;
+}
+.auth-logo-day {
+  color: #b4bcff;
+}
+
+.auth-panel-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.eyebrow-light {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+.eyebrow-light::before {
+  background: var(--color-amber);
+}
+
+.auth-claim-light {
+  color: #fff;
+}
+/* #b4bcff : 9,6:1 sur #000080, 6,2:1 sur le haut du dégradé. */
+.accent-light {
+  color: #b4bcff;
+}
+.auth-sub-light {
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0;
+}
+
+/* --- l'éventail de cartes --- */
+.auth-stack {
+  position: relative;
+  width: 100%;
+  max-width: 470px;
+  height: 318px;
+  margin-top: 1.6rem;
+}
+
+.stack-card {
+  position: absolute;
+  background: #fff;
+  color: #1c1d21;
+  border-radius: 20px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 30px 60px -22px rgba(0, 0, 30, 0.6), 0 2px 6px rgba(0, 0, 30, 0.12);
+}
+
+/* Derrière, à droite : un parcours mené à terme. */
+.stack-back {
+  top: 8px;
+  left: 200px;
+  /* Assez large pour que titre et étiquette tiennent sur une ligne :
+     sur deux lignes, les heures descendaient sous la carte principale. */
+  width: 290px;
+  transform: rotate(6deg);
+  z-index: 1;
+}
+/* Devant : la carte principale. */
+.stack-main {
+  top: 104px;
+  left: 0;
+  width: 300px;
+  transform: rotate(-2.5deg);
+  z-index: 2;
+}
+/* Par-dessus le coin : une note. */
+.stack-note {
+  top: 222px;
+  left: 286px;
+  width: 228px;
+  transform: rotate(3deg);
+  z-index: 3;
+}
+
+.stack-label {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6b7190;
+}
+.stack-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.02rem;
+  letter-spacing: -0.015em;
+  margin-top: 0.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.stack-done {
+  font-family: var(--font-body);
+  font-size: 0.66rem;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 999px;
+  color: #26704f;
+  background: #e3f2ec;
+}
+.stack-hours {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.6rem;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: #000080;
+  margin-top: 0.2rem;
+}
+.stack-hours-lg {
+  font-size: 2.3rem;
+}
+.stack-unit {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: normal;
+  color: #5f6270;
+}
+.stack-facts {
+  font-size: 0.8rem;
+  margin-top: 0.15rem;
+}
+.stack-quote {
+  font-size: 0.84rem;
+  font-style: italic;
+  color: #3a3d48;
+  margin-top: 0.3rem;
+  line-height: 1.45;
+}
+
+/* --- la zone du formulaire --- */
+.auth-form-zone {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background:
+    radial-gradient(700px 520px at 100% 0%, color-mix(in srgb, var(--color-brand-bright) 9%, transparent), transparent 62%),
+    var(--bg);
+}
+.auth-form-zone .auth-form-side {
+  flex: 1;
+  align-items: center;
+  padding: 1.5rem 1.5rem 2rem;
+}
+
+.auth-topbar-mobile {
+  display: block;
+}
+@media (min-width: 1100px) {
+  .auth-topbar-mobile {
+    display: none;
+  }
+}
+
+/* Entre 1100 et 1280 px, la colonne bleue est plus étroite que l'éventail :
+   on le réduit plutôt que de laisser la note toucher le bord. */
+@media (min-width: 1100px) and (max-width: 1279px) {
+  .auth-stack {
+    transform: scale(0.85);
+    transform-origin: left top;
+    margin-bottom: -48px;
+  }
 }

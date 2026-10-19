@@ -28,22 +28,40 @@ function messageFr(brut: string): string {
  * plutôt qu'écrit. Exemple figé, purement illustratif (aria-hidden) ;
  * les chiffres restent des heures « consacrées », jamais « mesurées ».
  */
-function PortfolioPreview() {
+function PortfolioStack() {
+  // Trois cartes posées comme sur une table : l'image de la page, c'est
+  // le produit lui-même. Les cartes sont du « papier » : couleurs fixes,
+  // identiques en thème clair et sombre.
   return (
-    <div className="auth-preview card-surface" aria-hidden="true">
-      {/* Une étiquette discrète, pas une seconde pastille : la pastille
-          de la page doit rester unique. « Exemple » : ces chiffres sont
-          inventés et ne doivent pas passer pour ceux de quelqu'un. */}
-      <p className="auth-preview-label">Exemple de portfolio</p>
-      <p className="auth-preview-title">Certification Power BI</p>
-      <p className="auth-preview-hours">
-        {"48 h "}
-        <span className="pf-hours-unit">consacrées</span>
-      </p>
-      <p className="auth-preview-facts">22 séances · 19 jours actifs · 14 notes</p>
-      <p className="auth-preview-note">
-        « CALCULATE modifie le contexte de filtre : revoir ALL et REMOVEFILTERS. »
-      </p>
+    <div className="auth-stack" aria-hidden="true">
+      <div className="stack-card stack-back">
+        <p className="stack-title">
+          Google Data Analytics <span className="stack-done">Terminé</span>
+        </p>
+        <p className="stack-hours">
+          {"64 h "}
+          <span className="stack-unit">consacrées</span>
+        </p>
+      </div>
+
+      <div className="stack-card stack-main">
+        {/* « Exemple » : ces chiffres sont inventés et ne doivent pas
+            passer pour ceux de quelqu'un. */}
+        <p className="stack-label">Exemple de portfolio</p>
+        <p className="stack-title">Certification Power BI</p>
+        <p className="stack-hours stack-hours-lg">
+          {"48 h "}
+          <span className="stack-unit">consacrées</span>
+        </p>
+        <p className="stack-facts">22 séances · 19 jours actifs · 14 notes</p>
+      </div>
+
+      <div className="stack-card stack-note">
+        <p className="stack-label">Ce que j&apos;en retiens</p>
+        <p className="stack-quote">
+          « CALCULATE modifie le contexte de filtre : revoir ALL et REMOVEFILTERS. »
+        </p>
+      </div>
     </div>
   );
 }
@@ -118,37 +136,42 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="auth-page">
-      {/* Le logo sur toute la largeur, au-dessus des deux colonnes : posé
-          dans la colonne de gauche, il décalait tout ce qui le suivait. */}
-      <div className="auth-topbar">
+    <div className="auth-split">
+      {/* Colonne visuelle pleine hauteur, en bleu profond : la promesse,
+          puis le produit lui-même en guise d'image. C'est la première
+          chose que voit quelqu'un à qui l'on donne le lien. */}
+      <aside className="auth-panel">
+        <p className="auth-logo auth-logo-light">
+          <span className="auth-dot-logo" />
+          Focus<span className="auth-logo-day">Day</span>
+        </p>
+
+        <div className="auth-panel-body">
+          <span className="eyebrow eyebrow-light">Carnet d&apos;apprentissage</span>
+          {/* Coupure maîtrisée : la virgule finit la première ligne, et seul
+              « gardes » est en couleur. */}
+          <h1 className="auth-claim auth-claim-light">
+            Ce que tu apprends,
+            <br /> tu le <span className="accent-light">gardes</span>.
+          </h1>
+          <p className="auth-sub auth-sub-light">
+            Note tes séances et ce que tu en retiens. FocusDay en fait un
+            portfolio que tu peux montrer.
+          </p>
+
+          <PortfolioStack />
+        </div>
+      </aside>
+
+    <main className="auth-form-zone">
+      {/* Sur mobile, la colonne visuelle disparaît : le logo revient ici. */}
+      <div className="auth-topbar auth-topbar-mobile">
         <p className="auth-logo">
           <span className="auth-dot-logo" />
           Focus<span style={{ color: "var(--color-brand)" }}>Day</span>
         </p>
       </div>
 
-    <main className="auth-shell">
-      {/* Colonne de gauche : la promesse, puis ce qu'elle produit. C'est la
-          première chose que voit quelqu'un à qui l'on donne le lien : tout
-          doit tenir dans le premier écran, carte comprise. */}
-      <section className="auth-side">
-        <span className="eyebrow">Carnet d&apos;apprentissage</span>
-        {/* Coupure maîtrisée : la virgule finit la première ligne, et seul
-            « gardes » est en couleur. */}
-        <h1 className="auth-claim">
-          Ce que tu apprends,
-          <br /> tu le <span className="accent">gardes</span>.
-        </h1>
-        <p className="auth-sub">
-          Note tes séances et ce que tu en retiens. FocusDay en fait un
-          portfolio que tu peux montrer.
-        </p>
-
-        <PortfolioPreview />
-      </section>
-
-      {/* Panneau de droite : le formulaire, et rien d'autre. */}
       <section className="auth-form-side">
         <div className="auth-card card-surface">
           {/* Sur mobile le panneau de gauche disparaît : on en garde
