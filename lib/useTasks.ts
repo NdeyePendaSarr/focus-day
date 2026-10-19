@@ -150,6 +150,7 @@ export function useTasks(date: string = todayISO()) {
         status: "done",
         completedAt: new Date().toISOString(),
         actualMinutes,
+        actualSource: "panneau",
         gapReason,
         ...(note ? { note } : {}),
       }, "complete");
@@ -167,8 +168,12 @@ export function useTasks(date: string = todayISO()) {
 
   /** Rattrapage : renseigne le temps réel sans toucher au statut. */
   const setActual = useCallback(
-    async (id: string, actualMinutes: number, gapReason?: GapReason) => {
-      await updateTask(id, { actualMinutes, gapReason }, "actual");
+    async (id: string, actualMinutes: number, gapReason?: GapReason, note?: string) => {
+      await updateTask(
+        id,
+        { actualMinutes, actualSource: "rattrapage", gapReason, ...(note ? { note } : {}) },
+        "actual"
+      );
     },
     [updateTask]
   );
@@ -176,7 +181,7 @@ export function useTasks(date: string = todayISO()) {
   /** Activité réalisée sans avoir été planifiée : pas de créneau,
    *  seulement une durée. C'est elle qui mesure le hors-plan. */
   const addUnplanned = useCallback(
-    async (name: string, minutes: number, goalId?: string) => {
+    async (name: string, minutes: number, goalId?: string, note?: string) => {
       const now = new Date().toISOString();
       const task: Task = {
         id: uid(),
@@ -187,7 +192,9 @@ export function useTasks(date: string = todayISO()) {
         status: "done",
         origin: "unplanned",
         actualMinutes: minutes,
+        actualSource: "hors_plan",
         goalId,
+        note,
         createdAt: now,
         completedAt: now,
       };

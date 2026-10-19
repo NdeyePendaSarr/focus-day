@@ -25,6 +25,9 @@ export const GAP_REASONS: { value: GapReason; label: string }[] = [
   { value: "autre", label: "Autre" },
 ];
 
+/** Valeurs de sessions.actual_source (supabase/04_actual_source.sql). */
+export type ActualSource = "panneau" | "rattrapage" | "hors_plan";
+
 export interface Task {
   id: string;
   date: string;        // "2026-08-01" — le jour de la tâche
@@ -53,6 +56,10 @@ export interface Task {
   /** "unplanned" : activité saisie après coup, jamais planifiée.
    *  C'est elle qui mesure la part de journée hors-plan. */
   origin?: "planned" | "unplanned";
+  /** Chemin par lequel le temps réel a été saisi. Enregistré, jamais
+   *  déduit : c'est ce qui permet de comparer les variantes de la
+   *  question « Qu'est-ce que tu en retiens ? ». */
+  actualSource?: ActualSource;
 
   /** Parcours auquel la session contribue (table goals). Optionnel :
    *  tout ne relève pas d'une formation. */

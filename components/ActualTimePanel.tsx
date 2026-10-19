@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { Task, GapReason } from "@/lib/types";
 import { GAP_REASONS } from "@/lib/types";
 import { formatDuration, parseDuration } from "@/lib/time";
@@ -16,6 +16,16 @@ import DurationInput from "@/components/DurationInput";
  *
  * La cause d'écart n'apparaît que si l'écart existe vraiment : la demander
  * quand le temps réel colle à l'estimation serait du bruit.
+ *
+ * Session rattachée à un parcours : la note fait partie de l'étape.
+ * Un champ optionnel posé à côté ne se remplit pas — 7 % de notes,
+ * gap_note vide sur 91 objectifs alors que la cause, juste à côté,
+ * était cliquée. Ce qui est demandé à la validation l'est à 96 %.
+ * Deux boutons qui disent tous deux qu'ils enregistrent le temps :
+ * « avec ma note » (exige la note) et « sans note ». Un « Passer »
+ * laissait deviner si la séance était enregistrée, et l'hésitant
+ * aurait écrit « ok » pour ne pas prendre de risque — faussant la
+ * mesure. On demande, on n'oblige pas. Hors parcours, rien ne change.
  */
 
 /**
@@ -37,11 +47,14 @@ const TOLERANCE = 0.15;
 
 export default function ActualTimePanel({
   task,
+  goalTitle,
   slotMinutes,
   onConfirm,
   onCancel,
 }: {
   task: Task;
+  /** Nom du parcours rattaché, s'il y en a un. */
+  goalTitle?: string;
   slotMinutes: number;
   onConfirm: (actualMinutes: number, gapReason?: GapReason, note?: string) => void;
   onCancel: () => void;
@@ -55,11 +68,21 @@ export default function ActualTimePanel({
   // La note est un bonus, jamais un péage.
   const [noteOuverte, setNoteOuverte] = useState(false);
   const [note, setNote] = useState(task.note ?? "");
+  const noteRef = useRef<HTMLTextAreaElement>(null);
 
   const actual = parseDuration(minutes) ?? 0;
   const chrono = chronoMinutes(task);
   const gap = actual - reference;
   const significant = reference > 0 && Math.abs(gap) / reference > TOLERANCE;
+  // Rien à retenir d'une session qui n'a pas eu lieu : à zéro minute,
+  // la note redevient facultative.
+  const askNote = Boolean(task.goalId) && actual > 0;
+  const confirm = (withNote: boolean) =>
+    onConfirm(
+      actual,
+      significant ? reason ?? undefined : undefined,
+      withNote ? note.trim() || undefined : task.note
+    );
 
   return (
     <div
@@ -81,7 +104,7 @@ export default function ActualTimePanel({
           onChange={setMinutes}
           hint={`Tu avais prévu ${formatDuration(reference)}`}
           width={120}
-          autoFocus
+          autoFocus={!askNote}
         />
 
         {chrono !== null && (
@@ -123,12 +146,35 @@ export default function ActualTimePanel({
         </div>
       )}
 
-      {noteOuverte ? (
+      {askNote ? (
+        <div className="note-step">
+          <label className="field-label" htmlFor={`note-${task.id}`} style={{ display: "block" }}>
+            Qu&apos;est-ce que tu en retiens ?
+          </label>
+          {goalTitle && (
+            <p style={{ fontSize: "0.76rem", color: "var(--text-mute)", marginBottom: 6 }}>
+              Pour ton parcours <span className="goal-tag">{goalTitle}</span>
+            </p>
+          )}
+          <textarea
+            ref={noteRef}
+            id={`note-${task.id}`}
+            className="field"
+            rows={3}
+            maxLength={5000}
+            autoFocus
+            placeholder="Une notion comprise, un blocage, ce à revoir la prochaine fois…"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+        </div>
+      ) : noteOuverte ? (
         <div style={{ marginTop: 12 }}>
           <label className="field-label">Ce que tu en retiens</label>
           <textarea
             className="field"
             rows={3}
+            maxLength={5000}
             placeholder="Ce que j'ai appris, ce qui a bloqué, ce à quoi penser la prochaine fois…"
             value={note}
             onChange={(e) => setNote(e.target.value)}
@@ -144,23 +190,35 @@ export default function ActualTimePanel({
         </button>
       )}
 
-      <div style={{ display: "flex", gap: 6, marginTop: 12 }}>
-        <button
-          className="chip chip-mint"
-          onClick={() =>
-            onConfirm(
-              actual,
-              significant ? reason ?? undefined : undefined,
-              note.trim() || undefined
-            )
-          }
-        >
-          Valider
-        </button>
-        <button className="chip" onClick={onCancel}>
-          Annuler
-        </button>
-      </div>
+      {askNote ? (
+        <>
+          <div style={{ display: "flex", gap: 6, marginTop: 12, flexWrap: "wrap" }}>
+            {/* Jamais désactivé : un bouton grisé sans explication est
+                un cul-de-sac. Champ vide -> le curseur y va. */}
+            <button
+              className="chip chip-mint"
+              onClick={() => (note.trim() ? confirm(true) : noteRef.current?.focus())}
+            >
+              Enregistrer avec ma note
+            </button>
+            <button className="chip" onClick={() => confirm(false)}>
+              Enregistrer sans note
+            </button>
+            <button className="chip chip-quiet" onClick={onCancel}>
+              Annuler
+            </button>
+          </div>
+        </>
+      ) : (
+        <div style={{ display: "flex", gap: 6, marginTop: 12 }}>
+          <button className="chip chip-mint" onClick={() => confirm(true)}>
+            Valider
+          </button>
+          <button className="chip" onClick={onCancel}>
+            Annuler
+          </button>
+        </div>
+      )}
 
       {/* La cause reste facultative : forcer un choix produirait des
           "Autre" en série, ce qui n'apprendrait rien. */}

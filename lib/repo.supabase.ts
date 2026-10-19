@@ -36,6 +36,7 @@ type SessionRow = {
   gap_reason: string | null;
   gap_note: string | null;
   origin: string;
+  actual_source: string | null;
   status: string;
   archived: boolean;
   archived_at: string | null;
@@ -63,6 +64,7 @@ function toTask(r: SessionRow): Task {
     gapNote: r.gap_note ?? undefined,
     origin: (r.origin ?? "planned") as Task["origin"],
     goalId: r.goal_id ?? undefined,
+    actualSource: (r.actual_source ?? undefined) as Task["actualSource"],
     status: r.status as TaskStatus,
     createdAt: r.created_at,
     startedAt: r.started_at ?? undefined,
@@ -90,6 +92,7 @@ function toRow(t: Task, userId: string) {
     gap_note: t.gapNote ?? null,
     origin: t.origin ?? "planned",
     goal_id: t.goalId ?? null,
+    actual_source: t.actualSource ?? null,
     archived: t.archived ?? false,
     archived_at: t.archivedAt ?? null,
     started_at: t.startedAt ?? null,
@@ -99,7 +102,7 @@ function toRow(t: Task, userId: string) {
 }
 
 const SESSION_COLS =
-  "id, goal_id, local_date, title, description, why, planned_start, planned_end, estimated_minutes, actual_minutes, note, gap_reason, gap_note, origin, status, archived, archived_at, started_at, completed_at, created_at";
+  "id, goal_id, local_date, title, description, why, planned_start, planned_end, estimated_minutes, actual_minutes, note, gap_reason, gap_note, origin, actual_source, status, archived, archived_at, started_at, completed_at, created_at";
 
 /**
  * Supabase renvoie des objets d'erreur simples, pas des instances d'Error.

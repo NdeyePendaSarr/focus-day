@@ -250,6 +250,7 @@ export default function TaskCard({
       {capturing && (
         <ActualTimePanel
           task={task}
+          goalTitle={goalTitle}
           slotMinutes={duration}
           onConfirm={(m, r, n) => {
             setCapturing(false);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { Task, GapReason, Goal } from "@/lib/types";
 import { GAP_REASONS } from "@/lib/types";
 import { formatDuration, durationMinutes, parseDuration } from "@/lib/time";
@@ -29,9 +29,10 @@ export default function DayCatchUp({
 }: {
   tasks: Task[];
   goals: Goal[];
-  onSetActual: (id: string, actualMinutes: number, gapReason?: GapReason) => void;
-  onAddUnplanned: (name: string, minutes: number, goalId?: string) => void;
+  onSetActual: (id: string, actualMinutes: number, gapReason?: GapReason, note?: string) => void;
+  onAddUnplanned: (name: string, minutes: number, goalId?: string, note?: string) => void;
 }) {
+  const goalTitle = (id?: string) => (id ? goals.find((g) => g.id === id)?.title : undefined);
   // Uniquement les créneaux planifiés sans temps réel renseigné.
   const missing = tasks.filter((t) => t.origin !== "unplanned" && t.actualMinutes == null);
   const unplanned = tasks.filter((t) => t.origin === "unplanned");
@@ -55,7 +56,7 @@ export default function DayCatchUp({
           </label>
           <div style={{ display: "grid", gap: 8 }}>
             {missing.map((t) => (
-              <MissingRow key={t.id} task={t} onSetActual={onSetActual} />
+              <MissingRow key={t.id} task={t} goalTitle={goalTitle(t.goalId)} onSetActual={onSetActual} />
             ))}
           </div>
         </div>
@@ -68,20 +69,32 @@ export default function DayCatchUp({
 
 /* ------------------------------------------------------------------ */
 
+/**
+ * Séance rattachée à un parcours : la question de la note est dépliée,
+ * mais rien n'est exigé pour valider. Le rattrapage traite plusieurs
+ * séances d'un coup et est rempli à 96 % ; des champs obligatoires le
+ * rendraient pénible. C'est aussi une variante à comparer avec le
+ * panneau de validation, qui lui demande de choisir avec ou sans note.
+ */
 function MissingRow({
   task,
+  goalTitle,
   onSetActual,
 }: {
   task: Task;
-  onSetActual: (id: string, actualMinutes: number, gapReason?: GapReason) => void;
+  goalTitle?: string;
+  onSetActual: (id: string, actualMinutes: number, gapReason?: GapReason, note?: string) => void;
 }) {
   const reference = task.estimatedMinutes ?? durationMinutes(task.start, task.end);
   const [minutes, setMinutes] = useState("");
   const [reason, setReason] = useState<GapReason | null>(null);
+  const [note, setNote] = useState(task.note ?? "");
 
   const actual = minutes.trim() === "" ? null : parseDuration(minutes);
   const gap = actual === null ? 0 : actual - reference;
   const significant = actual !== null && reference > 0 && Math.abs(gap) / reference > 0.15;
+  // Pas de question pour une séance marquée « Pas fait ».
+  const askNote = Boolean(task.goalId) && actual !== 0;
 
   return (
     <div
@@ -92,7 +105,10 @@ function MissingRow({
         border: "1px solid var(--border)",
       }}
     >
-      <div style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: 6 }}>{task.name}</div>
+      <div style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: 6, display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+        {task.name}
+        {goalTitle && <span className="goal-tag">{goalTitle}</span>}
+      </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
         <DurationInput
@@ -109,7 +125,9 @@ function MissingRow({
         <button
           className="chip chip-mint"
           disabled={actual === null}
-          onClick={() => onSetActual(task.id, actual ?? 0, reason ?? undefined)}
+          onClick={() =>
+            onSetActual(task.id, actual ?? 0, reason ?? undefined, askNote ? note.trim() || undefined : undefined)
+          }
         >
           Valider
         </button>
@@ -133,6 +151,24 @@ function MissingRow({
           ))}
         </div>
       )}
+
+      {askNote && (
+        <div style={{ marginTop: 10 }}>
+          <label className="field-label" htmlFor={`catchup-note-${task.id}`}>
+            Qu&apos;est-ce que tu en retiens ?
+          </label>
+          <textarea
+            id={`catchup-note-${task.id}`}
+            className="field"
+            rows={2}
+            maxLength={5000}
+            placeholder="Une notion comprise, un blocage, ce à revoir…"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            style={{ resize: "vertical" }}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -146,12 +182,14 @@ function UnplannedBlock({
 }: {
   existing: Task[];
   goals: Goal[];
-  onAdd: (name: string, minutes: number, goalId?: string) => void;
+  onAdd: (name: string, minutes: number, goalId?: string, note?: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [minutes, setMinutes] = useState("");
   const [goalId, setGoalId] = useState("");
+  const [note, setNote] = useState("");
+  const noteRef = useRef<HTMLTextAreaElement>(null);
   const goalTitle = (id?: string) => (id ? goals.find((g) => g.id === id)?.title : undefined);
 
   const total = existing.reduce((sum, t) => sum + (t.actualMinutes ?? 0), 0);
@@ -161,12 +199,17 @@ function UnplannedBlock({
   // fait croire à un bug, alors qu'il manque simplement une durée.
   const canAdd = name.trim().length > 0 && m > 0;
 
-  const add = () => {
+  // Hors-plan rattaché à un parcours : même paire de boutons que le
+  // panneau de validation d'une séance.
+  const askNote = goalId !== "";
+
+  const add = (withNote: boolean) => {
     if (!canAdd) return;
-    onAdd(name.trim(), m, goalId || undefined);
+    onAdd(name.trim(), m, goalId || undefined, withNote ? note.trim() || undefined : undefined);
     setName("");
     setMinutes("");
     setGoalId("");
+    setNote("");
     setOpen(false);
   };
 
@@ -221,10 +264,43 @@ function UnplannedBlock({
           />
           <DurationInput value={minutes} onChange={setMinutes} width={110} />
           <GoalSelect goals={goals} value={goalId} onChange={setGoalId} style={{ flex: "0 1 220px", minWidth: 0 }} />
-          <button className="chip chip-mint" onClick={add} disabled={!canAdd}>
-            Ajouter
-          </button>
-          <button className="chip" onClick={() => setOpen(false)}>
+          {askNote ? (
+            <>
+              <div className="note-step" style={{ width: "100%", marginTop: 4 }}>
+                <label className="field-label" htmlFor="unplanned-note">
+                  Qu&apos;est-ce que tu en retiens ?
+                </label>
+                <textarea
+                  ref={noteRef}
+                  id="unplanned-note"
+                  className="field"
+                  rows={3}
+                  maxLength={5000}
+                  placeholder="Une notion comprise, un blocage, ce à revoir la prochaine fois…"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  style={{ resize: "vertical" }}
+                />
+              </div>
+              {/* Désactivé seulement faute de nom ou de durée (la phrase
+                  ci-dessous le dit) ; note vide -> le curseur y va. */}
+              <button
+                className="chip chip-mint"
+                onClick={() => (note.trim() ? add(true) : noteRef.current?.focus())}
+                disabled={!canAdd}
+              >
+                Enregistrer avec ma note
+              </button>
+              <button className="chip" onClick={() => add(false)} disabled={!canAdd}>
+                Enregistrer sans note
+              </button>
+            </>
+          ) : (
+            <button className="chip chip-mint" onClick={() => add(false)} disabled={!canAdd}>
+              Ajouter
+            </button>
+          )}
+          <button className="chip chip-quiet" onClick={() => setOpen(false)}>
             Annuler
           </button>
           {!canAdd && (

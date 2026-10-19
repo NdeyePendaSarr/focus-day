@@ -873,3 +873,13 @@ select,
   gap: 0.75rem 1rem;
   flex-wrap: wrap;
 }
+
+/* La note comme étape de validation (session rattachée à un parcours) :
+   un cadre léger la distingue du champ facultatif, sans crier. */
+.note-step {
+  margin-top: 14px;
+  padding: 0.75rem 0.85rem;
+  border-radius: 10px;
+  background: var(--bg-2);
+  border: 1px solid color-mix(in srgb, var(--color-brand) 30%, var(--border));
+}
