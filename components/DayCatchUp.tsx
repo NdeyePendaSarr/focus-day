@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import type { Task, GapReason } from "@/lib/types";
+import type { Task, GapReason, Goal } from "@/lib/types";
 import { GAP_REASONS } from "@/lib/types";
 import { formatDuration, durationMinutes, parseDuration } from "@/lib/time";
 import DurationInput from "@/components/DurationInput";
+import GoalSelect from "@/components/GoalSelect";
 
 /**
  * Rattrapage du soir.
@@ -16,15 +17,20 @@ import DurationInput from "@/components/DurationInput";
  *
  *  2. Ce qu'on a fait sans l'avoir prévu. C'est la mesure que les outils
  *     de suivi ne donnent pas : la part de journée qui échappe au plan.
+ *     Pour un apprenant, c'est souvent le cours suivi sur un coup de
+ *     tête : il se rattache à un parcours comme un objectif planifié,
+ *     sinon le portfolio sous-compterait l'apprentissage spontané.
  */
 export default function DayCatchUp({
   tasks,
+  goals,
   onSetActual,
   onAddUnplanned,
 }: {
   tasks: Task[];
+  goals: Goal[];
   onSetActual: (id: string, actualMinutes: number, gapReason?: GapReason) => void;
-  onAddUnplanned: (name: string, minutes: number) => void;
+  onAddUnplanned: (name: string, minutes: number, goalId?: string) => void;
 }) {
   // Uniquement les créneaux planifiés sans temps réel renseigné.
   const missing = tasks.filter((t) => t.origin !== "unplanned" && t.actualMinutes == null);
@@ -55,7 +61,7 @@ export default function DayCatchUp({
         </div>
       )}
 
-      <UnplannedBlock existing={unplanned} onAdd={onAddUnplanned} />
+      <UnplannedBlock existing={unplanned} goals={goals} onAdd={onAddUnplanned} />
     </div>
   );
 }
@@ -135,14 +141,18 @@ function MissingRow({
 
 function UnplannedBlock({
   existing,
+  goals,
   onAdd,
 }: {
   existing: Task[];
-  onAdd: (name: string, minutes: number) => void;
+  goals: Goal[];
+  onAdd: (name: string, minutes: number, goalId?: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [minutes, setMinutes] = useState("");
+  const [goalId, setGoalId] = useState("");
+  const goalTitle = (id?: string) => (id ? goals.find((g) => g.id === id)?.title : undefined);
 
   const total = existing.reduce((sum, t) => sum + (t.actualMinutes ?? 0), 0);
 
@@ -153,9 +163,10 @@ function UnplannedBlock({
 
   const add = () => {
     if (!canAdd) return;
-    onAdd(name.trim(), m);
+    onAdd(name.trim(), m, goalId || undefined);
     setName("");
     setMinutes("");
+    setGoalId("");
     setOpen(false);
   };
 
@@ -179,7 +190,10 @@ function UnplannedBlock({
                 borderRadius: 8,
               }}
             >
-              <span>{t.name}</span>
+              <span style={{ minWidth: 0, display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                {t.name}
+                {goalTitle(t.goalId) && <span className="goal-tag">{goalTitle(t.goalId)}</span>}
+              </span>
               <span style={{ color: "var(--color-amber)", fontWeight: 600 }}>
                 {formatDuration(t.actualMinutes ?? 0)}
               </span>
@@ -206,6 +220,7 @@ function UnplannedBlock({
             autoFocus
           />
           <DurationInput value={minutes} onChange={setMinutes} width={110} />
+          <GoalSelect goals={goals} value={goalId} onChange={setGoalId} style={{ flex: "0 1 220px", minWidth: 0 }} />
           <button className="chip chip-mint" onClick={add} disabled={!canAdd}>
             Ajouter
           </button>

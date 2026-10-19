@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Task, DebriefEntry } from "@/lib/types";
+import type { Task, DebriefEntry, Goal } from "@/lib/types";
 import { repo } from "@/lib/repo";
 
 import type { GapReason } from "@/lib/types";
@@ -20,13 +20,15 @@ export default function EveningDebrief({
   onSaved,
   onSetActual,
   onAddUnplanned,
+  goals,
 }: {
   date: string;
   tasks: Task[];
   existing?: DebriefEntry;
   onSaved: () => void;
   onSetActual: (id: string, actualMinutes: number, gapReason?: GapReason) => void;
-  onAddUnplanned: (name: string, minutes: number) => void;
+  onAddUnplanned: (name: string, minutes: number, goalId?: string) => void;
+  goals: Goal[];
 }) {
   const planned = tasks.filter((t) => t.origin !== "unplanned");
   const done = planned.filter((t) => t.status === "done").length;
@@ -78,7 +80,7 @@ export default function EveningDebrief({
           bien" est plus difficile après avoir écrit ses vrais chiffres. */}
       <div className="debrief-grid">
         <div>
-          <DayCatchUp tasks={tasks} onSetActual={onSetActual} onAddUnplanned={onAddUnplanned} />
+          <DayCatchUp tasks={tasks} goals={goals} onSetActual={onSetActual} onAddUnplanned={onAddUnplanned} />
         </div>
 
         <div style={{ display: "grid", gap: "1.2rem" }}>

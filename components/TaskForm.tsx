@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Task, Goal } from "@/lib/types";
 import { selectableGoals } from "@/lib/goals";
+import GoalSelect from "@/components/GoalSelect";
 import { toMinutes, findConflict, spillsIntoNextDay, durationMinutes, formatDuration } from "@/lib/time";
 import DurationInput from "@/components/DurationInput";
 
@@ -183,17 +184,13 @@ export default function TaskForm({
           <div>
             <label className="field-label" htmlFor="task-goal">Parcours (optionnel)</label>
             {options.length > 0 ? (
-              <select
+              <GoalSelect
                 id="task-goal"
-                className="field"
+                goals={goals}
                 value={draft.goalId}
-                onChange={(e) => set("goalId", e.target.value)}
-              >
-                <option value="">Aucun parcours</option>
-                {options.map((g) => (
-                  <option key={g.id} value={g.id}>{g.title}</option>
-                ))}
-              </select>
+                currentId={editing?.goalId}
+                onChange={(v) => set("goalId", v)}
+              />
             ) : (
               <p style={{ fontSize: "0.8rem", color: "var(--text-mute)" }}>
                 Aucun parcours en cours. Crée-en un dans l&apos;onglet Parcours pour y rattacher tes objectifs.

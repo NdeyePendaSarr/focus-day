@@ -176,7 +176,7 @@ export function useTasks(date: string = todayISO()) {
   /** Activité réalisée sans avoir été planifiée : pas de créneau,
    *  seulement une durée. C'est elle qui mesure le hors-plan. */
   const addUnplanned = useCallback(
-    async (name: string, minutes: number) => {
+    async (name: string, minutes: number, goalId?: string) => {
       const now = new Date().toISOString();
       const task: Task = {
         id: uid(),
@@ -187,6 +187,7 @@ export function useTasks(date: string = todayISO()) {
         status: "done",
         origin: "unplanned",
         actualMinutes: minutes,
+        goalId,
         createdAt: now,
         completedAt: now,
       };

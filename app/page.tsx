@@ -233,6 +233,7 @@ export default function HomePage() {
                 tasks={tasks}
                 onSetActual={setActual}
                 onAddUnplanned={addUnplanned}
+                goals={goals}
                 existing={existingDebrief ?? undefined}
                 onSaved={() => setDebriefKey((k) => k + 1)}
               />
