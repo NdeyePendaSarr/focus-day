@@ -150,6 +150,20 @@ par semaine.
 Une page propre, imprimable. Pas d'export PDF maison, pas de partage
 public pour l'instant — ce sont d'autres chantiers.
 
+**Décisions prises le 19 octobre 2026, en cours de route :**
+
+- **Un parcours terminé est mis en avant.** Un parcours `done`, c'est une
+  certification décrochée : ce qu'un portfolio a de plus précieux. Sur
+  `/parcours` il est rangé sous « Archivés », avec les parcours en pause ;
+  dans le portfolio il vient en tête, distingué, jamais replié avec eux.
+- **Les séances hors-plan comptent.** Une activité hors-plan peut être
+  rattachée à un parcours (saisie du débrief) et entre dans les heures,
+  les séances, les jours actifs et les notes, comme une séance planifiée.
+  Pour un apprenant, le cours suivi sans l'avoir prévu est un cas
+  courant ; l'exclure ferait sous-compter l'apprentissage spontané. Le
+  zéro hors-plan des 36 jours dit que l'option n'était pas utilisée, pas
+  que la situation n'arrive pas.
+
 **Vocabulaire, et ce n'est pas un détail :** écrire « 48 h consacrées »,
 jamais « 48 h mesurées » ni « maîtrisé ». Les heures sont déclaratives et
 le ratio de 1,00 le prouve. Un portfolio honnête vaut mieux qu'un
