@@ -6,6 +6,8 @@ import { repo } from "@/lib/repo";
 
 import type { GapReason } from "@/lib/types";
 import DayCatchUp from "@/components/DayCatchUp";
+import ErrorBanner from "@/components/ErrorBanner";
+import { errorDetail } from "@/lib/errors";
 
 /**
  * Débriefing du soir : le moment réflexif qui distingue FocusDay
@@ -35,6 +37,10 @@ export default function EveningDebrief({
   const [mood, setMood] = useState<number>(existing?.mood ?? 3);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  // Échec d'enregistrement. Contrairement aux objectifs, rien n'est
+  // rechargé ici : les réponses restent dans le formulaire, on peut
+  // vraiment réessayer.
+  const [saveError, setSaveError] = useState<{ detail?: string } | null>(null);
 
   const save = async () => {
     const entry: DebriefEntry = {
@@ -46,11 +52,14 @@ export default function EveningDebrief({
       createdAt: new Date().toISOString(),
     };
     setSaving(true);
+    setSaveError(null);
     try {
       await repo.debriefs.save(entry);
       setSaved(true);
       onSaved();
       setTimeout(() => setSaved(false), 2500);
+    } catch (e) {
+      setSaveError({ detail: errorDetail(e) });
     } finally {
       setSaving(false);
     }
@@ -123,6 +132,15 @@ export default function EveningDebrief({
             ))}
           </div>
         </div>
+
+          {saveError && (
+            <ErrorBanner
+              message="Ton débrief n'a pas été enregistré. Tes réponses sont toujours là : tu peux réessayer."
+              detail={saveError.detail}
+              actionLabel="Réessayer"
+              onAction={() => void save()}
+            />
+          )}
 
           <div style={{ display: "flex", alignItems: "center", gap: "1rem", justifyContent: "flex-end" }}>
             {saved && <span style={{ color: "var(--color-mint)", fontSize: "0.85rem" }}>Débrief enregistré ✓</span>}

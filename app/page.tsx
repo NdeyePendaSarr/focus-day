@@ -10,11 +10,13 @@ import DayTimeline from "@/components/DayTimeline";
 import TaskCard from "@/components/TaskCard";
 import TaskForm, { TaskDraft } from "@/components/TaskForm";
 import EveningDebrief from "@/components/EveningDebrief";
+import ErrorBanner from "@/components/ErrorBanner";
+import { errorDetail } from "@/lib/errors";
 import { repo } from "@/lib/repo";
 
 export default function HomePage() {
   const today = todayISO();
-  const { tasks, ready, addTask, updateTask, setStatus, completeTask, setNote, setActual, addUnplanned, archiveTask } = useTasks(today);
+  const { tasks, ready, loadError, writeFailures, dismissWriteFailure, refresh, addTask, updateTask, setStatus, completeTask, setNote, setActual, addUnplanned, archiveTask } = useTasks(today);
   const now = useNow();
   const { permission, requestPermission } = useReminders(tasks);
 
@@ -31,13 +33,18 @@ export default function HomePage() {
   // le rendu. On la recharge au montage, au changement de jour, et après un
   // enregistrement (debriefKey est incrémenté par onSaved).
   const [existingDebrief, setExistingDebrief] = useState<DebriefEntry | null>(null);
+  // Un débrief non chargé s'afficherait vide, et l'enregistrer écraserait
+  // celui qui existe déjà en base : l'échec doit se voir.
+  const [debriefLoadError, setDebriefLoadError] = useState<string | null>(null);
   useEffect(() => {
     void (async () => {
       try {
         setExistingDebrief(await repo.debriefs.byDate(today));
-      } catch {
-        // Session absente ou réseau : pas de débrief affiché, pas de crash.
+        setDebriefLoadError(null);
+      } catch (e) {
+        // Session absente ou réseau : pas de crash, mais un bandeau.
         setExistingDebrief(null);
+        setDebriefLoadError(errorDetail(e) ?? "erreur inconnue");
       }
     })();
   }, [today, debriefKey]);
@@ -92,6 +99,39 @@ export default function HomePage() {
     <>
       <NavBar />
       <main className="page-shell" style={{ padding: "1.5rem 1.25rem 4rem" }}>
+        {/* Échecs : en tête, avant tout le reste. Une écriture ratée n'est
+            pas rejouée — la journée est rechargée et le bandeau dit quoi
+            refaire. */}
+        {(loadError || debriefLoadError || writeFailures.length > 0) && (
+          <div style={{ display: "grid", gap: 8, marginBottom: "1.25rem" }}>
+            {loadError && (
+              <ErrorBanner
+                message="Ta journée n'a pas pu être chargée depuis le serveur. Ce qui s'affiche n'est peut-être pas ce qui est enregistré."
+                detail={loadError}
+                actionLabel="Réessayer"
+                onAction={() => void refresh()}
+              />
+            )}
+            {debriefLoadError && (
+              <ErrorBanner
+                message="Ton débrief du jour n'a pas pu être chargé. N'en enregistre pas un nouveau avant d'avoir réessayé : il remplacerait l'ancien."
+                detail={debriefLoadError}
+                actionLabel="Réessayer"
+                onAction={() => setDebriefKey((k) => k + 1)}
+              />
+            )}
+            {writeFailures.map((f) => (
+              <ErrorBanner
+                key={f.id}
+                message={f.message}
+                detail={f.detail}
+                actionLabel="J'ai compris"
+                onAction={() => dismissWriteFailure(f.id)}
+              />
+            ))}
+          </div>
+        )}
+
         {/* Bandeau permission notifications */}
         {permission !== "granted" && ready && (
           <div className="card-surface" style={{ padding: "0.9rem 1.1rem", marginBottom: "1.25rem", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
