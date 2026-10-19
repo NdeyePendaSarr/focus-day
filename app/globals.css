@@ -883,3 +883,185 @@ select,
   background: var(--bg-2);
   border: 1px solid color-mix(in srgb, var(--color-brand) 30%, var(--border));
 }
+
+/* ------------------------------------------------------------------ */
+/* Portfolio                                                           */
+/* ------------------------------------------------------------------ */
+
+.pf-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.6rem;
+}
+
+.pf-disclaimer {
+  font-size: 0.78rem;
+  color: var(--text-mute);
+  margin-bottom: 1.5rem;
+  max-width: 640px;
+}
+
+/* Colonnes bornées : une carte seule ne s'étire pas sur 1280 px. */
+.pf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 12px;
+  max-width: 1000px;
+}
+
+.pf-card {
+  padding: 1.1rem 1.2rem;
+  display: grid;
+  gap: 0.6rem;
+  align-content: start;
+  min-width: 0;
+}
+
+/* Parcours mené à terme : ce qu'un portfolio a de plus précieux. */
+.pf-card-done {
+  border-color: color-mix(in srgb, var(--color-mint) 45%, var(--border));
+  box-shadow: inset 3px 0 0 var(--color-mint), var(--shadow);
+}
+
+.pf-done-tag {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-mint);
+  background: color-mix(in srgb, var(--color-mint) 14%, transparent);
+  white-space: nowrap;
+}
+
+.pf-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.pf-why {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  font-style: italic;
+  margin-top: 2px;
+}
+
+.pf-hours {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--color-brand);
+}
+
+.pf-hours-unit {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-soft);
+}
+
+.pf-facts {
+  font-size: 0.85rem;
+  color: var(--text);
+  margin-top: 0.35rem;
+}
+
+.pf-period {
+  font-size: 0.78rem;
+  color: var(--text-mute);
+  margin-top: 0.15rem;
+}
+
+.pf-link {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-brand);
+  justify-self: start;
+}
+
+.pf-empty-card {
+  font-size: 0.85rem;
+  color: var(--text-mute);
+}
+
+.pf-unattached {
+  font-size: 0.8rem;
+  color: var(--text-mute);
+  margin-top: 0.75rem;
+}
+
+.pf-back {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+
+.pf-note {
+  padding: 0.85rem 1.1rem;
+  break-inside: avoid;
+}
+
+.pf-note-meta {
+  font-size: 0.75rem;
+  color: var(--text-mute);
+  margin-bottom: 0.35rem;
+}
+
+.pf-note-text {
+  font-size: 0.92rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.pf-session {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem 1rem;
+  flex-wrap: wrap;
+  padding: 0.6rem 1.1rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+.pf-session:last-child { border-bottom: 0; }
+
+.pf-session-date {
+  flex: 0 0 13rem;
+  color: var(--text-mute);
+  font-size: 0.8rem;
+}
+
+.pf-session-name {
+  flex: 1 1 200px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.pf-session-time {
+  font-weight: 600;
+  color: var(--color-brand);
+  white-space: nowrap;
+}
+
+/* Impression : la page seule, sans navigation ni boutons, sur fond blanc. */
+@media print {
+  header,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .card-surface {
+    box-shadow: none !important;
+    background: #fff !important;
+  }
+  .pf-card,
+  .pf-session {
+    break-inside: avoid;
+  }
+}

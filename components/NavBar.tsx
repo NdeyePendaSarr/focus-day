@@ -11,6 +11,7 @@ const LINKS = [
   { href: "/dashboard", label: "Tableau de bord" },
   { href: "/history", label: "Historique" },
   { href: "/parcours", label: "Parcours" },
+  { href: "/portfolio", label: "Portfolio" },
   { href: "/archive", label: "Archives" },
 ];
 
