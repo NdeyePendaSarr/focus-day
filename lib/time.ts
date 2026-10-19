@@ -152,9 +152,14 @@ const FR_MONTHS = [
   "juillet", "août", "septembre", "octobre", "novembre", "décembre",
 ];
 
+/** Jour du mois à la française : « 1er », puis « 2 », « 3 »… */
+export function dayOfMonth(d: Date): string {
+  return d.getDate() === 1 ? "1er" : String(d.getDate());
+}
+
 export function prettyDate(iso: string): string {
   const d = new Date(iso + "T00:00:00");
-  return `${FR_DAYS[d.getDay()]} ${d.getDate()} ${FR_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  return `${FR_DAYS[d.getDay()]} ${dayOfMonth(d)} ${FR_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 /**

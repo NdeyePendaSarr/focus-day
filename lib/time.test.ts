@@ -188,6 +188,11 @@ describe("prettyDate", () => {
   it("formate une date ISO en français avec l'année", () => {
     expect(prettyDate("2026-08-13")).toBe("jeudi 13 août 2026");
   });
+
+  it("écrit « 1er » pour le premier jour du mois", () => {
+    expect(prettyDate("2026-10-01")).toBe("jeudi 1er octobre 2026");
+    expect(prettyDate("2026-10-02")).toBe("vendredi 2 octobre 2026");
+  });
 });
 
 describe("todayISO", () => {

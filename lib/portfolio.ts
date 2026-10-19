@@ -14,6 +14,7 @@
  */
 
 import type { Goal, GoalStatus, Task } from "./types";
+import { dayOfMonth } from "./time";
 
 export interface GoalSummary {
   goal: Goal;
@@ -101,8 +102,8 @@ export function consacre(minutes: number): string {
 
 const MONTH = new Intl.DateTimeFormat("fr-FR", { month: "long" });
 const d = (iso: string) => new Date(iso + "T00:00:00");
-/** « 1er » et non « 1 » : Intl ne pose pas l'ordinal du premier jour. */
-const jour = (iso: string) => (d(iso).getDate() === 1 ? "1er" : String(d(iso).getDate()));
+/** « 1er » et non « 1 » : même règle que prettyDate, partout. */
+const jour = (iso: string) => dayOfMonth(d(iso));
 const jourMois = (iso: string) => `${jour(iso)} ${MONTH.format(d(iso))}`;
 const complet = (iso: string) => `${jourMois(iso)} ${iso.slice(0, 4)}`;
 
