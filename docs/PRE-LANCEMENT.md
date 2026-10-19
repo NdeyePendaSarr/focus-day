@@ -41,6 +41,22 @@ l'utilisateur croit avoir enregistré et perd sa saisie.
 - Bandeau ou notification quand `error` n'est pas nul
 - Idem pour les échecs de chargement des pages
 
+**État au 19 octobre 2026.** Fait sur Ma journée et `/parcours` : les
+échecs de lecture et d'écriture ont chacun leur bandeau, qui nomme
+l'action non enregistrée. Reste ouvert :
+
+- **Objectif fantôme dans `useTasks`.** Une modification s'affiche avant
+  l'écriture ; en cas d'échec, seul le `refresh()` qui suit la retire.
+  Si ce refresh échoue aussi (réseau coupé), l'objectif ou la
+  modification reste à l'écran sans exister en base. Le bandeau « pas à
+  jour » le signale, mais rien n'est restauré : on peut valider ou noter
+  un objectif qui n'existe pas, et chaque geste produit un nouvel échec.
+  Correctif : restaurer explicitement l'état précédent à l'échec, comme
+  le fait `useGoals` (ajout retiré, modification annulée, suppression
+  rétablie).
+- Tableau de bord, Historique, Archives : un échec de chargement ne
+  produit qu'un `console.error`.
+
 ### 4. Politique de mot de passe
 
 Supabase accepte 6 caractères par défaut.

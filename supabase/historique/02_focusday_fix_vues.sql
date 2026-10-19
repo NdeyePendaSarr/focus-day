@@ -1,4 +1,11 @@
 -- =============================================================================
+-- INSTANTANÉ D'AOÛT 2026 — conservé pour l'historique, PAS une source de confiance.
+-- La production a divergé depuis (colonnes note et description, défaut
+-- auth.uid() sur user_id…). Le schéma réel est dans supabase/schema.sql.
+-- Déjà appliqué en production : ne pas relancer.
+-- =============================================================================
+
+-- =============================================================================
 -- FocusDay — correction des vues analytiques
 -- =============================================================================
 --
