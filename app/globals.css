@@ -487,13 +487,13 @@ select,
 
 .auth-side {
   display: none;
-  padding: 3rem;
+  padding: 3.5rem;
   flex-direction: column;
   justify-content: space-between;
   gap: 2.5rem;
   background:
-    radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--color-brand) 22%, transparent), transparent 60%),
-    radial-gradient(100% 80% at 100% 100%, color-mix(in srgb, var(--color-brand) 10%, transparent), transparent 55%),
+    radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--color-brand-bright) 14%, transparent), transparent 60%),
+    radial-gradient(100% 80% at 100% 100%, color-mix(in srgb, var(--color-brand-bright) 8%, transparent), transparent 55%),
     var(--bg-2);
   border-right: 1px solid var(--border);
 }
@@ -523,81 +523,57 @@ select,
 
 .auth-claim {
   font-family: var(--font-display);
-  font-size: clamp(1.6rem, 2.6vw, 2.3rem);
-  font-weight: 700;
-  line-height: 1.2;
-  margin-bottom: 0.9rem;
+  font-size: clamp(2.2rem, 3.6vw, 3.2rem);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  margin: 1rem 0 1.1rem;
 }
 
 .auth-sub {
   color: var(--text-soft);
-  font-size: 0.95rem;
+  font-size: 1.02rem;
   max-width: 42ch;
   line-height: 1.6;
 }
 
-/* --- l'illustration : sept journées, prévu puis réalisé --- */
-.auth-art {
-  display: flex;
-  align-items: flex-end;
-  gap: 14px;
-  height: 190px;
+/* --- l'aperçu : une carte de portfolio --- */
+.auth-preview {
+  max-width: 400px;
+  padding: 1.5rem 1.6rem;
+  display: grid;
+  gap: 0.45rem;
+  justify-items: start;
+  box-shadow: var(--shadow-lg);
+  animation: var(--animate-slide-up);
 }
-
-.auth-day {
-  display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  flex: 1;
-  height: 100%;
+.auth-preview-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: -0.015em;
+  margin-top: 0.4rem;
 }
-
-.auth-bar {
-  flex: 1;
-  border-radius: 5px 5px 0 0;
-  height: var(--h);
-  transform-origin: bottom;
-  animation: auth-grow 900ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+.auth-preview-hours {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 2.4rem;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--color-brand);
 }
-
-.auth-bar-plan {
-  background: var(--color-plan);
-  opacity: 0.8;
+.auth-preview-facts {
+  font-size: 0.85rem;
+  color: var(--text);
 }
-
-.auth-bar-real {
-  background: var(--color-brand);
+.auth-preview-note {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--text-soft);
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--brand-tint-border);
+  margin-top: 0.3rem;
 }
-
-@keyframes auth-grow {
-  from {
-    transform: scaleY(0);
-    opacity: 0;
-  }
-  to {
-    transform: scaleY(1);
-  }
-}
-
-.auth-legend {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.8rem;
-  color: var(--text-mute);
-}
-
-.auth-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
-  display: inline-block;
-  margin-left: 10px;
-}
-
-.auth-dot-plan { background: var(--color-plan); opacity: 0.8; margin-left: 0; }
-.auth-dot-real { background: var(--color-brand); }
-
 /* --- le formulaire --- */
 .auth-form-side {
   display: flex;
@@ -608,14 +584,15 @@ select,
 
 .auth-card {
   width: 100%;
-  max-width: 400px;
-  padding: 2rem 1.75rem;
+  max-width: 420px;
+  padding: 2.25rem 2rem;
 }
 
 .auth-title {
   font-family: var(--font-display);
-  font-size: 1.4rem;
-  font-weight: 700;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
   margin-bottom: 0.3rem;
 }
 
@@ -746,17 +723,12 @@ select,
   margin-bottom: 1.1rem;
 }
 
-.auth-art-sm {
-  height: 68px;
-  gap: 7px;
-}
-
 .auth-claim-sm {
   font-family: var(--font-display);
-  font-size: 1.02rem;
-  font-weight: 700;
-  line-height: 1.35;
-  margin-top: 1rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
 }
 
 @media (min-width: 940px) {

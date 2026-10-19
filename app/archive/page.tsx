@@ -6,6 +6,7 @@ import { repo } from "@/lib/repo";
 import { prettyDate } from "@/lib/time";
 import NavBar from "@/components/NavBar";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import PageHeader from "@/components/PageHeader";
 
 export default function ArchivePage() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -40,13 +41,13 @@ export default function ArchivePage() {
   return (
     <>
       <NavBar />
-      <main style={{ maxWidth: 960, margin: "0 auto", padding: "1.5rem 1.25rem 4rem" }}>
-        <h1 style={{ fontFamily: "var(--font-display)", fontSize: "2rem", fontWeight: 700, marginBottom: "0.35rem" }}>
-          Archives
-        </h1>
-        <p style={{ color: "var(--text-soft)", fontSize: "0.92rem", marginBottom: "1.5rem" }}>
-          Les objectifs que tu as rangés. Tu peux les restaurer, ou les supprimer définitivement.
-        </p>
+      <main className="page-shell" style={{ padding: "1.5rem 1.25rem 4rem" }}>
+        <PageHeader
+          eyebrow="Archives"
+          before="Rangés,"
+          accent="pas effacés"
+          sub="Les objectifs que tu as rangés. Tu peux les restaurer, ou les supprimer définitivement."
+        />
 
         {!ready ? (
           <div className="card-surface" style={{ padding: "2.5rem", textAlign: "center", color: "var(--text-mute)" }}>
@@ -59,7 +60,7 @@ export default function ArchivePage() {
         ) : (
           <div style={{ display: "grid", gap: 8 }}>
             {tasks.map((t) => (
-              <div key={t.id} className="card-surface" style={{ padding: "0.9rem 1.1rem", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+              <div key={t.id} className="card-surface" style={{ padding: "1rem 1.3rem", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem", flexWrap: "wrap", maxWidth: 960 }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span style={{ fontFamily: "var(--font-display)", fontSize: "0.8rem", fontWeight: 600, color: "var(--color-brand)" }}>

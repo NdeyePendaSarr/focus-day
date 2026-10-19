@@ -24,35 +24,23 @@ function messageFr(brut: string): string {
 }
 
 /**
- * Hauteurs figées, jamais aléatoires : une valeur tirée au rendu
- * différerait entre le serveur et le navigateur et casserait l'hydratation.
- * Chaque paire évoque une journée — prévu à gauche, réalisé à droite.
+ * Aperçu d'une carte de portfolio : ce que le produit produit, montré
+ * plutôt qu'écrit. Exemple figé, purement illustratif (aria-hidden) ;
+ * les chiffres restent des heures « consacrées », jamais « mesurées ».
  */
-const JOURS = [
-  { prevu: 62, reel: 48 },
-  { prevu: 40, reel: 44 },
-  { prevu: 78, reel: 55 },
-  { prevu: 54, reel: 54 },
-  { prevu: 88, reel: 70 },
-  { prevu: 46, reel: 60 },
-  { prevu: 70, reel: 38 },
-];
-
-function Illustration({ compact = false }: { compact?: boolean }) {
+function PortfolioPreview() {
   return (
-    <div className={compact ? "auth-art auth-art-sm" : "auth-art"} aria-hidden="true">
-      {JOURS.map((j, i) => (
-        <div key={i} className="auth-day">
-          <span
-            className="auth-bar auth-bar-plan"
-            style={{ ["--h" as string]: `${j.prevu}%`, animationDelay: `${i * 90}ms` }}
-          />
-          <span
-            className="auth-bar auth-bar-real"
-            style={{ ["--h" as string]: `${j.reel}%`, animationDelay: `${i * 90 + 45}ms` }}
-          />
-        </div>
-      ))}
+    <div className="auth-preview card-surface" aria-hidden="true">
+      <span className="eyebrow">Portfolio</span>
+      <p className="auth-preview-title">Certification Power BI</p>
+      <p className="auth-preview-hours">
+        {"48 h "}
+        <span className="pf-hours-unit">consacrées</span>
+      </p>
+      <p className="auth-preview-facts">31 séances · 22 jours actifs · 14 notes</p>
+      <p className="auth-preview-note">
+        « CALCULATE modifie le contexte de filtre : revoir ALL et REMOVEFILTERS. »
+      </p>
     </div>
   );
 }
@@ -128,30 +116,26 @@ export default function LoginPage() {
 
   return (
     <main className="auth-shell">
-      {/* Panneau de gauche : ce que fait le produit, montré plutôt qu'écrit. */}
+      {/* Panneau de gauche : la promesse, puis ce qu'elle produit. C'est la
+          première chose que voit quelqu'un à qui l'on donne le lien. */}
       <section className="auth-side">
         <div>
           <p className="auth-logo">
             <span className="auth-dot-logo" />
             Focus<span style={{ color: "var(--color-brand)" }}>Day</span>
           </p>
+          <span className="eyebrow">Carnet d&apos;apprentissage</span>
           <h1 className="auth-claim">
-            Ce que tu avais prévu.
-            <br />
-            Ce que tu as vraiment fait.
+            Ce que tu apprends, <span className="accent">tu le gardes</span>.
           </h1>
           <p className="auth-sub">
-            FocusDay mesure l&apos;écart entre les deux, jour après jour, pour
-            comprendre comment tu travailles réellement.
+            Note tes séances de formation et ce que tu en retiens. Pour chaque
+            parcours, FocusDay garde les heures que tu y as consacrées et tes
+            notes : un portfolio que tu peux montrer.
           </p>
         </div>
 
-        <Illustration />
-
-        <p className="auth-legend">
-          <span className="auth-dot auth-dot-plan" /> prévu
-          <span className="auth-dot auth-dot-real" /> réalisé
-        </p>
+        <PortfolioPreview />
       </section>
 
       {/* Panneau de droite : le formulaire, et rien d'autre. */}
@@ -164,9 +148,8 @@ export default function LoginPage() {
               <span className="auth-dot-logo" />
               Focus<span style={{ color: "var(--color-brand)" }}>Day</span>
             </p>
-            <Illustration compact />
             <p className="auth-claim-sm">
-              Ce que tu avais prévu. Ce que tu as vraiment fait.
+              Ce que tu apprends, <span className="accent">tu le gardes</span>.
             </p>
           </div>
 
@@ -175,8 +158,8 @@ export default function LoginPage() {
           </h2>
           <p className="auth-hint">
             {mode === "signin"
-              ? "Connecte-toi pour retrouver tes journées."
-              : "Quelques secondes, et tu peux planifier ta première journée."}
+              ? "Connecte-toi pour retrouver tes journées et tes parcours."
+              : "Quelques secondes, et tu peux planifier ta première séance."}
           </p>
 
           {currentEmail && (
@@ -237,7 +220,7 @@ export default function LoginPage() {
           {info && <p className="auth-msg auth-msg-ok">{info}</p>}
 
           <button
-            className="btn-primary auth-submit"
+            className="btn-hero auth-submit"
             onClick={submit}
             disabled={busy || !email || !password}
           >
