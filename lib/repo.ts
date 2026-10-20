@@ -33,6 +33,17 @@ export interface TaskRepo {
   save(task: Task): Promise<void>;
 
   /**
+   * Modifie une séance existante : UPDATE ciblé, comme setGoal. Seules
+   * les colonnes des champs présents dans `patch` sont envoyées ; les
+   * autres restent telles qu'elles sont en base. Un seul aller-retour,
+   * sans relecture préalable de la ligne.
+   *
+   * Échoue si aucune ligne n'a été modifiée (séance supprimée ailleurs,
+   * ou filtrée par la RLS) : ne jamais laisser croire que c'est passé.
+   */
+  patch(id: string, patch: Partial<Task>): Promise<void>;
+
+  /**
    * Ajouté par rapport à store.ts : useTasks.refresh() persiste les
    * bascules planned -> missed dans une boucle. Avec Supabase, une
    * boucle = N requêtes réseau. Ici, un seul aller-retour.
@@ -128,6 +139,14 @@ const localTasks: TaskRepo = {
 
   async byId(id) {
     return read<Task>(TASKS_KEY).find((t) => t.id === id) ?? null;
+  },
+
+  async patch(id, patch) {
+    const tasks = read<Task>(TASKS_KEY);
+    const i = tasks.findIndex((t) => t.id === id);
+    if (i === -1) throw new Error("Cet objectif n'existe plus.");
+    tasks[i] = { ...tasks[i], ...patch };
+    write(TASKS_KEY, tasks);
   },
 
   async save(task) {

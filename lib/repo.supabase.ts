@@ -16,6 +16,7 @@ import type { Task, TaskStatus, DebriefEntry, Goal, GoalStatus } from "@/lib/typ
 import type { Repo, TaskRepo, DebriefRepo, GoalRepo } from "@/lib/repo";
 import { spillsIntoNextDay, shiftISO } from "@/lib/time";
 import { getSupabase, currentUserId } from "@/lib/supabase";
+import { toPatchRow } from "@/lib/sessionPatch";
 
 /* ------------------------------------------------------------------ */
 /* Conversion base <-> application                                     */
@@ -186,6 +187,23 @@ const supabaseTasks: TaskRepo = {
     const userId = await requireUserId();
     const { error } = await getSupabase().from("sessions").upsert(toRow(task, userId));
     if (error) fail(error);
+  },
+
+  async patch(id, patch) {
+    const row = toPatchRow(patch);
+    if (Object.keys(row).length === 0) return;
+    // UPDATE ciblé, jamais un upsert : seules les colonnes modifiées
+    // partent. Auparavant, updateTask relisait la ligne (byId) puis la
+    // renvoyait entière (save) : deux allers-retours, et une fenêtre plus
+    // large pour qu'un rechargement de page coupe l'écriture.
+    const { data, error } = await getSupabase()
+      .from("sessions")
+      .update(row)
+      .eq("id", id)
+      .select("id");
+    if (error) fail(error);
+    // La RLS filtre en silence : zéro ligne, c'est un échec à dire.
+    if ((data ?? []).length !== 1) throw new Error("Cet objectif n'existe plus en base.");
   },
 
   async saveMany(tasks) {

@@ -55,6 +55,29 @@ export function useTasks(date: string = todayISO()) {
     setWriteFailures((prev) => prev.filter((f) => f.id !== id));
   }, []);
 
+  // Écritures en cours. Tant qu'il y en a une, quitter ou recharger la
+  // page déclenche l'avertissement du navigateur : une séance validée
+  // puis la page rechargée dans la seconde était perdue sans un mot
+  // (test réel du 19 octobre 2026).
+  const pending = useRef(0);
+  const guard = useCallback((e: BeforeUnloadEvent) => {
+    e.preventDefault();
+    // Navigateurs plus anciens : returnValue doit être renseigné.
+    e.returnValue = "";
+  }, []);
+  const track = useCallback(
+    async <T,>(write: () => Promise<T>): Promise<T> => {
+      if (pending.current++ === 0) window.addEventListener("beforeunload", guard);
+      try {
+        return await write();
+      } finally {
+        if (--pending.current === 0) window.removeEventListener("beforeunload", guard);
+      }
+    },
+    [guard]
+  );
+  useEffect(() => () => window.removeEventListener("beforeunload", guard), [guard]);
+
   // Les lectures sont maintenant asynchrones : deux refresh peuvent se
   // chevaucher. On ne garde que le résultat du plus récent, sinon une
   // réponse lente pourrait écraser un état plus à jour.
@@ -103,33 +126,43 @@ export function useTasks(date: string = todayISO()) {
       // plusieurs secondes avant de voir apparaître son propre objectif.
       setTasks((prev) => sortForDay([...prev, task], date));
       try {
-        await repo.tasks.save(task);
+        await track(() => repo.tasks.save(task));
       } catch (e) {
+        // Restauration explicite, sans attendre le refresh : s'il échoue
+        // aussi (réseau coupé), l'objectif resterait affiché sans exister.
+        setTasks((prev) => prev.filter((t) => t.id !== task.id));
         reportWrite("add", task.name, e);
         await refresh();
       }
       return task;
     },
-    [date, refresh, reportWrite]
+    [date, refresh, reportWrite, track]
   );
 
   const updateTask = useCallback(
     async (id: string, patch: Partial<Task>, action: WriteAction = "edit") => {
-      const name = patch.name ?? tasksRef.current.find((t) => t.id === id)?.name ?? "";
+      const before = tasksRef.current.find((t) => t.id === id);
+      const name = patch.name ?? before?.name ?? "";
       setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
       try {
-        // byId au lieu de all().find() : une seule ligne lue, pas toute la table.
-        const current = await repo.tasks.byId(id);
-        // Ligne absente (supprimée ailleurs) : rien n'est écrit, et le
-        // dire vaut mieux que de rendre la main en silence.
-        if (!current) throw new Error("Cet objectif n'existe plus en base.");
-        await repo.tasks.save({ ...current, ...patch });
+        // UPDATE ciblé : seules les colonnes de `patch` partent, en un
+        // seul aller-retour. Plus de relecture préalable de la ligne.
+        await track(() => repo.tasks.patch(id, patch));
       } catch (e) {
+        // Restauration explicite des seuls champs modifiés, à leur valeur
+        // d'avant : une autre modification de la même séance, faite
+        // entre-temps, n'est pas écrasée.
+        if (before) {
+          const previous = Object.fromEntries(
+            Object.keys(patch).map((k) => [k, before[k as keyof Task]])
+          ) as Partial<Task>;
+          setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...previous } : t)));
+        }
         reportWrite(action, name, e);
         await refresh();
       }
     },
-    [refresh, reportWrite]
+    [refresh, reportWrite, track]
   );
 
   const setStatus = useCallback(
@@ -200,27 +233,31 @@ export function useTasks(date: string = todayISO()) {
       };
       setTasks((prev) => sortForDay([...prev, task], date));
       try {
-        await repo.tasks.save(task);
+        await track(() => repo.tasks.save(task));
       } catch (e) {
+        setTasks((prev) => prev.filter((t) => t.id !== task.id));
         reportWrite("unplanned", name, e);
         await refresh();
       }
     },
-    [date, refresh, reportWrite]
+    [date, refresh, reportWrite, track]
   );
 
   const removeTask = useCallback(
     async (id: string) => {
-      const name = tasksRef.current.find((t) => t.id === id)?.name ?? "";
+      const removed = tasksRef.current.find((t) => t.id === id);
+      const name = removed?.name ?? "";
       setTasks((prev) => prev.filter((t) => t.id !== id));
       try {
-        await repo.tasks.remove(id);
+        await track(() => repo.tasks.remove(id));
       } catch (e) {
+        // Suppression ratée : l'objectif existe toujours, il revient.
+        if (removed) setTasks((prev) => sortForDay([...prev.filter((t) => t.id !== id), removed], date));
         reportWrite("remove", name, e);
         await refresh();
       }
     },
-    [refresh, reportWrite]
+    [date, refresh, reportWrite, track]
   );
 
   const archiveTask = useCallback(
