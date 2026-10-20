@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { LIMITS } from "@/lib/limits";
+import CharCount from "@/components/CharCount";
 
 /**
  * Éditeur de note d'un objectif.
@@ -138,11 +140,13 @@ export default function NoteEditor({
                 className="field note-field"
                 rows={9}
                 placeholder="Ce que j'ai appris, ce qui a bloqué, ce à quoi penser la prochaine fois…"
+                maxLength={LIMITS.note}
                 value={texte}
                 onChange={(e) => setTexte(e.target.value)}
                 autoFocus
               />
             )}
+            <CharCount value={texte} max={LIMITS.note} />
 
             <p className="note-help">
               Entoure un passage de <code>**</code> pour le mettre en gras, de{" "}

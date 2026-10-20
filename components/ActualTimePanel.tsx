@@ -5,6 +5,7 @@ import type { Task, GapReason } from "@/lib/types";
 import { GAP_REASONS } from "@/lib/types";
 import { formatDuration, parseDuration } from "@/lib/time";
 import DurationInput from "@/components/DurationInput";
+import { LIMITS } from "@/lib/limits";
 
 /**
  * Saisie du réalisé, ouverte par « Terminer » / « Fait ».
@@ -161,7 +162,7 @@ export default function ActualTimePanel({
             id={`note-${task.id}`}
             className="field"
             rows={3}
-            maxLength={5000}
+            maxLength={LIMITS.note}
             autoFocus
             placeholder="Une notion comprise, un blocage, ce à revoir la prochaine fois…"
             value={note}
@@ -174,7 +175,7 @@ export default function ActualTimePanel({
           <textarea
             className="field"
             rows={3}
-            maxLength={5000}
+            maxLength={LIMITS.note}
             placeholder="Ce que j'ai appris, ce qui a bloqué, ce à quoi penser la prochaine fois…"
             value={note}
             onChange={(e) => setNote(e.target.value)}

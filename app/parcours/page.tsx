@@ -11,6 +11,8 @@ import NavBar from "@/components/NavBar";
 import ErrorBanner from "@/components/ErrorBanner";
 import PageHeader from "@/components/PageHeader";
 import Modal from "@/components/Modal";
+import { LIMITS } from "@/lib/limits";
+import CharCount from "@/components/CharCount";
 
 const STATUS_LABEL: Record<GoalStatus, string> = {
   active: "En cours",
@@ -199,10 +201,11 @@ function GoalForm({
           className="field"
           autoFocus={autoFocus}
           value={draft.title}
-          maxLength={200}
+          maxLength={LIMITS.goalTitle}
           onChange={(e) => set("title", e.target.value)}
           placeholder="Ex. : Certification Power BI PL-300"
         />
+        <CharCount value={draft.title} max={LIMITS.goalTitle} />
       </div>
       <div>
         <label className="field-label">Pourquoi ce parcours ? (optionnel)</label>
@@ -210,11 +213,12 @@ function GoalForm({
           className="field"
           rows={2}
           value={draft.why}
-          maxLength={1000}
+          maxLength={LIMITS.why}
           onChange={(e) => set("why", e.target.value)}
           placeholder="Ex. : pour postuler aux offres de data analyst."
           style={{ resize: "vertical" }}
         />
+        <CharCount value={draft.why} max={LIMITS.why} />
       </div>
       <div>
         <label className="field-label">Échéance visée (optionnel)</label>

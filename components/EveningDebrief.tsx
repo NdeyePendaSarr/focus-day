@@ -7,6 +7,8 @@ import { repo } from "@/lib/repo";
 import type { GapReason } from "@/lib/types";
 import DayCatchUp from "@/components/DayCatchUp";
 import ErrorBanner from "@/components/ErrorBanner";
+import { LIMITS } from "@/lib/limits";
+import CharCount from "@/components/CharCount";
 import { errorDetail } from "@/lib/errors";
 
 /**
@@ -101,7 +103,8 @@ export default function EveningDebrief({
 
         <div>
           <label className="field-label">Qu&apos;est-ce qui a manqué, ou que tu as ajouté ?</label>
-          <textarea className="field" rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="J'ai reporté la lecture, mais j'ai avancé sur le projet…" style={{ resize: "vertical" }} />
+          <textarea className="field" rows={3} maxLength={LIMITS.debriefNote} value={note} onChange={(e) => setNote(e.target.value)} placeholder="J'ai reporté la lecture, mais j'ai avancé sur le projet…" style={{ resize: "vertical" }} />
+          <CharCount value={note} max={LIMITS.debriefNote} />
         </div>
 
         <div>

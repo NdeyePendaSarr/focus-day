@@ -62,7 +62,13 @@ export function goalFailureMessage(action: GoalWriteAction, title: string): stri
 /** Le message technique, gardé en petit sous la phrase : c'est lui
  *  qu'un utilisateur peut recopier pour signaler le problème. */
 export function errorDetail(e: unknown): string | undefined {
-  if (e instanceof Error && e.message) return e.message;
+  if (e instanceof Error && e.message) {
+    // Refus d'une contrainte de longueur (supabase/05_longueurs_max.sql) :
+    // le message brut de Postgres ne dit pas quoi faire.
+    const len = e.message.match(/check constraint "(\w+)_len"/);
+    if (len) return `Un texte dépasse la longueur autorisée (${len[1]}) : raccourcis-le, puis réessaie.`;
+    return e.message;
+  }
   if (typeof e === "string" && e) return e;
   return undefined;
 }

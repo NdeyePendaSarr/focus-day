@@ -99,6 +99,19 @@ alter table public.sessions
 
 Plus `maxLength` sur les champs correspondants.
 
+**État au 20 octobre 2026.** Migration `supabase/05_longueurs_max.sql` :
+une contrainte de longueur sur chacune des 13 colonnes texte du schéma
+public, avec un contrôle préalable qui s'arrête sans rien modifier si une
+ligne dépasse. Limites choisies très au-dessus des saisies réelles
+(note : 10 000 pour un maximum mesuré de 341). Côté app, `lib/limits.ts`
+porte les mêmes valeurs ; chaque champ a son `maxLength` et un compteur
+qui apparaît à 80 % de la limite, pour qu'aucune saisie ne soit coupée
+sans prévenir.
+
+- Exception jusqu'au 2 novembre : le panneau de validation
+  (`ActualTimePanel`) n'a que le `maxLength`, sans compteur — sa
+  disposition est gelée pendant la mesure. Ajouter le compteur ensuite.
+
 ---
 
 ## Important

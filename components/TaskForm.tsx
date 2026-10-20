@@ -6,6 +6,8 @@ import { selectableGoals } from "@/lib/goals";
 import GoalSelect from "@/components/GoalSelect";
 import { toMinutes, findConflict, spillsIntoNextDay, durationMinutes, formatDuration } from "@/lib/time";
 import DurationInput from "@/components/DurationInput";
+import { LIMITS } from "@/lib/limits";
+import CharCount from "@/components/CharCount";
 
 export type TaskDraft = {
   name: string;
@@ -137,9 +139,10 @@ export default function TaskForm({
               autoFocus
               value={draft.name}
               onChange={(e) => set("name", e.target.value)}
-              maxLength={200}
+              maxLength={LIMITS.taskTitle}
               placeholder="Réviser le chapitre 3"
             />
+            <CharCount value={draft.name} max={LIMITS.taskTitle} />
           </div>
 
           <div className="time-row">
@@ -159,8 +162,10 @@ export default function TaskForm({
               className="field"
               value={draft.description}
               onChange={(e) => set("description", e.target.value)}
+              maxLength={LIMITS.description}
               placeholder="Exercices 1 à 10"
             />
+            <CharCount value={draft.description} max={LIMITS.description} />
           </div>
 
           <div>
@@ -205,9 +210,11 @@ export default function TaskForm({
               rows={2}
               value={draft.why}
               onChange={(e) => set("why", e.target.value)}
+              maxLength={LIMITS.why}
               placeholder="Pour être prête à l'examen sans stresser."
               style={{ resize: "vertical" }}
             />
+            <CharCount value={draft.why} max={LIMITS.why} />
           </div>
 
 

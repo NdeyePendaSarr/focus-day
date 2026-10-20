@@ -6,6 +6,8 @@ import { GAP_REASONS } from "@/lib/types";
 import { formatDuration, durationMinutes, parseDuration } from "@/lib/time";
 import DurationInput from "@/components/DurationInput";
 import GoalSelect from "@/components/GoalSelect";
+import { LIMITS } from "@/lib/limits";
+import CharCount from "@/components/CharCount";
 
 /**
  * Rattrapage du soir.
@@ -161,12 +163,13 @@ function MissingRow({
             id={`catchup-note-${task.id}`}
             className="field"
             rows={2}
-            maxLength={5000}
+            maxLength={LIMITS.note}
             placeholder="Une notion comprise, un blocage, ce à revoir…"
             value={note}
             onChange={(e) => setNote(e.target.value)}
             style={{ resize: "vertical" }}
           />
+          <CharCount value={note} max={LIMITS.note} />
         </div>
       )}
     </div>
@@ -258,6 +261,7 @@ function UnplannedBlock({
             className="field"
             style={{ flex: 1, minWidth: 180 }}
             placeholder="Quoi ?"
+            maxLength={LIMITS.taskTitle}
             value={name}
             onChange={(e) => setName(e.target.value)}
             autoFocus
@@ -275,12 +279,13 @@ function UnplannedBlock({
                   id="unplanned-note"
                   className="field"
                   rows={3}
-                  maxLength={5000}
+                  maxLength={LIMITS.note}
                   placeholder="Une notion comprise, un blocage, ce à revoir la prochaine fois…"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   style={{ resize: "vertical" }}
                 />
+                <CharCount value={note} max={LIMITS.note} />
               </div>
               {/* Désactivé seulement faute de nom ou de durée (la phrase
                   ci-dessous le dit) ; note vide -> le curseur y va. */}

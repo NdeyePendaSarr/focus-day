@@ -1809,3 +1809,16 @@ a.btn-hero {
   color: var(--color-rose-text);
   font-weight: 600;
 }
+
+/* Compteur sous un champ texte : absent loin de la limite (voir CharCount). */
+.char-count {
+  margin-top: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--text-mute);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.char-count-full {
+  color: var(--color-rose-text);
+  font-weight: 600;
+}

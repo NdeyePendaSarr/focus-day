@@ -28,6 +28,13 @@ describe("errorDetail", () => {
     expect(errorDetail(new Error("[42501] refusé"))).toBe("[42501] refusé");
   });
 
+  it("traduit le refus d'une contrainte de longueur", () => {
+    const brut = '[23514] new row for relation "sessions" violates check constraint "sessions_note_len"';
+    expect(errorDetail(new Error(brut))).toBe(
+      "Un texte dépasse la longueur autorisée (sessions_note) : raccourcis-le, puis réessaie."
+    );
+  });
+
   it("renvoie undefined pour un objet sans message", () => {
     expect(errorDetail({})).toBeUndefined();
     expect(errorDetail(new Error(""))).toBeUndefined();
