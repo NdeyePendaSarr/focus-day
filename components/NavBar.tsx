@@ -65,7 +65,8 @@ export default function NavBar() {
       <div
         className="page-shell"
         style={{
-          padding: "0.9rem 1.25rem",
+          paddingTop: "0.9rem",
+          paddingBottom: "0.9rem",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",

@@ -16,7 +16,7 @@ export default function PortfolioPage() {
   return (
     <>
       <NavBar />
-      <main className="page-shell" style={{ padding: "1.5rem 1.25rem 4rem" }}>
+      <main className="page-shell" style={{ paddingTop: "1.5rem", paddingBottom: "4rem" }}>
         {loadError && (
           <div style={{ marginBottom: "1.25rem" }}>
             <ErrorBanner

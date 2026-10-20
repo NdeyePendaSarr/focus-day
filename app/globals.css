@@ -312,10 +312,17 @@ select,
 
 /* Largeur commune à la navigation et au contenu : sans elle, les deux
    avaient des bords différents et la page paraissait décalée. */
+/* Largeur commune : une colonne centrée avec de l'air de chaque côté,
+   qui grandit avec l'écran (≈ 6 % de la largeur, 20 à 80 px). Les pages
+   ne fixent plus leurs marges latérales elles-mêmes : un padding écrit
+   en dur sur chaque <main> annulait celui-ci, et le contenu touchait les
+   bords sur un portable. */
 .page-shell {
-  max-width: 1280px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1360px;
   margin: 0 auto;
-  padding-inline: 1.25rem;
+  padding-inline: clamp(1.25rem, 6vw, 5rem);
 }
 
 .day-main {
@@ -1471,7 +1478,6 @@ select,
 .first-steps {
   padding: 1.6rem 1.75rem;
   margin-bottom: 1.5rem;
-  max-width: 760px;
 }
 .first-steps-head {
   display: flex;
@@ -1548,7 +1554,6 @@ select,
   display: grid;
   justify-items: center;
   gap: 0.4rem;
-  max-width: 760px;
 }
 .day-empty-text {
   font-size: 0.92rem;
@@ -1578,4 +1583,19 @@ select,
 }
 .first-steps-line-text {
   color: var(--text-soft);
+}
+
+/* Grand écran : les trois étapes côte à côte, sur toute la largeur. Empilées,
+   elles faisaient une carte deux fois plus haute qui laissait la moitié
+   droite de l'écran vide et poussait l'étape 3 sous la ligne de flottaison. */
+@media (min-width: 900px) {
+  .first-steps-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .first-steps-list li + li {
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--border);
+  }
 }

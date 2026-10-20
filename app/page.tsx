@@ -148,7 +148,7 @@ export default function HomePage() {
   return (
     <>
       <NavBar />
-      <main className="page-shell" style={{ padding: "1.5rem 1.25rem 4rem" }}>
+      <main className="page-shell" style={{ paddingTop: "1.5rem", paddingBottom: "4rem" }}>
         {/* Échecs : en tête, avant tout le reste. Une écriture ratée n'est
             pas rejouée — la journée est rechargée et le bandeau dit quoi
             refaire. */}
@@ -213,7 +213,9 @@ export default function HomePage() {
             <h1 className="display-title display-title-sm" style={{ marginTop: "0.7rem" }}>
               Ta <span className="accent">journée</span>.
             </h1>
-            {empty && (
+            {/* Pas d'accroche pendant les premiers pas : leur propre phrase
+                d'introduction dit déjà la même chose. */}
+            {empty && !showSteps && (
               <p className="day-hero-sub">
                 Pose tes créneaux, valide le temps réel, garde ce que tu en retiens.
               </p>

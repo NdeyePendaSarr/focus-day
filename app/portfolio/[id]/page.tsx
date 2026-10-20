@@ -23,7 +23,7 @@ export default function PortfolioDetailPage() {
   return (
     <>
       <NavBar />
-      <main className="page-shell" style={{ padding: "1.5rem 1.25rem 4rem", maxWidth: 860 }}>
+      <main className="page-shell" style={{ paddingTop: "1.5rem", paddingBottom: "4rem", maxWidth: 1000 }}>
         <Link href="/portfolio" className="pf-back no-print">← Portfolio</Link>
 
         {loadError && (
