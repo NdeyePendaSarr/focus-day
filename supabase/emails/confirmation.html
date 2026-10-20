@@ -1,0 +1,72 @@
+<!--
+  Email « Confirm signup » de Supabase.
+  À coller dans : Authentication → Emails → Templates → Confirm signup.
+  Sujet : Confirme ton adresse FocusDay
+
+  Les messageries ignorent les feuilles de style et les polices web :
+  tout est en tableaux et en styles en ligne, avec des polices système.
+  {{ .ConfirmationURL }} est remplacé par Supabase ; ne pas le modifier.
+-->
+<!doctype html>
+<html lang="fr">
+  <body style="margin:0;padding:0;background:#f3f4fa;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4fa;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border:1px solid #e6e8f2;border-radius:20px;">
+            <tr>
+              <td style="padding:32px 36px 8px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+                <p style="margin:0;font-size:18px;font-weight:700;color:#1c1d21;">
+                  <span style="color:#d99a2b;">&#9679;</span>&nbsp;Focus<span style="color:#000080;">Day</span>
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:16px 36px 0;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+                <h1 style="margin:0 0 12px;font-size:26px;line-height:1.2;font-weight:800;color:#1c1d21;letter-spacing:-0.5px;">
+                  Confirme ton adresse
+                </h1>
+                <p style="margin:0 0 24px;font-size:16px;line-height:1.6;color:#5f6270;">
+                  Bienvenue sur FocusDay. Un clic pour confirmer ton adresse, et tu
+                  peux noter tes premières séances et ce que tu en retiens.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 36px 28px;">
+                <table role="presentation" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="background:#000080;border-radius:999px;">
+                      <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 28px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">
+                        Confirmer mon adresse
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 36px 32px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+                <p style="margin:0 0 6px;font-size:13px;line-height:1.5;color:#6b7190;">
+                  Le bouton ne fonctionne pas ? Copie ce lien dans ton navigateur :
+                </p>
+                <p style="margin:0;font-size:13px;line-height:1.5;word-break:break-all;">
+                  <a href="{{ .ConfirmationURL }}" style="color:#2a3bd1;">{{ .ConfirmationURL }}</a>
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:20px 36px 28px;border-top:1px solid #e6e8f2;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+                <p style="margin:0;font-size:12px;line-height:1.5;color:#6b7190;">
+                  Tu reçois cet email parce qu'un compte FocusDay vient d'être créé
+                  avec cette adresse. Si ce n'est pas toi, ignore-le : aucun compte
+                  ne sera activé.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
