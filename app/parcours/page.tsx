@@ -10,6 +10,7 @@ import { prettyDate, formatDuration, todayISO } from "@/lib/time";
 import NavBar from "@/components/NavBar";
 import ErrorBanner from "@/components/ErrorBanner";
 import PageHeader from "@/components/PageHeader";
+import Modal from "@/components/Modal";
 
 const STATUS_LABEL: Record<GoalStatus, string> = {
   active: "En cours",
@@ -29,10 +30,9 @@ export default function ParcoursPage() {
   // Les séances, pour dire sur chaque ligne ce qui s'y passe. En lecture
   // seule : un échec de chargement retire seulement ces chiffres.
   const { tasks, ready: tasksReady } = useAllTasks();
+  // La création se fait dans une fenêtre, comme celle d'un objectif : la
+  // page reste celle de la liste, qu'on vient consulter bien plus souvent.
   const [creating, setCreating] = useState(false);
-  // Le formulaire de création n'est ouvert d'office que sans aucun parcours :
-  // on vient surtout ici consulter ceux qu'on a, on en crée un par mois.
-  const showForm = ready && (goals.length === 0 || creating);
 
   const actifs = goals.filter((g) => g.status === "active");
   const archives = goals.filter((g) => g.status !== "active");
@@ -69,38 +69,38 @@ export default function ParcoursPage() {
           accent="apprends"
           sub="Une formation, une certification, un projet. Rattache-y tes objectifs du jour pour garder la trace de ce que tu y as consacré."
           action={
-            ready && !showForm ? (
+            ready ? (
               <button className="btn-hero" onClick={() => setCreating(true)}>+ Nouveau parcours</button>
             ) : undefined
           }
         />
 
-        {/* Un seul dégradé à l'écran : celui de l'en-tête, ou celui du
-            formulaire quand il est ouvert (l'en-tête n'a alors plus de bouton). */}
-        {showForm && (
-          <section className="card-surface parcours-form">
-            <h2 className="parcours-section-title" style={{ marginBottom: "0.8rem" }}>Nouveau parcours</h2>
-            <GoalForm
-              initial={EMPTY}
-              submitLabel="Créer le parcours"
-              hero
-              onCancel={goals.length > 0 ? () => setCreating(false) : undefined}
-              onSubmit={async (d) => {
-                const ok = await addGoal(toGoalFields(d));
-                if (ok) setCreating(false);
-                return ok;
-              }}
-            />
-          </section>
-        )}
+        {/* Fenêtre de création. Son bouton est plein, pas en dégradé :
+            celui de l'en-tête reste visible derrière, et il ne doit y en
+            avoir qu'un. Elle se ferme après une création réussie ; ratée,
+            elle reste ouverte avec la saisie. */}
+        <Modal open={creating} title="Nouveau parcours" onClose={() => setCreating(false)}>
+          <GoalForm
+            initial={EMPTY}
+            submitLabel="Créer le parcours"
+            autoFocus
+            onCancel={() => setCreating(false)}
+            onSubmit={async (d) => {
+              const ok = await addGoal(toGoalFields(d));
+              if (ok) setCreating(false);
+              return ok;
+            }}
+          />
+        </Modal>
 
         <h2 className="parcours-section-title">En cours</h2>
         {!ready ? (
           <p className="parcours-empty">Chargement…</p>
         ) : actifs.length === 0 ? (
           <p className="parcours-empty">
-            Aucun parcours en cours. Crée-en un : il apparaîtra ensuite dans le
-            formulaire de chaque objectif.
+            {goals.length === 0
+              ? "Aucun parcours pour l'instant. Crée le premier avec « + Nouveau parcours » : il apparaîtra ensuite dans le formulaire de chaque objectif."
+              : "Aucun parcours en cours : ils sont tous archivés ci-dessous."}
           </p>
         ) : (
           <div className="parcours-list">
@@ -163,12 +163,15 @@ function GoalForm({
   onSubmit,
   onCancel,
   hero = false,
+  autoFocus = false,
 }: {
   initial: Draft;
   submitLabel: string;
   /** Bouton principal de l'écran : dégradé et halo. Un seul par écran,
    *  donc pas pour le formulaire de modification. */
   hero?: boolean;
+  /** Curseur dans le premier champ à l'ouverture (fenêtre de création). */
+  autoFocus?: boolean;
   /** false = écriture ratée : la saisie est conservée. */
   onSubmit: (d: Draft) => void | Promise<boolean>;
   onCancel?: () => void;
@@ -194,6 +197,7 @@ function GoalForm({
         <label className="field-label">Nom du parcours</label>
         <input
           className="field"
+          autoFocus={autoFocus}
           value={draft.title}
           maxLength={200}
           onChange={(e) => set("title", e.target.value)}
