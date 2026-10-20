@@ -83,6 +83,12 @@ export default function LoginPage() {
     // ouvert avant l'utilisateur par un antivirus de messagerie ou un
     // aperçu de lien. Dans ce cas la confirmation a bien eu lieu : le
     // message doit inviter à se connecter, pas annoncer un échec.
+    // Retour d'un lien de confirmation d'inscription : l'adresse est
+    // confirmée, aucune session n'a été ouverte (voir auth/callback).
+    if (raison === "confirmee") {
+      setMode("signin");
+      setInfo("Adresse confirmée. Connecte-toi pour commencer.");
+    }
     if (raison === "lien-expire" || raison === "lien-invalide")
       setInfo(
         "Ce lien a déjà servi — c'est fréquent, les messageries les ouvrent " +
@@ -194,6 +200,12 @@ export default function LoginPage() {
               : "Quelques secondes, et tu peux planifier ta première séance."}
           </p>
 
+          {/* Les messages d'information (adresse confirmée, email envoyé…)
+              en tête du formulaire : sous les champs, ils passaient sous la
+              ligne de flottaison sur mobile. Les erreurs restent près du
+              bouton, là où l'action vient d'échouer. */}
+          {info && <p className="auth-msg auth-msg-ok auth-msg-top">{info}</p>}
+
           {currentEmail && (
             <div className="auth-session">
               <span>
@@ -249,8 +261,6 @@ export default function LoginPage() {
           </div>
 
           {error && <p className="auth-msg auth-msg-error">{error}</p>}
-          {info && <p className="auth-msg auth-msg-ok">{info}</p>}
-
           <button
             className="btn-hero auth-submit"
             onClick={submit}

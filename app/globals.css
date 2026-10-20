@@ -1769,3 +1769,9 @@ select,
   color: var(--text-soft);
   font-size: 0.82rem;
 }
+
+/* Message d'information en tête du formulaire de connexion. */
+.auth-msg-top {
+  margin-top: 0;
+  margin-bottom: 1.2rem;
+}
