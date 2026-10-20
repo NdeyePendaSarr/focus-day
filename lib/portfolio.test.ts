@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { Goal, GoalStatus, Task } from "./types";
-import { summarize, buildPortfolio, plural, consacre, formatPeriod } from "./portfolio";
+import { summarize, buildPortfolio, plural, consacre, formatPeriod, lastSessionLabel } from "./portfolio";
 
 const goal = (id: string, status: GoalStatus = "active"): Goal => ({
   id,
@@ -111,5 +111,19 @@ describe("formulations", () => {
     expect(formatPeriod("2025-12-12", "2026-01-04")).toBe("du 12 décembre 2025 au 4 janvier 2026");
     expect(formatPeriod("2026-09-01", "2026-10-01")).toBe("du 1er septembre au 1er octobre 2026");
     expect(formatPeriod(undefined, undefined)).toBe("");
+  });
+});
+
+describe("lastSessionLabel", () => {
+  it("dit l'écart en jours, puis la date au-delà de deux semaines", () => {
+    expect(lastSessionLabel("2026-10-20", "2026-10-20")).toBe("aujourd'hui");
+    expect(lastSessionLabel("2026-10-19", "2026-10-20")).toBe("hier");
+    expect(lastSessionLabel("2026-10-15", "2026-10-20")).toBe("il y a 5 jours");
+    expect(lastSessionLabel("2026-09-01", "2026-10-20")).toBe("le 1er septembre 2026");
+  });
+
+  it("franchit un changement d'heure sans se tromper d'un jour", () => {
+    // Passage à l'heure d'hiver en Europe le 25 octobre 2026.
+    expect(lastSessionLabel("2026-10-24", "2026-10-26")).toBe("il y a 2 jours");
   });
 });

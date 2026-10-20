@@ -45,6 +45,14 @@ export default function HomePage() {
       setStepsHidden(false);
     }
   }, []);
+  const showStepsAgain = () => {
+    setStepsHidden(false);
+    try {
+      localStorage.removeItem(PREMIERS_PAS);
+    } catch {
+      /* stockage indisponible : rien à faire */
+    }
+  };
   const hideSteps = () => {
     setStepsHidden(true);
     try {
@@ -246,6 +254,13 @@ export default function HomePage() {
               Pose ton premier créneau — et le pourquoi qui te motive.
             </p>
             <button className="btn-hero" onClick={openNew}>+ Nouvel objectif</button>
+            {/* « Masquer » ne doit pas être définitif tant que la boucle
+                n'a pas été parcourue une fois. */}
+            {!stepsDone && (
+              <button className="link-quiet" style={{ marginTop: "0.9rem" }} onClick={showStepsAgain}>
+                Revoir les premiers pas
+              </button>
+            )}
           </section>
         )}
 

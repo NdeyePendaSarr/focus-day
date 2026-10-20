@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import type { Goal, GoalStatus } from "@/lib/types";
+import Link from "next/link";
+import type { Goal, GoalStatus, Task } from "@/lib/types";
 import { useGoals } from "@/lib/useGoals";
-import { prettyDate } from "@/lib/time";
+import { useAllTasks } from "@/lib/useAllTasks";
+import { summarize, plural, consacre, lastSessionLabel } from "@/lib/portfolio";
+import { prettyDate, formatDuration, todayISO } from "@/lib/time";
 import NavBar from "@/components/NavBar";
 import ErrorBanner from "@/components/ErrorBanner";
 import PageHeader from "@/components/PageHeader";
@@ -23,6 +26,13 @@ const EMPTY: Draft = { title: "", why: "", targetDate: "" };
 export default function ParcoursPage() {
   const { goals, ready, loadError, writeFailures, dismissWriteFailure, refresh, addGoal, updateGoal } = useGoals();
   const [editingId, setEditingId] = useState<string | null>(null);
+  // Les séances, pour dire sur chaque ligne ce qui s'y passe. En lecture
+  // seule : un échec de chargement retire seulement ces chiffres.
+  const { tasks, ready: tasksReady } = useAllTasks();
+  const [creating, setCreating] = useState(false);
+  // Le formulaire de création n'est ouvert d'office que sans aucun parcours :
+  // on vient surtout ici consulter ceux qu'on a, on en crée un par mois.
+  const showForm = ready && (goals.length === 0 || creating);
 
   const actifs = goals.filter((g) => g.status === "active");
   const archives = goals.filter((g) => g.status !== "active");
@@ -58,25 +68,39 @@ export default function ParcoursPage() {
           before="Ce que tu"
           accent="apprends"
           sub="Une formation, une certification, un projet. Rattache-y tes objectifs du jour pour garder la trace de ce que tu y as consacré."
+          action={
+            ready && !showForm ? (
+              <button className="btn-hero" onClick={() => setCreating(true)}>+ Nouveau parcours</button>
+            ) : undefined
+          }
         />
 
-        <section className="card-surface" style={{ padding: "1.5rem", marginBottom: "2rem", maxWidth: 640 }}>
-          <h2 className="parcours-section-title" style={{ marginBottom: "0.8rem" }}>Nouveau parcours</h2>
-          <GoalForm
-            initial={EMPTY}
-            submitLabel="Créer le parcours"
-            hero
-            onSubmit={(d) => addGoal(toGoalFields(d))}
-          />
-        </section>
+        {/* Un seul dégradé à l'écran : celui de l'en-tête, ou celui du
+            formulaire quand il est ouvert (l'en-tête n'a alors plus de bouton). */}
+        {showForm && (
+          <section className="card-surface parcours-form">
+            <h2 className="parcours-section-title" style={{ marginBottom: "0.8rem" }}>Nouveau parcours</h2>
+            <GoalForm
+              initial={EMPTY}
+              submitLabel="Créer le parcours"
+              hero
+              onCancel={goals.length > 0 ? () => setCreating(false) : undefined}
+              onSubmit={async (d) => {
+                const ok = await addGoal(toGoalFields(d));
+                if (ok) setCreating(false);
+                return ok;
+              }}
+            />
+          </section>
+        )}
 
         <h2 className="parcours-section-title">En cours</h2>
         {!ready ? (
           <p className="parcours-empty">Chargement…</p>
         ) : actifs.length === 0 ? (
           <p className="parcours-empty">
-            Aucun parcours en cours. Crée le premier ci-dessus : il apparaîtra
-            ensuite dans le formulaire de chaque objectif.
+            Aucun parcours en cours. Crée-en un : il apparaîtra ensuite dans le
+            formulaire de chaque objectif.
           </p>
         ) : (
           <div className="parcours-list">
@@ -84,6 +108,7 @@ export default function ParcoursPage() {
               <GoalCard
                 key={g.id}
                 goal={g}
+                tasks={tasksReady ? tasks : undefined}
                 editing={editingId === g.id}
                 onEdit={() => setEditingId(g.id)}
                 onCancelEdit={() => setEditingId(null)}
@@ -109,6 +134,7 @@ export default function ParcoursPage() {
                 <GoalCard
                   key={g.id}
                   goal={g}
+                  tasks={tasksReady ? tasks : undefined}
                   editing={false}
                   onStatus={(status) => void updateGoal(g, { status })}
                 />
@@ -159,7 +185,7 @@ function GoalForm({
     const ok = await onSubmit(draft);
     setPending(false);
     // Création réussie : le formulaire se vide. Ratée : il garde la saisie.
-    if (!onCancel && ok !== false) setDraft(EMPTY);
+    if (ok !== false) setDraft(initial === EMPTY ? EMPTY : draft);
   };
 
   return (
@@ -171,7 +197,7 @@ function GoalForm({
           value={draft.title}
           maxLength={200}
           onChange={(e) => set("title", e.target.value)}
-          placeholder="Certification Power BI PL-300"
+          placeholder="Ex. : Certification Power BI PL-300"
         />
       </div>
       <div>
@@ -182,7 +208,7 @@ function GoalForm({
           value={draft.why}
           maxLength={1000}
           onChange={(e) => set("why", e.target.value)}
-          placeholder="Pour pouvoir postuler aux offres de data analyst."
+          placeholder="Ex. : pour postuler aux offres de data analyst."
           style={{ resize: "vertical" }}
         />
       </div>
@@ -209,6 +235,7 @@ function GoalForm({
 
 function GoalCard({
   goal,
+  tasks,
   editing,
   onEdit,
   onCancelEdit,
@@ -216,6 +243,8 @@ function GoalCard({
   onStatus,
 }: {
   goal: Goal;
+  /** Toutes les séances, une fois chargées. */
+  tasks?: Task[];
   editing: boolean;
   onEdit?: () => void;
   onCancelEdit?: () => void;
@@ -236,6 +265,7 @@ function GoalCard({
   }
 
   const actif = goal.status === "active";
+  const s = tasks ? summarize(goal, tasks) : null;
 
   return (
     <article className="card-surface parcours-card">
@@ -258,17 +288,37 @@ function GoalCard({
             Échéance visée : {prettyDate(goal.targetDate)}
           </p>
         )}
+        {/* Ce qui s'y passe, en une ligne : les mêmes chiffres que le
+            portfolio, avec le même vocabulaire (« consacrées »). */}
+        {s && (
+          <p className="parcours-facts">
+            {s.sessions.length === 0 ? (
+              "Aucune séance pour l'instant."
+            ) : (
+              <>
+                <strong>{formatDuration(s.minutes)}</strong> {consacre(s.minutes)} ·{" "}
+                {plural(s.sessions.length, "séance", "séances")} · dernière séance{" "}
+                {lastSessionLabel(s.lastDate!, todayISO())}
+                {" · "}
+                <Link href={`/portfolio/${goal.id}`} className="parcours-link">Voir dans le portfolio</Link>
+              </>
+            )}
+          </p>
+        )}
       </div>
 
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+      {/* Trois actions du même poids, en texte : aucune n'est plus
+          importante que les autres, et une pilule sur une seule
+          ajoutait du bruit à chaque ligne. */}
+      <div className="row-actions">
         {actif ? (
           <>
-            <button className="chip chip-quiet" onClick={onEdit}>Modifier</button>
-            <button className="chip chip-quiet" onClick={() => onStatus("paused")}>Mettre en pause</button>
-            <button className="chip chip-mint" onClick={() => onStatus("done")}>Marquer terminé</button>
+            <button className="row-action" onClick={onEdit}>Modifier</button>
+            <button className="row-action" onClick={() => onStatus("paused")}>Mettre en pause</button>
+            <button className="row-action" onClick={() => onStatus("done")}>Marquer terminé</button>
           </>
         ) : (
-          <button className="chip" onClick={() => onStatus("active")}>Réactiver</button>
+          <button className="row-action" onClick={() => onStatus("active")}>Réactiver</button>
         )}
       </div>
     </article>

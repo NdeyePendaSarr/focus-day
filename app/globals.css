@@ -1599,3 +1599,56 @@ select,
     border-left: 1px solid var(--border);
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Parcours — formulaire, lignes, actions                               */
+/* ------------------------------------------------------------------ */
+.parcours-form {
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  max-width: 640px;
+}
+
+.parcours-facts {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  margin-top: 0.4rem;
+}
+.parcours-facts strong {
+  color: var(--color-brand);
+  font-weight: 700;
+}
+.parcours-link {
+  color: var(--color-brand);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.parcours-link:hover {
+  text-decoration: underline;
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.25rem 1.1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.row-action {
+  background: none;
+  border: none;
+  padding: 0.3rem 0;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+.row-action:hover {
+  color: var(--color-brand);
+}
+
+/* Un exemple dans un champ ne doit pas passer pour une valeur saisie. */
+.field::placeholder {
+  color: var(--text-mute);
+  font-style: italic;
+}

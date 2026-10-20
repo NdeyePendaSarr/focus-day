@@ -119,3 +119,15 @@ export function formatPeriod(first?: string, last?: string): string {
   }
   return `du ${complet(first)} au ${complet(last)}`;
 }
+
+const MS_JOUR = 24 * 60 * 60 * 1000;
+
+/** « aujourd'hui », « hier », « il y a 5 jours », puis la date au-delà de
+ *  deux semaines : un écart en jours devient illisible passé ce cap. */
+export function lastSessionLabel(lastDate: string, today: string): string {
+  const jours = Math.round((d(today).getTime() - d(lastDate).getTime()) / MS_JOUR);
+  if (jours <= 0) return "aujourd'hui";
+  if (jours === 1) return "hier";
+  if (jours < 14) return `il y a ${jours} jours`;
+  return `le ${complet(lastDate)}`;
+}

@@ -1,44 +1,28 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { Task } from "@/lib/types";
-import { repo } from "@/lib/repo";
+import { useMemo } from "react";
 import { useGoals } from "@/lib/useGoals";
-import { errorDetail } from "@/lib/errors";
+import { useAllTasks } from "@/lib/useAllTasks";
 import { buildPortfolio } from "@/lib/portfolio";
 
 /** Parcours + toutes les séances, et le portfolio calculé. Lecture seule. */
 export function usePortfolio() {
   const goalsState = useGoals();
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [tasksReady, setTasksReady] = useState(false);
-  const [tasksError, setTasksError] = useState<string | null>(null);
+  const tasksState = useAllTasks();
 
-  const loadTasks = useCallback(async () => {
-    try {
-      setTasks(await repo.tasks.all());
-      setTasksError(null);
-    } catch (e) {
-      setTasksError(errorDetail(e) ?? "erreur inconnue");
-    } finally {
-      setTasksReady(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadTasks();
-  }, [loadTasks]);
-
-  const portfolio = useMemo(() => buildPortfolio(goalsState.goals, tasks), [goalsState.goals, tasks]);
+  const portfolio = useMemo(
+    () => buildPortfolio(goalsState.goals, tasksState.tasks),
+    [goalsState.goals, tasksState.tasks]
+  );
 
   return {
     portfolio,
     goals: goalsState.goals,
-    ready: goalsState.ready && tasksReady,
-    loadError: goalsState.loadError ?? tasksError,
+    ready: goalsState.ready && tasksState.ready,
+    loadError: goalsState.loadError ?? tasksState.error,
     retry: () => {
       void goalsState.refresh();
-      void loadTasks();
+      void tasksState.reload();
     },
   };
 }
