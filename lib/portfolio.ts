@@ -131,3 +131,25 @@ export function lastSessionLabel(lastDate: string, today: string): string {
   if (jours < 14) return `il y a ${jours} jours`;
   return `le ${complet(lastDate)}`;
 }
+
+/** « aucune note encore » plutôt que « 0 note » : à côté d'un nombre
+ *  d'heures, un zéro sonne comme un reproche. */
+export function notesLabel(n: number): string {
+  return n === 0 ? "aucune note encore" : plural(n, "note", "notes");
+}
+
+export interface PortfolioTotals {
+  parcours: number;
+  minutes: number;
+  notes: number;
+}
+
+/** Vue d'ensemble : les mêmes heures déclarées, simplement additionnées. */
+export function totals(p: Portfolio): PortfolioTotals {
+  const all = [...p.done, ...p.active, ...p.other];
+  return {
+    parcours: all.length,
+    minutes: all.reduce((s, x) => s + x.minutes, 0),
+    notes: all.reduce((s, x) => s + x.notes, 0),
+  };
+}

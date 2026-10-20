@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { GoalSummary } from "@/lib/portfolio";
+import { totals, consacre } from "@/lib/portfolio";
 import { usePortfolio } from "@/lib/usePortfolio";
 import { formatDuration } from "@/lib/time";
 import NavBar from "@/components/NavBar";
@@ -12,6 +13,7 @@ import PageHeader from "@/components/PageHeader";
 export default function PortfolioPage() {
   const { portfolio, goals, ready, loadError, retry } = usePortfolio();
   const { done, active, other, unattachedMinutes } = portfolio;
+  const t = totals(portfolio);
 
   return (
     <>
@@ -40,13 +42,34 @@ export default function PortfolioPage() {
           }
         />
 
-        {/* Les heures sont déclaratives : le dire une fois, clairement,
-            plutôt que de laisser croire à un total exhaustif. */}
-        {goals.length > 0 && (
-          <p className="pf-disclaimer">
-            Les heures sont celles saisies dans FocusDay, séance par séance. Elles
-            ne comptent pas tout le travail fait ailleurs.
-          </p>
+        {/* Vue d'ensemble : la première chose qu'on regarde sur un
+            portfolio. Les heures sont déclaratives : la mention le dit juste
+            en dessous, au plus près du total, plutôt que de laisser croire à
+            un chiffre exhaustif. */}
+        {ready && goals.length > 0 && (
+          <section className="card-surface pf-overview">
+            <div className="pf-overview-stats">
+              <div>
+                <p className="stat-value">{t.parcours}</p>
+                <p className="pf-overview-label">parcours</p>
+              </div>
+              <div>
+                <p className="stat-value" style={{ color: "var(--color-brand)" }}>{formatDuration(t.minutes)}</p>
+                <p className="pf-overview-label">{consacre(t.minutes)}</p>
+              </div>
+              <div>
+                {/* Pas de « 0 » géant : sans note, on le dit en mots. */}
+                <p className="stat-value" style={t.notes === 0 ? { fontSize: "1.2rem", lineHeight: 1.9 } : undefined}>
+                  {t.notes === 0 ? "aucune encore" : t.notes}
+                </p>
+                <p className="pf-overview-label">{t.notes < 2 ? "note" : "notes"}</p>
+              </div>
+            </div>
+            <p className="pf-disclaimer">
+              Les heures sont celles saisies dans FocusDay, séance par séance. Elles
+              ne comptent pas tout le travail fait ailleurs.
+            </p>
+          </section>
         )}
 
         {!ready ? (
@@ -55,9 +78,12 @@ export default function PortfolioPage() {
           <EmptyPortfolio />
         ) : (
           <>
+            {/* Menés à terme : une carte sur toute la largeur, chiffres à
+                côté du titre. Seule dans une grille de trois, elle avait l'air
+                orpheline alors que c'est ce que le portfolio a de plus précieux. */}
             {done.length > 0 && (
-              <Section titre="Menés à terme">
-                {done.map((s) => <GoalCard key={s.goal.id} s={s} />)}
+              <Section titre="Menés à terme" wide>
+                {done.map((s) => <GoalCard key={s.goal.id} s={s} wide />)}
               </Section>
             )}
             {active.length > 0 && (
@@ -85,19 +111,39 @@ export default function PortfolioPage() {
 
 /* ------------------------------------------------------------------ */
 
-function Section({ titre, children }: { titre: string; children: React.ReactNode }) {
+function Section({ titre, wide = false, children }: { titre: string; wide?: boolean; children: React.ReactNode }) {
   return (
     <section style={{ marginBottom: "2rem" }}>
       <h2 className="parcours-section-title">{titre}</h2>
-      <div className="pf-grid">{children}</div>
+      <div className={wide ? "pf-grid pf-grid-wide" : "pf-grid"}>{children}</div>
     </section>
   );
 }
 
-function GoalCard({ s }: { s: GoalSummary }) {
+function GoalCard({ s, wide = false }: { s: GoalSummary; wide?: boolean }) {
   const { goal } = s;
   const termine = goal.status === "done";
   const vide = s.sessions.length === 0;
+
+  if (wide && !vide) {
+    return (
+      <article className="card-surface pf-card pf-card-done pf-card-wide">
+        <div style={{ minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+            <h3 className="pf-title pf-title-lg">{goal.title}</h3>
+            <span className="pf-done-tag">Terminé</span>
+          </div>
+          {goal.why && <p className="pf-why">{goal.why}</p>}
+        </div>
+        {/* Ordre du document : titre, chiffres, lien — celui qu'on lit sur
+            mobile. Sur grand écran, la grille place les chiffres à droite. */}
+        <PortfolioStats s={s} large />
+        <Link href={`/portfolio/${goal.id}`} className="pf-link no-print pf-wide-link">
+          Voir les séances et les notes →
+        </Link>
+      </article>
+    );
+  }
 
   return (
     <article className={`card-surface pf-card${termine ? " pf-card-done" : ""}`}>

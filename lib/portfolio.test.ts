@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { Goal, GoalStatus, Task } from "./types";
-import { summarize, buildPortfolio, plural, consacre, formatPeriod, lastSessionLabel } from "./portfolio";
+import { summarize, buildPortfolio, plural, consacre, formatPeriod, lastSessionLabel, notesLabel, totals } from "./portfolio";
 
 const goal = (id: string, status: GoalStatus = "active"): Goal => ({
   id,
@@ -125,5 +125,25 @@ describe("lastSessionLabel", () => {
   it("franchit un changement d'heure sans se tromper d'un jour", () => {
     // Passage à l'heure d'hiver en Europe le 25 octobre 2026.
     expect(lastSessionLabel("2026-10-24", "2026-10-26")).toBe("il y a 2 jours");
+  });
+});
+
+describe("notesLabel et totals", () => {
+  it("ne met pas de zéro à côté des heures", () => {
+    expect(notesLabel(0)).toBe("aucune note encore");
+    expect(notesLabel(1)).toBe("1 note");
+    expect(notesLabel(14)).toBe("14 notes");
+  });
+
+  it("additionne heures et notes de tous les parcours", () => {
+    const p = buildPortfolio(
+      [goal("a"), goal("d", "done")],
+      [
+        task({ goalId: "a", actualMinutes: 60, note: "x" }),
+        task({ goalId: "d", actualMinutes: 90 }),
+        task({ actualMinutes: 500 }), // sans parcours : hors total
+      ]
+    );
+    expect(totals(p)).toEqual({ parcours: 2, minutes: 150, notes: 1 });
   });
 });

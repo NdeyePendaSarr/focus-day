@@ -1,5 +1,5 @@
 import type { GoalSummary } from "@/lib/portfolio";
-import { plural, consacre, formatPeriod } from "@/lib/portfolio";
+import { plural, consacre, formatPeriod, notesLabel } from "@/lib/portfolio";
 import { formatDuration } from "@/lib/time";
 
 /**
@@ -15,7 +15,7 @@ export default function PortfolioStats({ s, large = false }: { s: GoalSummary; l
       </p>
       <p className="pf-facts">
         {plural(s.sessions.length, "séance", "séances")} · {plural(s.activeDays, "jour actif", "jours actifs")} ·{" "}
-        {plural(s.notes, "note", "notes")}
+        {notesLabel(s.notes)}
       </p>
       <p className="pf-period">{formatPeriod(s.firstDate, s.lastDate)}</p>
     </div>
