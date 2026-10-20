@@ -196,11 +196,11 @@ export default function TaskCard({
             Rouvrir
           </button>
         )}
-        {/* Icône seule : afficher le texte de la note sur la carte la
-            faisait enfler dès qu'on écrivait plus de trois lignes.
-            Le marqueur signale seulement qu'il y a quelque chose à lire. */}
+        {/* Le texte de la note reste hors de la carte (elle enflait dès
+            trois lignes) ; le bouton dit en un mot ce qu'il ouvre — une
+            icône de document seule ne se lisait pas comme « note ». */}
         <button
-          className="chip chip-icon"
+          className="chip chip-note"
           onClick={() => setNoteOuverte(true)}
           aria-label={task.note ? "Lire ou modifier la note" : "Ajouter une note"}
           title={task.note ? "Lire ou modifier la note" : "Ajouter une note"}
@@ -223,6 +223,7 @@ export default function TaskCard({
               </>
             )}
           </svg>
+          {task.note ? "Ma note" : "Note"}
         </button>
         <button className="chip chip-quiet" onClick={() => onEdit(task)}>
           Modifier

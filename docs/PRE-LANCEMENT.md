@@ -249,6 +249,33 @@ Reste à automatiser (export planifié hors de Supabase) avant d'ouvrir à
 un groupe : une copie dans la même base ne protège pas d'une suspension
 ou d'une suppression du projet.
 
+### 11 bis. Biais de mesure vus sur Ma journée — après le 2 novembre
+
+Relevés le 20 octobre 2026 sur une vraie séance (9 h – 19 h 30). Tous
+touchent le chemin de validation ou les variantes mesurées : rien n'est
+changé avant la fin de la fenêtre de mesure.
+
+- **Le temps réel est prérempli avec l'estimation**
+  (`ActualTimePanel`, `useState(formatDuration(reference))`). Valider
+  sans retoucher enregistre l'estimation comme temps réel : la séance du
+  20 octobre est sortie à 10 h 30 sur 10 h 30. C'est très probablement
+  l'origine des « 80 % de temps réels égaux à l'estimation » détectés par
+  `lib/lecture.ts`. Piste : champ vide, l'estimation en indication
+  (« Tu avais prévu 10 h 30 »), comme dans le rattrapage.
+- **Deux façons de valider la même séance sur le même écran.** Une
+  séance en cours dont le créneau est dépassé apparaît à la fois sur sa
+  carte (« Terminer », `actual_source = panneau`) et dans le débrief du
+  soir (« Valider », `rattrapage`). Rien ne dit laquelle utiliser : le
+  choix de la variante devient un hasard d'écran, alors que c'est
+  justement ce que l'on compare. Piste : le débrief ne liste que les
+  séances qui ne sont plus visibles comme en cours, ou renvoie vers la
+  carte.
+- **Une estimation de 10 h 30 passe sans question.** Champ d'estimation
+  vide = durée du créneau ; un créneau de 9 h à 19 h 30 donne « 10 h 30
+  estimées », chiffre que le tableau de bord compare ensuite au réel.
+  Piste : au-delà de 4 h environ, demander l'estimation au lieu de la
+  déduire.
+
 ---
 
 ## Souhaitable

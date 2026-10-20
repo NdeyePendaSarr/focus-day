@@ -116,6 +116,7 @@ function MissingRow({
         <DurationInput
           value={minutes}
           onChange={setMinutes}
+          placeholder="Temps réel"
           hint={`Prévu ${formatDuration(reference)}`}
           width={110}
         />

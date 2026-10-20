@@ -272,8 +272,8 @@ export default function HomePage() {
           {/* Rail : chiffres du jour et timeline */}
           <aside className="day-rail card-surface" style={{ padding: "1.4rem", display: "grid", gap: "1.1rem" }}>
             <div className="day-stats">
-              <Stat label="Objectifs" value={stats.total} />
-              <Stat label="Terminés" value={stats.done} color="var(--color-mint-text)" />
+              <Stat label={stats.total < 2 ? "Objectif" : "Objectifs"} value={stats.total} />
+              <Stat label={stats.done < 2 ? "Terminé" : "Terminés"} value={stats.done} color="var(--color-mint-text)" />
             </div>
 
             {/* Le rapport de temps remplace le taux de réussite : un
@@ -282,8 +282,8 @@ export default function HomePage() {
               <p style={{ fontSize: "0.85rem", color: "var(--text-soft)", marginTop: "0.4rem" }}>
                 <strong style={{ color: "var(--color-mint-text)" }}>
                   {formatDuration(minutesRealisees)}
-                </strong>{" "}
-                sur {formatDuration(minutesPrevues)} réalisées
+                </strong>
+                {` réalisées sur ${formatDuration(minutesPrevues)} prévues`}
               </p>
             )}
 

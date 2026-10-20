@@ -36,7 +36,8 @@ export default function EveningDebrief({
   const done = planned.filter((t) => t.status === "done").length;
   const sansTempsReel = planned.filter((t) => t.actualMinutes == null).length;
   const [reached, setReached] = useState<boolean | null>(existing?.reachedGoals ?? null);
-  const [didMore, setDidMore] = useState<boolean>(existing?.didMore ?? false);
+  // null = pas encore répondu : aucune réponse n'est cochée d'avance.
+  const [didMore, setDidMore] = useState<boolean | null>(existing?.didMore ?? null);
   const [note, setNote] = useState(existing?.missingNote ?? "");
   const [mood, setMood] = useState<number>(existing?.mood ?? 3);
   const [saved, setSaved] = useState(false);
@@ -50,7 +51,7 @@ export default function EveningDebrief({
     const entry: DebriefEntry = {
       date,
       reachedGoals: reached ?? false,
-      didMore,
+      didMore: didMore ?? false,
       missingNote: note.trim() || undefined,
       mood: mood as DebriefEntry["mood"],
       createdAt: new Date().toISOString(),
@@ -96,13 +97,20 @@ export default function EveningDebrief({
 
         <div>
           <label className="field-label">As-tu fait plus que prévu ?</label>
-          <button className={didMore ? "btn-primary" : "btn-ghost"} onClick={() => setDidMore((v) => !v)}>
-            {didMore ? "Oui, j'ai fait plus ✓" : "Non, m'en tenir au plan"}
-          </button>
+          {/* Deux réponses, comme la question du dessus : un seul bouton
+              qui changeait de texte se lisait comme une action. */}
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className={didMore === true ? "btn-primary" : "btn-ghost"} onClick={() => setDidMore(true)} style={{ flex: 1 }}>Oui</button>
+            <button className={didMore === false ? "btn-primary" : "btn-ghost"} onClick={() => setDidMore(false)} style={{ flex: 1 }}>Non</button>
+          </div>
         </div>
 
         <div>
-          <label className="field-label">Qu&apos;est-ce qui a manqué, ou que tu as ajouté ?</label>
+          <label className="field-label">Sur ta journée : qu&apos;est-ce qui a manqué, ou que tu as ajouté ?</label>
+          <p className="debrief-help">
+            Ce que tu retiens d&apos;une séance se note sur la séance : c&apos;est
+            cette note-là qui rejoint ton portfolio.
+          </p>
           <textarea className="field" rows={3} maxLength={LIMITS.debriefNote} value={note} onChange={(e) => setNote(e.target.value)} placeholder="J'ai reporté la lecture, mais j'ai avancé sur le projet…" style={{ resize: "vertical" }} />
           <CharCount value={note} max={LIMITS.debriefNote} />
         </div>

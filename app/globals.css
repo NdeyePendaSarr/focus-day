@@ -1822,3 +1822,17 @@ a.btn-hero {
   color: var(--color-rose-text);
   font-weight: 600;
 }
+
+/* Bouton de note de la carte : l'icône et un mot (« Note », « Ma note »). */
+.chip-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Précision sous un intitulé du débrief. */
+.debrief-help {
+  font-size: 0.75rem;
+  color: var(--text-mute);
+  margin: -0.15rem 0 0.45rem;
+}
