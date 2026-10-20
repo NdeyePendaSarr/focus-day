@@ -341,6 +341,44 @@ jamais dans un fichier ni dans le dépôt. Après chaque migration
 appliquée, refaire le dump et le commiter : le diff git montre alors
 tout écart avec la production au lieu de le laisser découvrir plus tard.
 
+### Sauvegardes — le seul filet
+
+**L'offre gratuite de Supabase n'a aucune sauvegarde** : ni sauvegarde
+quotidienne, ni restauration à un instant donné (*point in time*). Vérifié
+dans *Database → Backups* : « Free Plan does not include project
+backups ». Ce qui est supprimé est perdu.
+
+Et une suppression va loin : toutes les tables pointent vers
+`auth.users` avec `on delete cascade`. **Supprimer un compte dans
+*Authentication → Users* efface toutes ses séances, parcours, débriefs et
+son profil.** C'est arrivé le 20 octobre 2026 (voir `PRE-LANCEMENT.md`
+§11) : séances restaurées depuis une copie de la veille, débriefs perdus.
+
+Le filet, c'est donc `supabase/sauvegarde/sauvegarde_complete.sql`. Il
+copie les cinq tables de l'app dans le schéma `sauvegarde` (non exposé
+par l'API), sous un nom daté.
+
+- **Quand** : avant toute opération risquée — migration, suppression,
+  rattachement en masse — et au moins une fois par semaine.
+- **Vérifier le jour même**, pas seulement compter : comparer la copie à
+  la base avec `except`, table par table.
+
+  ```sql
+  select id from (select * from public.sessions
+                  except select * from sauvegarde.sessions_AAAAMMJJ) x;
+  -- 0 ligne = la copie contient tout, à l'identique. Idem pour goals.
+  ```
+
+  Un script qui tourne mais écrit du vide passerait un simple
+  `count(*) > 0` sur une table qui a des lignes ailleurs ; la différence
+  `except`, elle, montre chaque ligne manquante.
+- **Limite** : la copie reste dans le même projet. Elle ne protège ni
+  d'une suspension du projet (déjà arrivée en octobre) ni de sa
+  suppression. Un export régulier hors de Supabase (CSV depuis le Table
+  Editor, ou dump) reste à mettre en place avant d'ouvrir à un groupe.
+- **Ne pas supprimer** une copie tant qu'une plus récente n'a pas été
+  vérifiée.
+
 Commits en français, format conventionnel (`feat`, `fix`, `refactor`,
 `style`, `docs`, `chore`), corps expliquant le *pourquoi*.
 
