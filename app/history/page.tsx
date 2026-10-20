@@ -60,20 +60,22 @@ export default function HistoryPage() {
   const [parcours, setParcours] = useState<FiltreParcours>("");
   // Tous les parcours, archivés compris : l'historique doit nommer ceux
   // d'une formation terminée.
-  const { goals } = useGoals();
+  const { goals, loadError: goalsError, refresh: refreshGoals } = useGoals();
   const goalTitle = useMemo(() => {
     const map = new Map(goals.map((g) => [g.id, g.title]));
     return (id?: string) => (id ? map.get(id) : undefined);
   }, [goals]);
   const [ready, setReady] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   // La note consultée, ou null. L'historique ne permet que la lecture.
   const [noteLue, setNoteLue] = useState<Task | null>(null);
 
   const reload = async () => {
     try {
       setTasks(await repo.tasks.all());
+      setLoadError(null);
     } catch (e) {
-      console.error("Chargement de l'historique impossible", e);
+      setLoadError(errorDetail(e) ?? "erreur inconnue");
     } finally {
       setReady(true);
     }
@@ -202,6 +204,23 @@ export default function HistoryPage() {
           }
         />
 
+        {/* En tête de page : sans données, la recherche et les filtres
+            ne servent à rien, c'est le premier message à lire. */}
+        {loadError && (
+          <div style={{ marginBottom: "1rem" }}>
+            <ErrorBanner
+              message={
+                tasks.length === 0
+                  ? "Ton historique n'a pas pu être chargé. Rien n'est effacé : c'est la lecture depuis le serveur qui a échoué."
+                  : "L'historique n'a pas pu être rechargé. Ce qui s'affiche n'est peut-être plus à jour."
+              }
+              detail={loadError}
+              actionLabel="Réessayer"
+              onAction={() => void reload()}
+            />
+          </div>
+        )}
+
         <div
           style={{
             display: "flex",
@@ -246,6 +265,19 @@ export default function HistoryPage() {
             ))}
           </div>
         </div>
+
+        {/* Sans les parcours, les séances s'affichent sans leur parcours et
+            le rattachement par lot n'est pas proposé. */}
+        {goalsError && (
+          <div style={{ marginBottom: "1rem" }}>
+            <ErrorBanner
+              message="Tes parcours n'ont pas pu être chargés : les séances s'affichent sans le nom de leur parcours."
+              detail={goalsError}
+              actionLabel="Réessayer"
+              onAction={() => void refreshGoals()}
+            />
+          </div>
+        )}
 
         {lotEchec && (
           <div style={{ marginBottom: "1rem" }}>
@@ -304,7 +336,9 @@ export default function HistoryPage() {
           </div>
         )}
 
-        {byDate.length === 0 ? (
+        {/* Échec de lecture sans rien à montrer : le bandeau suffit. Un
+            « Aucun objectif enregistré » ferait croire à des données perdues. */}
+        {loadError && tasks.length === 0 ? null : byDate.length === 0 ? (
           <div
             className="card-surface"
             style={{ padding: "2.5rem", textAlign: "center", color: "var(--text-mute)" }}

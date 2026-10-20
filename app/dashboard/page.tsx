@@ -10,6 +10,8 @@ import NavBar from "@/components/NavBar";
 import { MOODS, Visage } from "@/components/EveningDebrief";
 import { estimationReading } from "@/lib/lecture";
 import PageHeader from "@/components/PageHeader";
+import ErrorBanner from "@/components/ErrorBanner";
+import { errorDetail } from "@/lib/errors";
 
 /** Fenêtre d'observation : assez large pour voir une tendance, assez
  *  courte pour que chaque jour reste lisible. */
@@ -27,22 +29,26 @@ export default function DashboardPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [debriefs, setDebriefs] = useState<DebriefEntry[]>([]);
   const [ready, setReady] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const load = async () => {
+    try {
+      const [allTasks, allDebriefs] = await Promise.all([
+        repo.tasks.all(),
+        repo.debriefs.all(),
+      ]);
+      setTasks(allTasks.filter((t) => !t.archived));
+      setDebriefs(allDebriefs);
+      setLoadError(null);
+    } catch (e) {
+      setLoadError(errorDetail(e) ?? "erreur inconnue");
+    } finally {
+      setReady(true);
+    }
+  };
 
   useEffect(() => {
-    void (async () => {
-      try {
-        const [allTasks, allDebriefs] = await Promise.all([
-          repo.tasks.all(),
-          repo.debriefs.all(),
-        ]);
-        setTasks(allTasks.filter((t) => !t.archived));
-        setDebriefs(allDebriefs);
-      } catch (e) {
-        console.error("Chargement du tableau de bord impossible", e);
-      } finally {
-        setReady(true);
-      }
-    })();
+    void load();
   }, []);
 
   const d = useMemo(() => {
@@ -121,6 +127,19 @@ export default function DashboardPage() {
           accent="tableau de bord"
           sub="Ce que tu avais prévu, ce que tu as fait — jour par jour."
         />
+
+        {/* Échec de lecture : rien d'autre ne s'affiche. Des « 0 min » ou
+            « Aucune journée renseignée » feraient croire que les données
+            ont disparu, alors que seule la lecture a échoué. */}
+        {loadError ? (
+          <ErrorBanner
+            message="Ton tableau de bord n'a pas pu être chargé. Rien n'est effacé : c'est la lecture depuis le serveur qui a échoué."
+            detail={loadError}
+            actionLabel="Réessayer"
+            onAction={() => void load()}
+          />
+        ) : (
+        <>
 
         {/* Fenêtre vide : des « 0 min » partout ressemblent à un constat
             d'échec. On dit ce qui se passe, et où retrouver le reste. */}
@@ -242,6 +261,8 @@ export default function DashboardPage() {
             </div>
           )}
         </section>
+        </>
+        )}
       </main>
     </>
   );

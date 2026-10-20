@@ -7,17 +7,24 @@ import { prettyDate } from "@/lib/time";
 import NavBar from "@/components/NavBar";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import PageHeader from "@/components/PageHeader";
+import ErrorBanner from "@/components/ErrorBanner";
+import { errorDetail } from "@/lib/errors";
 
 export default function ArchivePage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [ready, setReady] = useState(false);
   const [toDelete, setToDelete] = useState<Task | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  // Échec d'une restauration ou d'une suppression : jusqu'ici, rien ne
+  // le signalait et l'objectif restait simplement dans la liste.
+  const [writeError, setWriteError] = useState<{ message: string; detail?: string } | null>(null);
 
   const load = useCallback(async () => {
     try {
       setTasks(await repo.tasks.archived());
+      setLoadError(null);
     } catch (e) {
-      console.error("Chargement des archives impossible", e);
+      setLoadError(errorDetail(e) ?? "erreur inconnue");
     } finally {
       setReady(true);
     }
@@ -26,16 +33,32 @@ export default function ArchivePage() {
   useEffect(() => { void load(); }, [load]);
 
   const unarchive = async (t: Task) => {
-    await repo.tasks.save({ ...t, archived: false, archivedAt: undefined });
+    setWriteError(null);
+    try {
+      await repo.tasks.save({ ...t, archived: false, archivedAt: undefined });
+    } catch (e) {
+      setWriteError({
+        message: `« ${t.name} » n'a pas été restauré : il est toujours dans les archives. Tu peux réessayer.`,
+        detail: errorDetail(e),
+      });
+    }
     await load();
   };
 
   const confirmDelete = async () => {
-    if (toDelete) {
-      await repo.tasks.remove(toDelete.id);
-      setToDelete(null);
-      await load();
+    if (!toDelete) return;
+    const t = toDelete;
+    setToDelete(null);
+    setWriteError(null);
+    try {
+      await repo.tasks.remove(t.id);
+    } catch (e) {
+      setWriteError({
+        message: `« ${t.name} » n'a pas été supprimé : il est toujours dans les archives.`,
+        detail: errorDetail(e),
+      });
     }
+    await load();
   };
 
   return (
@@ -49,7 +72,32 @@ export default function ArchivePage() {
           sub="Les objectifs que tu as rangés. Tu peux les restaurer, ou les supprimer définitivement."
         />
 
-        {!ready ? (
+        {(loadError || writeError) && (
+          <div style={{ display: "grid", gap: 8, marginBottom: "1rem", maxWidth: 960 }}>
+            {loadError && (
+              <ErrorBanner
+                message={
+                  tasks.length === 0
+                    ? "Tes archives n'ont pas pu être chargées. Rien n'est effacé : c'est la lecture depuis le serveur qui a échoué."
+                    : "Les archives n'ont pas pu être rechargées. Ce qui s'affiche n'est peut-être plus à jour."
+                }
+                detail={loadError}
+                actionLabel="Réessayer"
+                onAction={() => void load()}
+              />
+            )}
+            {writeError && (
+              <ErrorBanner
+                message={writeError.message}
+                detail={writeError.detail}
+                actionLabel="J'ai compris"
+                onAction={() => setWriteError(null)}
+              />
+            )}
+          </div>
+        )}
+
+        {loadError && tasks.length === 0 ? null : !ready ? (
           <div className="card-surface" style={{ padding: "2.5rem", textAlign: "center", color: "var(--text-mute)" }}>
             Chargement…
           </div>

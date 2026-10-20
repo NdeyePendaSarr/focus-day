@@ -54,8 +54,12 @@ l'action non enregistrée. Reste ouvert :
   Correctif : restaurer explicitement l'état précédent à l'échec, comme
   le fait `useGoals` (ajout retiré, modification annulée, suppression
   rétablie).
-- Tableau de bord, Historique, Archives : un échec de chargement ne
-  produit qu'un `console.error`.
+- ~~Tableau de bord, Historique, Archives : un échec de chargement ne
+  produit qu'un `console.error`.~~ **Fait le 20 octobre 2026.** Bandeau
+  avec « Réessayer » ; tant que rien n'a pu être lu, il remplace l'état
+  vide (« Aucune journée renseignée », « Aucun objectif archivé »), qui
+  ferait croire à des données perdues. Aux Archives, l'échec d'une
+  restauration ou d'une suppression est aussi signalé.
 - **Écriture coupée par un rechargement.** Constaté au test réel du
   19 octobre : une séance validée puis la page rechargée dans la
   seconde n'a pas été enregistrée, sans aucun message — le bandeau
