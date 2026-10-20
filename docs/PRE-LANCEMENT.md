@@ -54,6 +54,11 @@ l'action non enregistrée. Reste ouvert :
   Correctif : restaurer explicitement l'état précédent à l'échec, comme
   le fait `useGoals` (ajout retiré, modification annulée, suppression
   rétablie).
+  **Fait le 20 octobre 2026** (765b21b) : à l'échec, l'état d'avant est
+  restauré sans attendre la relecture — seuls les champs modifiés
+  reviennent à leur valeur précédente. Testé contre Supabase avec
+  l'écriture et la relecture en échec simultané : l'écran garde la
+  valeur réellement en base.
 - ~~Tableau de bord, Historique, Archives : un échec de chargement ne
   produit qu'un `console.error`.~~ **Fait le 20 octobre 2026.** Bandeau
   avec « Réessayer » ; tant que rien n'a pu être lu, il remplace l'état
@@ -67,6 +72,24 @@ l'action non enregistrée. Reste ouvert :
   `byId`, puis `save`) ; fermer l'onglet ou recharger entre les deux
   perd la saisie. Pistes : un avertissement `beforeunload` tant qu'une
   écriture est en cours, et/ou écrire sans relire d'abord.
+  **Fait le 20 octobre 2026** (765b21b) : `repo.tasks.patch`, un UPDATE
+  ciblé comme `setGoal` — seules les colonnes modifiées partent, en un
+  seul aller-retour, sans relecture ni réécriture de la ligne entière ;
+  et avertissement du navigateur tant qu'une écriture est en cours.
+  Testé contre Supabase (validation, modification, archivage). Reste à
+  confirmer par une séance réelle validée en production.
+- **Bascules « prévu → manqué » : encore une réécriture de la ligne
+  entière.** Au chargement de la journée, `useTasks.refresh()` enregistre
+  les séances passées en « manqué » avec `saveMany`, c'est-à-dire un
+  upsert de toutes les colonnes depuis la copie du navigateur. C'est le
+  même schéma que celui éliminé de `updateTask` (et refusé pour le
+  rattachement par lot) : si la base et la copie divergeaient, la copie
+  écraserait la base. Sans danger aujourd'hui — la copie vient d'être lue
+  dans le même `refresh()`, et seules les séances dont le statut change
+  sont écrites — mais une écriture concurrente entre la lecture et
+  l'upsert serait perdue. Correctif : un UPDATE ciblé de la seule colonne
+  `status`, sur le modèle de `setGoal`. **À traiter après le 2 novembre**,
+  pour ne pas toucher au chemin des séances pendant la fenêtre de mesure.
 
 ### 4. Politique de mot de passe
 
