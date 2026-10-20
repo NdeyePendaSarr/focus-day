@@ -91,6 +91,39 @@ l'action non enregistrée. Reste ouvert :
   `status`, sur le modèle de `setGoal`. **À traiter après le 2 novembre**,
   pour ne pas toucher au chemin des séances pendant la fenêtre de mesure.
 
+**Incident du 20 octobre 2026 — `PGRST303` « JWT issued at future ».**
+Juste après une connexion en production, Ma journée affiche le bandeau
+de lecture : « Ta journée n'a pas pu être chargée depuis le serveur »,
+détail `[PGRST303] JWT issued at future`. Le jeton remis par le service
+d'authentification de Supabase porte une heure d'émission en avance sur
+l'horloge du service qui lit la base : décalage entre deux services de
+Supabase, pas défaut de l'app. L'heure de Windows a été vérifiée côté
+utilisatrice. « Réessayer » suffit, quelques secondes plus tard.
+
+Le risque est sur les écritures : une séance validée dans ces secondes-là
+échouerait, la note serait à retaper — de quoi pousser vers « sans note »
+la fois suivante, et mesurer un bug au lieu du mécanisme.
+
+- **Fait le 20 octobre 2026** (`lib/jwtRetry.ts`) : chaque appel à
+  Supabase réessaie **une seule fois**, après deux secondes,
+  **uniquement sur `PGRST303`**. Si le second essai échoue, le bandeau
+  s'affiche comme avant. Sans risque de double écriture : `PGRST303` est
+  un refus du jeton, prononcé avant toute exécution SQL. Ni la
+  disposition du panneau ni le texte des boutons ne changent.
+- **Si ça revient** : noter la date, l'heure et l'écran ici. Un bandeau
+  `PGRST303` qui s'affiche malgré le réessai veut dire que le décalage
+  dépasse deux secondes : à signaler au support Supabase avec l'heure.
+
+**« Archiver » ne retire pas la carte de Ma journée.** Constaté le
+20 octobre 2026 en testant le réessai : l'écriture part et réussit
+(`archived = true` en base), mais la carte reste affichée jusqu'au
+prochain rechargement, sans aucun message. Défaut antérieur (présent
+dans 5e71014), pas une régression : `useTasks` garde l'objectif archivé
+dans son état, et rien ne le filtre. Effet : on croit que le clic n'a
+pas marché, on reclique. Correctif simple — retirer l'objectif de l'état
+après un archivage réussi. Hors du panneau de validation, mais sur le
+chemin des séances : à décider.
+
 ### 4. Politique de mot de passe
 
 Supabase accepte 6 caractères par défaut.

@@ -17,6 +17,7 @@ import type { Repo, TaskRepo, DebriefRepo, GoalRepo } from "@/lib/repo";
 import { spillsIntoNextDay, shiftISO } from "@/lib/time";
 import { getSupabase, currentUserId } from "@/lib/supabase";
 import { toPatchRow } from "@/lib/sessionPatch";
+import { withJwtRetry } from "@/lib/jwtRetry";
 
 /* ------------------------------------------------------------------ */
 /* Conversion base <-> application                                     */
@@ -369,8 +370,10 @@ const supabaseGoals: GoalRepo = {
 
 /* ------------------------------------------------------------------ */
 
+// Chaque appel réessaie une fois, après deux secondes, si Supabase refuse
+// le jeton comme « émis dans le futur » (PGRST303) — voir lib/jwtRetry.ts.
 export const supabaseRepo: Repo = {
-  tasks: supabaseTasks,
-  debriefs: supabaseDebriefs,
-  goals: supabaseGoals,
+  tasks: withJwtRetry(supabaseTasks),
+  debriefs: withJwtRetry(supabaseDebriefs),
+  goals: withJwtRetry(supabaseGoals),
 };
