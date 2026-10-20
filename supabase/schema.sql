@@ -65,6 +65,7 @@ CREATE TABLE IF NOT EXISTS "public"."debriefs" (
     "mood" smallint,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "debriefs_missing_note_len" CHECK (("char_length"("missing_note") <= 2000)),
     CONSTRAINT "debriefs_mood_check" CHECK ((("mood" >= 1) AND ("mood" <= 5)))
 );
 
@@ -81,7 +82,9 @@ CREATE TABLE IF NOT EXISTS "public"."goals" (
     "status" "text" DEFAULT 'active'::"text" NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    CONSTRAINT "goals_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'done'::"text", 'paused'::"text", 'abandoned'::"text"])))
+    CONSTRAINT "goals_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'done'::"text", 'paused'::"text", 'abandoned'::"text"]))),
+    CONSTRAINT "goals_title_len" CHECK (("char_length"("title") <= 200)),
+    CONSTRAINT "goals_why_len" CHECK (("char_length"("why") <= 1000))
 );
 
 
@@ -104,7 +107,10 @@ CREATE TABLE IF NOT EXISTS "public"."insights" (
     "action_note" "text",
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "insights_action_note_len" CHECK (("char_length"("action_note") <= 1000)),
+    CONSTRAINT "insights_body_len" CHECK (("char_length"("body") <= 5000)),
     CONSTRAINT "insights_kind_check" CHECK (("kind" = ANY (ARRAY['observation'::"text", 'tendance'::"text", 'hypothese'::"text", 'recommandation'::"text"]))),
+    CONSTRAINT "insights_title_len" CHECK (("char_length"("title") <= 200)),
     CONSTRAINT "insights_user_verdict_check" CHECK (("user_verdict" = ANY (ARRAY['utile'::"text", 'deja_su'::"text", 'faux'::"text", 'inutile'::"text"])))
 );
 
@@ -116,7 +122,9 @@ CREATE TABLE IF NOT EXISTS "public"."profiles" (
     "id" "uuid" NOT NULL,
     "display_name" "text",
     "timezone" "text" DEFAULT 'Africa/Dakar'::"text" NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "profiles_display_name_len" CHECK (("char_length"("display_name") <= 100)),
+    CONSTRAINT "profiles_timezone_len" CHECK (("char_length"("timezone") <= 64))
 );
 
 
@@ -155,11 +163,16 @@ END) STORED,
     "actual_source" "text",
     CONSTRAINT "sessions_actual_minutes_check" CHECK (("actual_minutes" >= 0)),
     CONSTRAINT "sessions_actual_source_check" CHECK (("actual_source" = ANY (ARRAY['panneau'::"text", 'rattrapage'::"text", 'hors_plan'::"text"]))),
+    CONSTRAINT "sessions_description_len" CHECK (("char_length"("description") <= 1000)),
     CONSTRAINT "sessions_estimated_minutes_check" CHECK (("estimated_minutes" > 0)),
+    CONSTRAINT "sessions_gap_note_len" CHECK (("char_length"("gap_note") <= 1000)),
     CONSTRAINT "sessions_gap_reason_check" CHECK (("gap_reason" = ANY (ARRAY['imprevu'::"text", 'mauvaise_estimation'::"text", 'distraction'::"text", 'fatigue'::"text", 'difficulte'::"text", 'changement_priorite'::"text", 'autre'::"text"]))),
+    CONSTRAINT "sessions_note_len" CHECK (("char_length"("note") <= 10000)),
     CONSTRAINT "sessions_origin_check" CHECK (("origin" = ANY (ARRAY['planned'::"text", 'unplanned'::"text"]))),
     CONSTRAINT "sessions_planned_or_actual" CHECK ((("planned_start" IS NOT NULL) OR ("actual_minutes" IS NOT NULL))),
-    CONSTRAINT "sessions_status_check" CHECK (("status" = ANY (ARRAY['planned'::"text", 'in_progress'::"text", 'done'::"text", 'partial'::"text", 'missed'::"text", 'skipped'::"text"])))
+    CONSTRAINT "sessions_status_check" CHECK (("status" = ANY (ARRAY['planned'::"text", 'in_progress'::"text", 'done'::"text", 'partial'::"text", 'missed'::"text", 'skipped'::"text"]))),
+    CONSTRAINT "sessions_title_len" CHECK (("char_length"("title") <= 200)),
+    CONSTRAINT "sessions_why_len" CHECK (("char_length"("why") <= 1000))
 );
 
 
