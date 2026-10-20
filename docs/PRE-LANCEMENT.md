@@ -132,13 +132,35 @@ l'existence d'un compte à quiconque teste une adresse.
 - Message générique, ou activer la protection anti-énumération
   côté Supabase
 
-### 11. Sauvegardes
+### 11. Sauvegardes — devenu bloquant
 
-L'offre gratuite ne garantit pas de restauration fine. Ce ne sont plus
-seulement tes données.
+L'offre gratuite de Supabase **n'inclut aucune sauvegarde** (vérifié dans
+*Database → Backups* : « Free Plan does not include project backups »).
+Ce ne sont plus seulement tes données.
 
-- Export périodique de `sessions` et `debriefs`
-- Vérifier une restauration au moins une fois
+**Incident du 20 octobre 2026.** En recréant un compte de test, le compte
+principal a été supprimé par erreur depuis *Authentication → Users*.
+Toutes les tables pointent vers `auth.users` avec `on delete cascade` :
+la suppression a effacé en même temps séances, parcours, débriefs et
+profil. Restauration faite depuis `sauvegarde.sessions_avant` (90
+séances et leurs notes, copiées la veille avant le rattachement par lot) :
+séances retrouvées, parcours recréés et rattachés à la main, **débriefs
+perdus** (ils n'étaient pas copiés).
+
+Leçons :
+- **Supprimer un compte dans le tableau de bord efface toutes ses
+  données, sans confirmation de la cascade.** Vérifier l'adresse deux
+  fois ; ne jamais supprimer un compte qui n'est pas un compte de test.
+- Une copie de `sessions` seule ne suffit pas : copier **toutes** les
+  tables. Fichier prêt : `supabase/sauvegarde/sauvegarde_complete.sql`.
+- Le faire **avant** toute opération risquée (migration, suppression,
+  rattachement en masse) et au moins une fois par semaine.
+- Vérifier une restauration au moins une fois : c'est fait, par la force
+  des choses, le 20 octobre.
+
+Reste à automatiser (export planifié hors de Supabase) avant d'ouvrir à
+un groupe : une copie dans la même base ne protège pas d'une suspension
+ou d'une suppression du projet.
 
 ---
 
