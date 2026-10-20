@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
 import { messageFr } from "@/lib/authMessages";
+import { passwordHint, passwordProblem } from "@/lib/password";
 import AuthShell from "@/components/AuthShell";
 
 type Etat = "verification" | "sans-session" | "pret";
@@ -23,6 +24,8 @@ export default function NouveauMotDePassePage() {
   const [email, setEmail] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
+  // Après une tentative trop courte, l'indication passe en rouge.
+  const [pwdTried, setPwdTried] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,6 +43,11 @@ export default function NouveauMotDePassePage() {
 
   const submit = async () => {
     if (!password || busy) return;
+    const probleme = passwordProblem(password);
+    if (probleme) {
+      setPwdTried(true);
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -93,9 +101,15 @@ export default function NouveauMotDePassePage() {
               type={visible ? "text" : "password"}
               className="field"
               autoComplete="new-password"
-              placeholder="6 caractères minimum"
+              placeholder="••••••••"
+              aria-describedby="new-pwd-hint"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                // L'erreur parlait de l'ancienne saisie : l'indication sous
+                // le champ prend le relais pendant la frappe.
+                setError(null);
+              }}
               onKeyDown={(e) => e.key === "Enter" && submit()}
               autoFocus
             />
@@ -108,6 +122,13 @@ export default function NouveauMotDePassePage() {
               {visible ? "Masquer" : "Afficher"}
             </button>
           </div>
+          <p
+            id="new-pwd-hint"
+            className={`auth-pwd-hint${pwdTried && passwordProblem(password) ? " auth-pwd-hint-error" : ""}`}
+            aria-live="polite"
+          >
+            {passwordHint(password)}
+          </p>
 
           {error && <p className="auth-msg auth-msg-error">{error}</p>}
           <button className="btn-hero auth-submit" onClick={submit} disabled={busy || !password}>

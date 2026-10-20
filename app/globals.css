@@ -1798,3 +1798,14 @@ a.btn-hero {
   text-align: center;
   text-decoration: none;
 }
+
+/* Indication sous le champ du mot de passe : ce qui manque, en direct. */
+.auth-pwd-hint {
+  margin-top: 0.45rem;
+  font-size: 0.8rem;
+  color: var(--text-mute);
+}
+.auth-pwd-hint-error {
+  color: var(--color-rose-text);
+  font-weight: 600;
+}

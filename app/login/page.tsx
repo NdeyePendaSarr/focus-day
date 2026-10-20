@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
 import { messageFr } from "@/lib/authMessages";
+import { passwordHint, passwordProblem } from "@/lib/password";
 import AuthShell from "@/components/AuthShell";
 
 type Mode = "signin" | "signup";
@@ -15,6 +16,9 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
+  // Une tentative avec un mot de passe trop court : l'indication sous le
+  // champ passe en rouge, au lieu d'un second message qui la répète.
+  const [pwdTried, setPwdTried] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -54,6 +58,13 @@ export default function LoginPage() {
 
   const submit = async () => {
     if (!email || !password || busy) return;
+    // À l'inscription seulement : un compte existant peut avoir un mot de
+    // passe plus court, créé avant la règle des 8 caractères.
+    const probleme = mode === "signup" ? passwordProblem(password) : null;
+    if (probleme) {
+      setPwdTried(true);
+      return;
+    }
     setBusy(true);
     setError(null);
     setInfo(null);
@@ -144,9 +155,15 @@ export default function LoginPage() {
           type={visible ? "text" : "password"}
           className="field"
           autoComplete={mode === "signin" ? "current-password" : "new-password"}
-          placeholder={mode === "signup" ? "6 caractères minimum" : "••••••••"}
+          placeholder="••••••••"
+          aria-describedby={mode === "signup" ? "auth-pwd-hint" : undefined}
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            // L'erreur parlait de l'ancienne saisie : l'indication sous
+            // le champ prend le relais pendant la frappe.
+            setError(null);
+          }}
           onKeyDown={(e) => e.key === "Enter" && submit()}
         />
         <button
@@ -158,6 +175,15 @@ export default function LoginPage() {
           {visible ? "Masquer" : "Afficher"}
         </button>
       </div>
+      {mode === "signup" && (
+        <p
+          id="auth-pwd-hint"
+          className={`auth-pwd-hint${pwdTried && passwordProblem(password) ? " auth-pwd-hint-error" : ""}`}
+          aria-live="polite"
+        >
+          {passwordHint(password)}
+        </p>
+      )}
       {mode === "signin" && (
         <p className="auth-forgot">
           <Link href="/login/mot-de-passe-oublie" className="link-quiet">

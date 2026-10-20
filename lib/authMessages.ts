@@ -6,8 +6,15 @@ export function messageFr(brut: string): string {
   const m = brut.toLowerCase();
   if (m.includes("invalid login credentials")) return "Email ou mot de passe incorrect.";
   if (m.includes("already registered")) return "Un compte existe déjà avec cette adresse.";
-  if (m.includes("password should be at least"))
-    return "Le mot de passe doit faire au moins 6 caractères.";
+  // Le minimum vient du réglage Supabase : on reprend son chiffre plutôt
+  // que d'en afficher un qui pourrait ne plus être le bon.
+  if (m.includes("password should be at least")) {
+    const n = brut.match(/\d+/)?.[0];
+    return `Le mot de passe doit faire au moins ${n ?? "8"} caractères.`;
+  }
+  // Mot de passe trop courant (réglage « mots de passe compromis »).
+  if (m.includes("weak") || m.includes("pwned") || m.includes("leaked"))
+    return "Ce mot de passe est trop courant ou a déjà fuité ailleurs. Choisis-en un autre.";
   if (m.includes("should be different from the old password"))
     return "Choisis un mot de passe différent de l'actuel.";
   if (m.includes("email not confirmed"))

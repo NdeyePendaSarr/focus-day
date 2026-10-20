@@ -72,6 +72,20 @@ Supabase accepte 6 caractères par défaut.
 - Activer la détection des mots de passe compromis
   (*Authentication → Policies*)
 
+**État au 20 octobre 2026.** Côté app : 8 caractères minimum à
+l'inscription et au nouveau mot de passe (`lib/password.ts`), avec une
+indication sous le champ qui dit combien il en manque. Pas de règle de
+composition (majuscule, chiffre, symbole) : la longueur compte davantage.
+La connexion n'applique pas la règle, pour ne pas bloquer un compte créé
+avec 6 caractères.
+
+- Côté Supabase, *Authentication → Sign In / Providers → Email →
+  Minimum password length* à 8 : c'est ce réglage qui fait foi, l'app ne
+  fait qu'annoncer la règle.
+- **Mots de passe compromis : impossible sur l'offre gratuite.** La
+  vérification (HaveIBeenPwned) est réservée à l'offre Pro. À activer le
+  jour d'un passage en Pro ; l'app traduit déjà le message d'erreur.
+
 ### 5. Longueurs maximales
 
 Aucune limite côté client ni base. Une note de plusieurs mégaoctets est
