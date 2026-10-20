@@ -1,495 +1,180 @@
-# ⏳ FocusDay — Coach de productivité temporel
+# FocusDay — ce que tu apprends, tu le gardes
 
-> **Un coach de productivité temporel — pas une simple todo-list.**
+**Un carnet d'apprentissage pour les personnes qui se forment seules** (certifications, bootcamps, MOOC). On planifie ses séances, on note le temps vraiment passé et ce qu'on en retient. FocusDay en fait un **portfolio** par parcours : heures consacrées, séances, notes. Une trace concrète à montrer à un recruteur.
 
-FocusDay est une application web conçue pour aider à **piloter sa journée par créneaux horaires**.
+**[focus-day-nps.vercel.app](https://focus-day-nps.vercel.app/)** (inscription par email)
 
-Au lieu de simplement lister des tâches, l'application permet de définir :
-- un objectif ;
-- une plage horaire ;
-- une description ;
-- et surtout **la raison pour laquelle cet objectif est important**.
+![Ma journée : la bande du jour, la séance en cours et les suivantes](screenshots/journee.png)
 
-L'application suit ensuite le déroulement de la journée, met à jour les statuts en fonction de l'heure, rappelle les objectifs à l'approche de leur créneau et propose un **débrief réflexif en fin de journée**.
-
-> **🔗 Démo en ligne : [focus-day-nps.vercel.app](https://focus-day-nps.vercel.app/)**
+> **Statut — pré-lancement.** L'application est en ligne et utilisée au quotidien. Une phase de mesure est en cours jusqu'au 2 novembre 2026 : elle compare deux façons de demander « Qu'est-ce que tu en retiens ? ». La liste de ce qui reste à faire avant d'ouvrir à un groupe est tenue dans [`docs/PRE-LANCEMENT.md`](docs/PRE-LANCEMENT.md).
+>
+> Les captures de ce README utilisent un **jeu de données fictif**.
 
 ---
 
-## 🎯 Le concept
+## Le problème
 
-Une todo-list répond principalement à la question :
+Quand on prépare une certification seul, le travail ne laisse aucune trace. Des dizaines d'heures de vidéos, d'exercices et d'examens blancs, et au bout, une ligne sur un CV. On ne sait plus combien de temps on y a vraiment passé, ni ce qu'on a appris à chaque séance.
 
-> **« Qu'est-ce que je dois faire ? »**
+FocusDay part de trois gestes simples :
 
-FocusDay cherche plutôt à répondre à quatre questions :
+1. **Planifier une séance** : un créneau, rattaché à un parcours (« Certification Power BI »).
+2. **La valider** : le temps réellement passé, pas celui prévu.
+3. **Noter ce qu'on en retient**, en une phrase.
 
-> **Qu'est-ce que je dois faire ?**  
-> **Quand dois-je le faire ?**  
-> **Pourquoi est-ce important ?**  
-> **Est-ce que je l'ai réellement fait ?**
-
-L'objectif est donc de transformer une simple liste de tâches en **système de pilotage temporel et de réflexion sur sa journée**.
+Le reste se construit tout seul : le portfolio du parcours, l'historique et le tableau de bord.
 
 ---
 
-## 🖼️ Aperçu
+## Aperçu
 
-### Tableau de bord
+### Valider une séance et noter ce qu'on en retient
 
-Le tableau de bord existe en **thème clair et thème sombre**.
+La validation demande le temps réel, puis la note. Les deux choix sont explicites (« Enregistrer avec ma note » / « Enregistrer sans note ») : passer la note est possible, mais jamais par défaut.
 
-| Thème clair | Thème sombre |
+![Panneau de validation avec la question « Qu'est-ce que tu en retiens ? »](screenshots/validation.png)
+
+### Le portfolio
+
+Pour chaque parcours : les heures **consacrées**, le nombre de séances et de jours actifs, et toutes les notes. Les parcours terminés sont mis en avant, et la page s'imprime proprement.
+
+| Vue d'ensemble | Un parcours en détail |
 | :---: | :---: |
-| ![Tableau de bord en thème clair](screenshots/theme_clair.png) | ![Tableau de bord en thème sombre](screenshots/dashboard.png) |
+| ![Portfolio : tous les parcours](screenshots/portfolio.png) | ![Portfolio d'un parcours : notes et séances](screenshots/portfolio-parcours.png) |
 
-### Ta journée
+### Parcours, historique, tableau de bord
 
-La timeline représente les objectifs de la journée et affiche un curseur **« maintenant »** qui évolue avec l'heure.
+| Parcours | Historique |
+| :---: | :---: |
+| ![Liste des parcours en cours et archivés](screenshots/parcours.png) | ![Historique filtrable des séances](screenshots/historique.png) |
 
-Le taux de réussite est également mis à jour en direct.
+Le tableau de bord compare le prévu et le réalisé jour par jour, sur deux semaines. Il refuse de conclure quand les données sont trop minces, et il signale un temps réel suspect, recopié de l'estimation.
 
-![Vue « Ta journée » avec la timeline](screenshots/journee.png)
+![Tableau de bord : prévu et réalisé sur 14 jours, lecture des données, débriefs](screenshots/tableau-de-bord.png)
 
-### Création d'un objectif
+### Thème sombre, mobile, connexion
 
-Chaque objectif peut être défini avec :
-- un nom ;
-- une heure de début ;
-- une heure de fin ;
-- une description ;
-- et surtout un **« pourquoi »**.
+| Thème sombre | Mobile |
+| :---: | :---: |
+| ![Ma journée en thème sombre](screenshots/journee-sombre.png) | <img src="screenshots/journee-mobile.png" alt="Ma journée sur mobile" width="300"> |
 
-![Formulaire de création d'objectif](screenshots/formulaire.png)
-
-### Objectifs
-
-Les objectifs sont présentés sous forme de cartes avec un statut dynamique et des actions rapides.
-
-![Objectifs affichés en cartes](screenshots/objectifs_definis.png)
-
-### Débrief du soir
-
-Le débrief permet de prendre du recul sur la journée :
-
-- les objectifs ont-ils été atteints ?
-- a-t-on fait plus que prévu ?
-- qu'est-ce qui a manqué ?
-- quelle était l'humeur de la journée ?
-
-![Débrief du soir](screenshots/objectifs_atteints.png)
-
-### Historique
-
-L'historique permet de retrouver les objectifs précédents et de les filtrer.
-
-Les données sont conservées dans le navigateur grâce à `localStorage`, ce qui permet de consulter l'historique même sans connexion.
-
-![Historique des objectifs](screenshots/historique.png)
+![Page de connexion](screenshots/connexion.png)
 
 ---
 
-## ✨ Ce qui rend FocusDay différent
+## Fonctionnalités
 
-### ⏰ Créneaux horaires
-
-Chaque objectif possède une véritable plage horaire.
-
-Exemple :
-
-```text
-08:00 → 10:00 : Travail sur le mémoire
-14:00 → 15:30 : Développement
-18:00 → 19:00 : Sport
-```
-
-L'application sait donc déterminer si un objectif est :
-- à venir ;
-- en cours ;
-- terminé ;
-- ou manqué.
-
-### 🎯 Le « pourquoi »
-
-Chaque objectif peut être associé à une motivation.
-
-Le « pourquoi » permet de ne pas seulement voir **ce qu'il faut faire**, mais aussi **pourquoi il faut le faire**.
-
-### 🔔 Rappels intelligents
-
-Lorsqu'un créneau approche et qu'aucune action n'a encore été effectuée, l'application peut utiliser la **Notification API** du navigateur pour rappeler l'objectif et indiquer le temps restant.
-
-### 📊 Statuts dynamiques
-
-FocusDay ne se limite pas à une case « terminé ».
-
-Un objectif peut avoir plusieurs états :
-
-- À faire
-- En cours
-- Terminé
-- Manqué
-
-Ces statuts sont déterminés à partir de l'état de l'objectif et de l'heure actuelle.
-
-### 🕐 Timeline de journée
-
-La timeline permet de visualiser la journée dans le temps.
-
-Un curseur **« maintenant »** se déplace automatiquement afin de situer l'utilisateur par rapport à ses objectifs.
-
-### 🌙 Débrief du soir
-
-La journée ne s'arrête pas lorsque les objectifs sont terminés.
-
-FocusDay propose un espace de réflexion permettant de faire le bilan :
-- objectifs atteints ;
-- objectifs manqués ;
-- dépassement des objectifs ;
-- humeur ;
-- réflexion personnelle.
-
-### 📈 Tableau de bord
-
-Le tableau de bord présente notamment :
-- le taux de réussite ;
-- les statistiques des derniers jours ;
-- l'évolution des performances ;
-- la météo du moment.
-
-### 🗂️ Historique
-
-Les journées précédentes peuvent être retrouvées grâce à un historique avec recherche et filtres :
-
-- Tous
-- Réussis
-- Manqués
-
-Les données étant stockées dans `localStorage`, l'historique reste disponible hors connexion.
-
-> L'application n'est toutefois pas encore une PWA et ne possède pas de service worker.
-
-### 🌓 Thème clair / sombre
-
-L'interface propose un thème clair et un thème sombre afin d'adapter l'expérience aux préférences de l'utilisateur.
+- **Ma journée** : créneaux horaires, statuts calculés selon l'heure (à faire, en cours, terminée, manquée), ruban de la journée avec repère « maintenant », rappels par notification du navigateur.
+- **Validation en deux temps** : temps réel (avec chronomètre si la séance a été démarrée), puis « Qu'est-ce que tu en retiens ? ».
+- **Rattrapage du soir** : les séances non validées, une activité faite hors plan, et un débrief (objectifs atteints, ressenti, ce qui a manqué).
+- **Parcours** : une formation, une certification ou un projet, avec sa raison d'être et son échéance. On peut le mettre en pause ou le marquer terminé.
+- **Portfolio** : heures consacrées, séances, jours actifs, notes, période couverte. Version imprimable.
+- **Historique** : recherche dans les titres et les notes, filtres (dépassé, plus rapide, sans mesure), rattachement par lot des anciennes séances à un parcours.
+- **Tableau de bord** : prévu et réalisé sur 14 jours, part du hors-plan, lecture des écarts d'estimation.
+- **Comptes** : inscription avec confirmation par email, mot de passe oublié, emails en français. Chaque utilisateur ne voit que ses données.
+- **Thème clair et sombre**, mise en page adaptée au mobile.
 
 ---
 
-## 🧠 Architecture et choix techniques
+## Choix techniques
 
-FocusDay a été conçu avec une architecture suffisamment découplée pour permettre de faire évoluer progressivement le stockage et les services.
-
-### Stockage abstrait
-
-Les données sont actuellement conservées dans `localStorage`.
-
-L'accès au stockage passe cependant par une couche d'abstraction :
-
-```text
-Interface utilisateur
-        │
-        ▼
-   Couche métier
-        │
-        ▼
-   lib/store.ts
-        │
-        ▼
-   localStorage
-```
-
-Cette organisation permet de remplacer ultérieurement `localStorage` par une véritable base de données ou un backend distant sans modifier toute l'application.
-
-Par exemple :
-
-```text
-localStorage
-     ↓
-Supabase / Firebase / API personnalisée
-```
-
-L'objectif est donc de limiter le couplage entre l'interface et le système de persistance.
-
----
-
-## 🧮 Logique métier temporelle
-
-Une partie importante du projet repose sur la gestion des horaires.
-
-La couche métier prend notamment en charge :
-
-- la conversion des heures ;
-- la comparaison entre l'heure actuelle et les créneaux ;
-- les créneaux traversant minuit ;
-- la détection des chevauchements ;
-- le calcul des statistiques ;
-- la détermination automatique du statut ;
-- le passage automatique d'un objectif à l'état **« manqué »** lorsque son créneau est dépassé.
-
-Cette logique est isolée dans `lib/time.ts` et testée indépendamment de l'interface.
-
-Cela permet de considérer les règles temporelles comme une véritable **couche métier**, plutôt que comme de simples comportements d'interface.
-
----
-
-## 🔔 Architecture des notifications
-
-Les rappels utilisent actuellement la **Notification API** du navigateur.
-
-L'architecture a cependant été pensée pour pouvoir évoluer vers des notifications push côté serveur.
-
-```text
-Objectif
-   │
-   ▼
-Créneau horaire
-   │
-   ▼
-Détection de l'approche
-   │
-   ▼
-Notification API
-```
-
-Une évolution future pourrait remplacer cette dernière étape par un système de notifications push serveur.
-
----
-
-## 🌤️ Météo
-
-La météo affichée dans le tableau de bord utilise :
-
-- **Open-Meteo**
-- la géolocalisation du navigateur.
-
-Aucune clé API n'est nécessaire.
-
----
-
-## 🧱 Stack technique
-
-| Technologie | Utilisation |
+| | |
 |---|---|
-| **Next.js 16** | Framework web et architecture de l'application |
-| **TypeScript** | Typage statique |
-| **Tailwind CSS v4** | Interface et responsive design |
-| **Vitest** | Tests unitaires |
-| **localStorage** | Persistance locale |
-| **Notification API** | Notifications navigateur |
-| **Open-Meteo** | Données météorologiques |
-| **Geolocation API** | Localisation pour la météo |
-| **GitHub Actions** | Intégration continue |
-| **Vercel** | Déploiement |
+| **Front** | Next.js 16 (App Router, Turbopack), React 19, TypeScript strict, Tailwind CSS v4 |
+| **Données** | Supabase : Postgres, Auth, Row Level Security |
+| **Emails** | SMTP Brevo, modèles HTML en français ([`supabase/emails/`](supabase/emails)) |
+| **Qualité** | Vitest (89 tests unitaires), ESLint, GitHub Actions |
+| **Déploiement** | Vercel |
+
+Ce qui mérite d'être raconté :
+
+- **Une couche d'accès aux données interchangeable.** Toute l'interface parle à une interface `Repo` ([`lib/repo.ts`](lib/repo.ts)). Deux implémentations existent : `localStorage` pour le développement, Supabase en production. On bascule avec une seule variable d'environnement, sans toucher aux composants.
+- **La sécurité dans la base, pas dans le code.** Chaque table du schéma public a la RLS activée, avec une politique « propriétaire seulement ». La clé exposée au navigateur est la clé publique ; la clé de service n'est utilisée nulle part côté client.
+- **Des écritures ciblées.** Modifier une séance envoie un `UPDATE` des seules colonnes changées, en un aller-retour ([`lib/sessionPatch.ts`](lib/sessionPatch.ts)), jamais une réécriture de la ligne entière depuis la copie du navigateur. Une ligne non modifiée (supprimée ailleurs, ou filtrée par la RLS) remonte comme une erreur, pas comme un succès silencieux.
+- **Des mises à jour optimistes qui savent reculer.** L'écran change tout de suite. Si l'écriture échoue, l'état précédent est restauré et un bandeau dit précisément ce qui n'a pas été enregistré. Quitter la page pendant une écriture déclenche un avertissement.
+- **Des erreurs visibles et traduites.** Chaque échec de lecture ou d'écriture a son bandeau, avec « Réessayer ». Les messages de Supabase sont traduits en phrases qui disent quoi faire. Un refus de jeton connu (`PGRST303`, juste après la connexion) est réessayé une seule fois, automatiquement.
+- **L'instrumentation de la mesure.** Chaque séance enregistre par quel chemin son temps réel a été saisi (`actual_source` : panneau, rattrapage ou hors plan). On peut ainsi comparer les taux de notes entre variantes ([`supabase/mesures/`](supabase/mesures)).
+- **Les migrations avant le code.** Chaque changement de schéma est un fichier SQL séparé, appliqué en production avant le déploiement du code qui en dépend, avec un contrôle préalable qui s'arrête proprement si une ligne existante ne passe pas. Le schéma de référence ([`supabase/schema.sql`](supabase/schema.sql)) est un dump de la production, versionné.
+- **Des limites partout, et visibles.** Chaque champ texte est borné en base et dans le formulaire ([`lib/limits.ts`](lib/limits.ts)). Un compteur apparaît à l'approche de la limite, pour qu'aucune saisie ne soit coupée sans prévenir.
 
 ---
 
-## 📂 Organisation du projet
+## Organisation du code
 
 ```text
-focus-day/
-├── app/
-│   ├── page.tsx
-│   ├── ...
-│   └── ...
-│
-├── components/
-│   ├── ...
-│   └── ...
-│
-├── lib/
-│   ├── store.ts       # Abstraction du stockage
-│   ├── time.ts        # Logique métier temporelle
-│   └── ...
-│
-├── screenshots/
-│   ├── theme_clair.png
-│   ├── dashboard.png
-│   ├── journee.png
-│   ├── formulaire.png
-│   ├── objectifs_definis.png
-│   ├── objectifs_atteints.png
-│   └── historique.png
-│
-├── .github/
-│   └── workflows/
-│       └── ci.yml
-│
-└── README.md
+app/                  Pages (App Router) : Ma journée, parcours, portfolio,
+                      historique, tableau de bord, archives, connexion
+  auth/callback/      Retour des liens envoyés par email
+components/           Composants d'interface (carte de séance, panneau de
+                      validation, débrief, bande du jour…)
+lib/
+  repo.ts             Interface Repo + implémentation localStorage
+  repo.supabase.ts    Implémentation Supabase
+  useTasks.ts         État de la journée : écritures optimistes, restauration
+  time.ts             Logique temporelle (créneaux, minuit, statuts)
+  portfolio.ts        Agrégats du portfolio
+  lecture.ts          Lecture prudente des écarts d'estimation
+  *.test.ts           Tests unitaires (Vitest)
+supabase/
+  schema.sql          Schéma de référence, dump de la production
+  0X_*.sql            Migrations, appliquées avant le code
+  emails/             Modèles d'emails en français
+  mesures/            Requêtes de la phase de mesure
+  sauvegarde/         Copie datée de toutes les tables
+docs/                 Brief produit, reprise du projet, liste de pré-lancement
+proxy.ts              Rafraîchit la session, protège les pages
 ```
 
 ---
 
-## 🚀 Démarrer en local
-
-### 1. Installer les dépendances
+## Lancer le projet
 
 ```bash
 npm install
-```
-
-### 2. Lancer le serveur de développement
-
-```bash
 npm run dev
 ```
 
-Puis ouvrir :
+L'application tourne alors sur `http://localhost:3000`. Sans configuration, elle stocke les données dans le navigateur (`localStorage`).
+
+Pour la brancher sur Supabase, créer un fichier `.env.local` (jamais versionné) avec :
 
 ```text
-http://localhost:3000
+NEXT_PUBLIC_DATA_SOURCE=supabase
+NEXT_PUBLIC_SUPABASE_URL=…
+NEXT_PUBLIC_SUPABASE_ANON_KEY=…   # clé publique uniquement
 ```
 
----
-
-## 🧪 Commandes disponibles
-
-```bash
-npm test
-```
-
-Lance les tests unitaires avec Vitest.
+Les quatre vérifications, lancées aussi par la CI à chaque push :
 
 ```bash
 npm run lint
-```
-
-Vérifie le code avec ESLint.
-
-```bash
 npx tsc --noEmit
-```
-
-Vérifie les types TypeScript.
-
-```bash
+npm test
 npm run build
 ```
 
-Effectue le build de production.
+---
+
+## Feuille de route
+
+Prévu après la phase de mesure (2 novembre 2026) :
+
+- temps réel non prérempli avec l'estimation, et un seul chemin de validation par séance ;
+- une estimation demandée explicitement pour les longs créneaux ;
+- une page « Ma journée » recentrée sur la séance en cours, débrief replié ;
+- export planifié des sauvegardes hors de Supabase ;
+- suppression de compte et export des données par l'utilisateur.
 
 ---
 
-## ✅ Qualité & tests
+## Origine
 
-Le projet applique plusieurs contrôles automatisés.
-
-### TypeScript
-
-Le projet utilise **TypeScript strict** afin de détecter les erreurs de typage le plus tôt possible.
-
-### Tests métier
-
-Les tests Vitest couvrent notamment la couche temporelle :
-
-- conversion des heures ;
-- créneaux traversant minuit ;
-- détection des chevauchements ;
-- calcul des statistiques ;
-- détermination des statuts ;
-- bascule automatique en « manqué ».
-
-### Intégration continue
-
-GitHub Actions exécute automatiquement :
-
-```text
-Lint
-  ↓
-Vérification TypeScript
-  ↓
-Tests
-  ↓
-Build
-```
-
-à chaque push et pull request.
-
-Workflow :
-
-```text
-.github/workflows/ci.yml
-```
-
-### Accessibilité
-
-Une attention particulière est portée à :
-
-- la navigation au clavier ;
-- les attributs ARIA ;
-- le focus visible ;
-- la gestion des dialogues avec `Échap` / `Entrée` ;
-- `prefers-reduced-motion`.
+FocusDay prolonge un sujet d'examen de Master 1 (2025) : une todo-list en Flutter, PHP et MySQL. Repris en 2026, il est devenu un outil de suivi par créneaux horaires, puis, après un pivot, un carnet d'apprentissage centré sur ce qu'on retient de chaque séance.
 
 ---
 
-## 🌍 Déploiement
+## Autrice
 
-Le projet est déployé avec **Vercel**.
-
-Aucune variable d'environnement n'est nécessaire pour le fonctionnement actuel de l'application, les données étant stockées localement dans le navigateur.
-
-> **🔗 Application en ligne : [focus-day-nps.vercel.app](https://focus-day-nps.vercel.app/)**
-
----
-
-## 🔮 Évolutions possibles
-
-L'architecture actuelle permet d'envisager plusieurs évolutions :
-
-- migration de `localStorage` vers Supabase, Firebase ou une API personnalisée ;
-- synchronisation des données entre plusieurs appareils ;
-- authentification utilisateur ;
-- notifications push serveur ;
-- installation comme véritable PWA ;
-- statistiques plus avancées ;
-- historique synchronisé dans le cloud.
-
-Ces évolutions ne nécessitent pas nécessairement de remettre en cause l'interface actuelle : la séparation entre la logique métier, le stockage et l'interface facilite cette progression.
-
----
-
-## 📚 Origine du projet
-
-Le concept de FocusDay prolonge un **sujet d'examen de Master 1 réalisé en 2025**.
-
-Le projet initial était une todo-list développée avec :
-
-- Flutter ;
-- une API PHP ;
-- MySQL.
-
-En 2026, le concept a été repris et largement personnalisé.
-
-L'objectif n'était plus simplement de **stocker des tâches**, mais de construire une application capable d'**accompagner le déroulement d'une journée**.
-
-Le projet a ainsi évolué vers :
-
-```text
-Todo-list classique
-       ↓
-Objectifs avec horaires
-       ↓
-Suivi en temps réel
-       ↓
-Rappels
-       ↓
-Statuts temporels
-       ↓
-Statistiques
-       ↓
-Débrief réflexif
-```
-
-FocusDay constitue donc également un exercice de transformation d'un sujet académique en **produit web plus complet et plus proche d'un cas d'usage réel**.
-
----
-
-## 👩‍💻 À propos
-
-Conçu et développé par **Ndeye Penda Sarr**.
-
-**Business Intelligence & Data · Développement Web Full-Stack**
-
----
+Conçu et développé par **Ndeye Penda Sarr**, Business Intelligence & Data · Développement web full-stack.
 
 © 2025–2026 Ndeye Penda Sarr
