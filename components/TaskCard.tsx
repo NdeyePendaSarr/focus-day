@@ -57,7 +57,9 @@ export default function TaskCard({
         background: "var(--bg-2)",
         border: `1px solid ${isCurrent ? "var(--color-amber)" : "var(--border)"}`,
         borderRadius: "var(--radius-lg)",
-        padding: "1.2rem 1.35rem",
+        // La séance en cours ressort : plus d'air, titre plus grand.
+        // Mêmes boutons, même ordre — seule l'apparence change.
+        padding: isCurrent ? "1.45rem 1.6rem" : "1.2rem 1.35rem",
         boxShadow: isCurrent ? "0 0 0 3px color-mix(in srgb, var(--color-amber) 15%, transparent)" : "var(--shadow)",
         transition: "border-color .3s, box-shadow .3s",
       }}
@@ -71,7 +73,7 @@ export default function TaskCard({
             <span
               style={{
                 fontFamily: "var(--font-display)",
-                fontSize: "0.85rem",
+                fontSize: "var(--fs-sm)",
                 fontWeight: 600,
                 color: "var(--color-brand)",
               }}
@@ -93,7 +95,7 @@ export default function TaskCard({
                 +1j
               </span>
             )}
-            <span style={{ fontSize: "0.72rem", color: "var(--text-mute)" }}>
+            <span style={{ fontSize: "var(--fs-xs)", color: "var(--text-mute)" }}>
               {formatDuration(duration)}
             </span>
 
@@ -104,8 +106,9 @@ export default function TaskCard({
           <h3
             style={{
               fontFamily: "var(--font-display)",
-              fontSize: "1.05rem",
-              fontWeight: 600,
+              fontSize: isCurrent ? "var(--fs-xl)" : "var(--fs-lg)",
+              fontWeight: isCurrent ? 700 : 600,
+              letterSpacing: isCurrent ? "-0.015em" : undefined,
               display: "flex",
               alignItems: "baseline",
               gap: 7,
@@ -138,14 +141,14 @@ export default function TaskCard({
             </span>
           )}
           {task.description && (
-            <p style={{ fontSize: "0.88rem", color: "var(--text-soft)", marginTop: 2 }}>
+            <p style={{ fontSize: "var(--fs-sm)", color: "var(--text-soft)", marginTop: 4 }}>
               {task.description}
             </p>
           )}
           {task.why && (
             <p
               style={{
-                fontSize: "0.82rem",
+                fontSize: "var(--fs-sm)",
                 color: "var(--text-soft)",
                 marginTop: 6,
                 paddingLeft: 10,
@@ -161,7 +164,7 @@ export default function TaskCard({
         <div className="task-side">
           <span
             style={{
-              fontSize: "0.72rem",
+              fontSize: "var(--fs-xs)",
               fontWeight: 600,
               color: STATUS_COLOR[task.status],
               whiteSpace: "nowrap",
@@ -175,7 +178,7 @@ export default function TaskCard({
       </div>
 
       {/* Actions de statut */}
-      <div style={{ display: "flex", gap: 6, marginTop: 12, flexWrap: "wrap" }}>
+      <div className="task-actions">
         {task.status !== "in_progress" && task.status !== "done" && (
           <button className="btn-primary btn-sm" onClick={() => onStatus(task.id, "in_progress")}>
             Démarrer
@@ -186,8 +189,10 @@ export default function TaskCard({
             Terminer
           </button>
         )}
+        {/* Un seul bouton plein par carte : « Démarrer » ici, « Fait »
+            en secondaire. Même texte, même place — seule la couleur change. */}
         {task.status !== "done" && task.status !== "in_progress" && (
-          <button className="btn-primary btn-sm" onClick={() => setCapturing(true)}>
+          <button className="btn-ghost btn-sm" onClick={() => setCapturing(true)}>
             Fait
           </button>
         )}
@@ -200,7 +205,7 @@ export default function TaskCard({
             trois lignes) ; le bouton dit en un mot ce qu'il ouvre — une
             icône de document seule ne se lisait pas comme « note ». */}
         <button
-          className="chip chip-note"
+          className="chip chip-quiet chip-note"
           onClick={() => setNoteOuverte(true)}
           aria-label={task.note ? "Lire ou modifier la note" : "Ajouter une note"}
           title={task.note ? "Lire ou modifier la note" : "Ajouter une note"}

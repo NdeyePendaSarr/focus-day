@@ -7,7 +7,7 @@ import { useGoals } from "@/lib/useGoals";
 import { useReminders } from "@/lib/useReminders";
 import { todayISO, prettyDate, computeStats, reminderFor, durationMinutes, formatDuration, parseDuration } from "@/lib/time";
 import NavBar from "@/components/NavBar";
-import DayTimeline from "@/components/DayTimeline";
+import DaySummary from "@/components/DaySummary";
 import TaskCard from "@/components/TaskCard";
 import TaskForm, { TaskDraft } from "@/components/TaskForm";
 import EveningDebrief from "@/components/EveningDebrief";
@@ -264,34 +264,22 @@ export default function HomePage() {
           </section>
         )}
 
-        {/* Les chiffres et la timeline n'apparaissent qu'avec un premier
+        {/* La bande du jour n'apparaît qu'avec un premier
             objectif : un « 0 objectif · 0 terminé » ressemble à un constat
             d'échec, alors qu'il n'y a simplement encore rien à compter. */}
         {started && (
         <div className="day-layout">
-          {/* Rail : chiffres du jour et timeline */}
-          <aside className="day-rail card-surface" style={{ padding: "1.4rem", display: "grid", gap: "1.1rem" }}>
-            <div className="day-stats">
-              <Stat label={stats.total < 2 ? "Objectif" : "Objectifs"} value={stats.total} />
-              <Stat label={stats.done < 2 ? "Terminé" : "Terminés"} value={stats.done} color="var(--color-mint-text)" />
-            </div>
-
-            {/* Le rapport de temps remplace le taux de réussite : un
-                pourcentage note la journée, ces deux durées la décrivent. */}
-            {ready && minutesPrevues > 0 && (
-              <p style={{ fontSize: "0.85rem", color: "var(--text-soft)", marginTop: "0.4rem" }}>
-                <strong style={{ color: "var(--color-mint-text)" }}>
-                  {formatDuration(minutesRealisees)}
-                </strong>
-                {` réalisées sur ${formatDuration(minutesPrevues)} prévues`}
-              </p>
-            )}
-
-            {/* Dans le rail sur grand écran, où elle fait face aux objectifs. */}
-            <div className="timeline-rail">
-              {ready && plannedTasks.length > 0 && <DayTimeline tasks={plannedTasks} now={now} />}
-            </div>
-          </aside>
+          {/* Une bande pour le contexte du jour, au lieu d'un rail : les
+              séances prennent toute la largeur. */}
+          {ready && (
+            <DaySummary
+              tasks={plannedTasks}
+              now={now}
+              done={stats.done}
+              minutesPrevues={minutesPrevues}
+              minutesRealisees={minutesRealisees}
+            />
+          )}
 
           {/* Zone de travail */}
           <section className="day-main">
@@ -300,8 +288,7 @@ export default function HomePage() {
               onComplete={completeTask} onNote={setNote} onEdit={openEdit} onArchive={archiveTask} />
             ))}
 
-            {/* Le débrief appartient à la zone de travail : hors du
-                <section>, la grille le placerait sous le rail gauche. */}
+            {/* Le débrief suit les séances, dans la même colonne. */}
             {ready && tasks.length > 0 && !showDebrief && (
               <button
                 className="btn-ghost"
@@ -325,34 +312,11 @@ export default function HomePage() {
               />
             )}
           </section>
-
-          {/* Sur mobile, la timeline passe APRÈS les objectifs : elle montre
-              les mêmes créneaux que les cartes, en moins détaillé. La placer
-              avant coûtait un écran entier avant d'accéder au contenu. */}
-          {ready && plannedTasks.length > 0 && (
-            <section className="timeline-below card-surface" style={{ padding: "1.15rem" }}>
-              <p style={{ fontSize: "0.78rem", color: "var(--text-mute)", marginBottom: "0.75rem" }}>
-                Ta journée heure par heure
-              </p>
-              <DayTimeline tasks={plannedTasks} now={now} />
-            </section>
-          )}
         </div>
         )}
       </main>
 
       <TaskForm open={formOpen} editing={editing} existingTasks={tasks} goals={goals} onClose={() => { setFormOpen(false); setEditing(null); }} onSubmit={handleSubmit} />
     </>
-  );
-}
-
-function Stat({ label, value, color }: { label: string; value: string | number; color?: string }) {
-  return (
-    <div>
-      <div style={{ fontFamily: "var(--font-display)", fontSize: "1.35rem", fontWeight: 700, lineHeight: 1.1, color: color ?? "var(--text)" }}>
-        {value}
-      </div>
-      <div style={{ fontSize: "0.74rem", color: "var(--text-mute)" }}>{label}</div>
-    </div>
   );
 }
