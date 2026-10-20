@@ -13,6 +13,7 @@ import TaskForm, { TaskDraft } from "@/components/TaskForm";
 import EveningDebrief from "@/components/EveningDebrief";
 import ErrorBanner from "@/components/ErrorBanner";
 import { errorDetail } from "@/lib/errors";
+import FirstSteps from "@/components/FirstSteps";
 import { repo } from "@/lib/repo";
 
 export default function HomePage() {
@@ -22,7 +23,7 @@ export default function HomePage() {
   // Une erreur de chargement des parcours n'est pas affichée ici : elle
   // ne prive que du sélecteur et des étiquettes, la page /parcours la
   // signale. Une écriture n'a jamais lieu depuis cette page.
-  const { goals } = useGoals();
+  const { goals, ready: goalsReady } = useGoals();
   const goalTitle = (id?: string) => (id ? goals.find((g) => g.id === id)?.title : undefined);
   const { permission, requestPermission } = useReminders(tasks);
 
@@ -31,6 +32,27 @@ export default function HomePage() {
   // d'hydratation (React #418). On ne rend la date qu'après le montage client.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+
+  // Premiers pas : masqués pour de bon une fois les trois étapes faites,
+  // ou sur demande. Mémorisé dans ce navigateur seulement — c'est un
+  // confort d'affichage, pas une donnée. Lu après le montage (hydratation).
+  const PREMIERS_PAS = "focusday.premiers-pas-termines";
+  const [stepsHidden, setStepsHidden] = useState(true);
+  useEffect(() => {
+    try {
+      setStepsHidden(localStorage.getItem(PREMIERS_PAS) === "1");
+    } catch {
+      setStepsHidden(false);
+    }
+  }, []);
+  const hideSteps = () => {
+    setStepsHidden(true);
+    try {
+      localStorage.setItem(PREMIERS_PAS, "1");
+    } catch {
+      /* stockage indisponible : masqué pour cette visite seulement */
+    }
+  };
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
@@ -102,6 +124,27 @@ export default function HomePage() {
     setEditing(null);
   };
 
+  // Journée vide une fois le chargement fini (avant, on n'affiche rien
+  // plutôt qu'un état vide qui clignoterait).
+  const empty = ready && tasks.length === 0;
+  // Pendant le chargement, ni état vide ni chiffres : « 0 objectif » le
+  // temps d'une requête serait le constat d'échec qu'on veut éviter.
+  const started = ready && tasks.length > 0;
+  const linked = tasks.filter((t) => t.goalId);
+  const validated = linked.some((t) => t.status === "done" && (t.actualMinutes ?? 0) > 0);
+  const stepsDone = goals.length > 0 && linked.length > 0 && validated;
+  const showSteps = ready && goalsReady && !stepsHidden && !stepsDone;
+
+  // Les trois étapes faites : on ne les remontre plus.
+  useEffect(() => {
+    if (!stepsDone) return;
+    try {
+      localStorage.setItem(PREMIERS_PAS, "1");
+    } catch {
+      /* stockage indisponible : rien à faire */
+    }
+  }, [stepsDone]);
+
   return (
     <>
       <NavBar />
@@ -143,7 +186,7 @@ export default function HomePage() {
         {permission !== "granted" && ready && (
           <div className="card-surface" style={{ padding: "0.9rem 1.1rem", marginBottom: "1.25rem", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
             <span style={{ fontSize: "0.9rem", color: "var(--text-soft)" }}>
-              Active les rappels pour être prévenue quand un créneau approche.
+              Active les rappels : un signal quand un créneau approche.
             </span>
             <button className="btn-ghost" onClick={requestPermission}>Activer les rappels</button>
           </div>
@@ -160,21 +203,54 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* En-tête : la date en pastille, un grand titre, et le bouton
-            principal de l'écran — le seul à porter le dégradé. */}
-        <div className="day-hero">
+        {/* En-tête compact : cet écran s'ouvre plusieurs fois par jour, le
+            contenu doit rester au-dessus de la ligne de flottaison. Le
+            bouton principal n'y est que lorsque la journée a commencé ;
+            vide, l'action principale est dans la carte, sous les yeux. */}
+        <div className="day-hero day-hero-compact">
           <div style={{ minWidth: 0 }}>
             <span className="eyebrow">{mounted ? prettyDate(today) : "Ma journée"}</span>
-            <h1 className="display-title" style={{ marginTop: "0.9rem" }}>
+            <h1 className="display-title display-title-sm" style={{ marginTop: "0.7rem" }}>
               Ta <span className="accent">journée</span>.
             </h1>
-            <p className="day-hero-sub">
-              Pose tes créneaux, valide le temps réel, garde ce que tu en retiens.
-            </p>
+            {empty && (
+              <p className="day-hero-sub">
+                Pose tes créneaux, valide le temps réel, garde ce que tu en retiens.
+              </p>
+            )}
           </div>
-          <button className="btn-hero" onClick={openNew}>+ Nouvel objectif</button>
+          {started && (
+            <button className="btn-hero" onClick={openNew}>+ Nouvel objectif</button>
+          )}
         </div>
 
+        {showSteps && (
+          <FirstSteps
+            hasGoal={goals.length > 0}
+            hasLinkedSession={linked.length > 0}
+            hasValidatedSession={validated}
+            hero={empty}
+            onNewTask={openNew}
+            onHide={hideSteps}
+          />
+        )}
+
+        {/* Journée vide, premiers pas faits : la question et l'action au
+            même endroit. */}
+        {empty && !showSteps && goalsReady && (
+          <section className="card-surface day-empty">
+            <p className="section-title">Rien de prévu aujourd&apos;hui.</p>
+            <p className="day-empty-text">
+              Pose ton premier créneau — et le pourquoi qui te motive.
+            </p>
+            <button className="btn-hero" onClick={openNew}>+ Nouvel objectif</button>
+          </section>
+        )}
+
+        {/* Les chiffres et la timeline n'apparaissent qu'avec un premier
+            objectif : un « 0 objectif · 0 terminé » ressemble à un constat
+            d'échec, alors qu'il n'y a simplement encore rien à compter. */}
+        {started && (
         <div className="day-layout">
           {/* Rail : chiffres du jour et timeline */}
           <aside className="day-rail card-surface" style={{ padding: "1.4rem", display: "grid", gap: "1.1rem" }}>
@@ -202,16 +278,6 @@ export default function HomePage() {
 
           {/* Zone de travail */}
           <section className="day-main">
-            {ready && tasks.length === 0 && (
-              <div className="card-surface" style={{ padding: "2.5rem 1.5rem", textAlign: "center" }}>
-                <p style={{ fontFamily: "var(--font-display)", fontSize: "1.15rem", fontWeight: 600, marginBottom: 6 }}>
-                  Ta journée est une page blanche.
-                </p>
-                <p style={{ color: "var(--text-soft)", fontSize: "0.9rem" }}>
-                  Ajoute ton premier objectif avec son créneau — et le pourquoi qui te motive.
-                </p>
-              </div>
-            )}
             {plannedTasks.map((t) => (
               <TaskCard key={t.id} task={t} goalTitle={goalTitle(t.goalId)} now={now} onStatus={setStatus}
               onComplete={completeTask} onNote={setNote} onEdit={openEdit} onArchive={archiveTask} />
@@ -255,6 +321,7 @@ export default function HomePage() {
             </section>
           )}
         </div>
+        )}
       </main>
 
       <TaskForm open={formOpen} editing={editing} existingTasks={tasks} goals={goals} onClose={() => { setFormOpen(false); setEditing(null); }} onSubmit={handleSubmit} />

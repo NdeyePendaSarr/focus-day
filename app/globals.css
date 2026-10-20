@@ -1425,3 +1425,157 @@ select,
     padding-bottom: 1.6rem;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Ma journée — en-tête compact, premiers pas, journée vide             */
+/* ------------------------------------------------------------------ */
+
+/* Écran ouvert plusieurs fois par jour : titre plus petit qu'ailleurs,
+   bouton aligné sur le titre. Les très grands titres restent pour la
+   connexion et le portfolio. */
+.day-hero-compact {
+  align-items: center;
+  margin: 0.25rem 0 1.5rem;
+}
+.display-title-sm {
+  font-size: clamp(1.9rem, 3.2vw, 2.5rem);
+}
+
+/* Lien d'action discret : déconnexion, « Masquer », alternatives. */
+.link-quiet {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 3px;
+}
+.link-quiet:hover {
+  color: var(--text);
+  text-decoration-color: currentColor;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.first-steps {
+  padding: 1.6rem 1.75rem;
+  margin-bottom: 1.5rem;
+  max-width: 760px;
+}
+.first-steps-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+.first-steps-sub {
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  margin-top: 0.3rem;
+}
+.first-steps-list {
+  list-style: none;
+  padding: 0;
+  margin: 1.4rem 0 0;
+  display: grid;
+  gap: 1.1rem;
+}
+.first-steps-list li {
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+}
+.step-num {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-mute);
+  border: 1.5px solid var(--border-strong);
+}
+.is-current .step-num {
+  color: #fff;
+  background: var(--brand-fill);
+  border-color: var(--brand-fill);
+}
+.is-done .step-num {
+  color: var(--color-mint-text);
+  border-color: color-mix(in srgb, var(--color-mint) 45%, transparent);
+  background: color-mix(in srgb, var(--color-mint) 12%, transparent);
+}
+.step-title {
+  font-weight: 600;
+  font-size: 0.98rem;
+  margin-top: 0.15rem;
+}
+.is-done .step-title {
+  color: var(--text-soft);
+}
+.step-text {
+  font-size: 0.86rem;
+  color: var(--text-soft);
+  margin-top: 0.15rem;
+}
+.step-action {
+  display: inline-block;
+  margin-top: 0.8rem;
+}
+.step-hint {
+  font-size: 0.82rem;
+  color: var(--text-mute);
+  margin-top: 0.4rem;
+}
+
+.day-empty {
+  padding: 2.25rem 1.75rem;
+  text-align: center;
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+  max-width: 760px;
+}
+.day-empty-text {
+  font-size: 0.92rem;
+  color: var(--text-soft);
+  margin-bottom: 0.9rem;
+}
+
+/* Premiers pas en une ligne, quand la journée a commencé. */
+.first-steps-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+  padding: 0.85rem 1.2rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.88rem;
+}
+.first-steps-line .step-num {
+  color: #fff;
+  background: var(--brand-fill);
+  border-color: var(--brand-fill);
+}
+.step-num-sm {
+  width: 24px;
+  height: 24px;
+  font-size: 0.78rem;
+}
+.first-steps-line-text {
+  color: var(--text-soft);
+}

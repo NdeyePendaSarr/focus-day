@@ -6,14 +6,20 @@ import { useEffect, useState } from "react";
 import { useTheme } from "./ThemeProvider";
 import { getSupabase } from "@/lib/supabase";
 
+// Dans l'ordre du produit depuis le pivot : la journée, puis ce à quoi
+// elle contribue (parcours, portfolio), puis le regard en arrière.
+// Archives est accessible depuis l'historique : on s'en sert rarement.
 const LINKS = [
   { href: "/", label: "Ma journée" },
-  { href: "/dashboard", label: "Tableau de bord" },
-  { href: "/history", label: "Historique" },
   { href: "/parcours", label: "Parcours" },
   { href: "/portfolio", label: "Portfolio" },
-  { href: "/archive", label: "Archives" },
+  { href: "/history", label: "Historique" },
+  { href: "/dashboard", label: "Tableau de bord" },
 ];
+
+/** Actif aussi sur les sous-pages (/portfolio/[id]) ; « / » seulement en exact. */
+const isActive = (path: string, href: string) =>
+  href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`);
 
 export default function NavBar() {
   const path = usePathname();
@@ -84,7 +90,7 @@ export default function NavBar() {
         {/* Liens complets — masqués sur petit écran (voir .nav-links dans globals.css) */}
         <nav className="nav-links" style={{ alignItems: "center", gap: 4 }}>
           {LINKS.map((l) => {
-            const active = path === l.href;
+            const active = isActive(path, l.href);
             return (
               <Link
                 key={l.href}
@@ -107,8 +113,8 @@ export default function NavBar() {
           {connectee && (
             <button
               onClick={seDeconnecter}
-              className="btn-ghost"
-              style={{ marginLeft: 6, padding: "0.45rem 0.75rem", fontSize: "0.85rem" }}
+              className="link-quiet"
+              style={{ marginLeft: 10, fontSize: "0.85rem" }}
             >
               Se déconnecter
             </button>
@@ -149,7 +155,7 @@ export default function NavBar() {
           }}
         >
           {LINKS.map((l) => {
-            const active = path === l.href;
+            const active = isActive(path, l.href);
             return (
               <Link
                 key={l.href}
@@ -177,8 +183,8 @@ export default function NavBar() {
           {connectee && (
             <button
               onClick={seDeconnecter}
-              className="btn-ghost"
-              style={{ justifySelf: "start", marginTop: 2 }}
+              className="link-quiet"
+              style={{ justifySelf: "start", marginTop: 6, padding: "0.4rem 0.75rem" }}
             >
               Se déconnecter
             </button>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import type { Task } from "@/lib/types";
 import { repo } from "@/lib/repo";
 import { prettyDate, durationMinutes, formatDuration } from "@/lib/time";
@@ -187,6 +188,7 @@ export default function HistoryPage() {
           before="Tes journées"
           accent="passées"
           sub="Ce que tu avais prévu, ce que tu as fait, et ce que tu en as noté."
+          action={<Link href="/archive" className="btn-ghost">Archives</Link>}
         />
 
         <div
