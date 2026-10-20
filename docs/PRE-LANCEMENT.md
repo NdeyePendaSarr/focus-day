@@ -76,8 +76,10 @@ l'action non enregistrée. Reste ouvert :
   ciblé comme `setGoal` — seules les colonnes modifiées partent, en un
   seul aller-retour, sans relecture ni réécriture de la ligne entière ;
   et avertissement du navigateur tant qu'une écriture est en cours.
-  Testé contre Supabase (validation, modification, archivage). Reste à
-  confirmer par une séance réelle validée en production.
+  Testé contre Supabase (validation, modification, archivage).
+  **Confirmé en production le 20 octobre 2026** : séance réelle validée
+  par la carte, `status = done`, `actual_source = panneau`, note
+  enregistrée.
 - **Bascules « prévu → manqué » : encore une réécriture de la ligne
   entière.** Au chargement de la journée, `useTasks.refresh()` enregistre
   les séances passées en « manqué » avec `saveMany`, c'est-à-dire un
