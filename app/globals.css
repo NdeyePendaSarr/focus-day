@@ -1775,3 +1775,26 @@ select,
   margin-top: 0;
   margin-bottom: 1.2rem;
 }
+
+/* « Mot de passe oublié ? » sous le champ, aligné à droite : là où
+   l'œil cherche quand la connexion vient d'échouer. */
+.auth-forgot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+.auth-forgot .link-quiet {
+  font-size: 0.8rem;
+}
+
+/* Retour à la connexion, sous le formulaire des pages de mot de passe. */
+.auth-back {
+  margin-top: 1.1rem;
+  text-align: center;
+}
+/* Bouton principal posé sur un lien (« Demander un nouveau lien »). */
+a.btn-hero {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+}

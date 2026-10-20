@@ -25,10 +25,17 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const next = searchParams.get("next");
 
+  // Lien de réinitialisation inutilisable (expiré, déjà servi, ou ouvert
+  // dans un autre navigateur que celui de la demande) : retour à la
+  // demande, avec un message qui dit quoi faire. Le message générique de
+  // /login parlerait d'adresse confirmée, ce qui serait faux ici.
+  const demandeANouveau = `${origin}/login/mot-de-passe-oublie?lien=expire`;
+
   // Lien expiré ou déjà utilisé : Supabase redirige avec une erreur au
   // lieu d'un code. Souvent, c'est l'antivirus de la messagerie qui l'a
   // ouvert en premier — et l'adresse est alors bel et bien confirmée.
   if (!code) {
+    if (next) return NextResponse.redirect(demandeANouveau);
     return NextResponse.redirect(`${origin}/login?auth=lien-invalide`);
   }
 
@@ -61,7 +68,7 @@ export async function GET(request: NextRequest) {
 
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
-    return NextResponse.redirect(`${origin}/login?auth=lien-expire`);
+    return NextResponse.redirect(demandeANouveau);
   }
 
   return response;
