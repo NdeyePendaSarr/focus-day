@@ -5,16 +5,15 @@ import type { Task, DebriefEntry } from "@/lib/types";
 import { GAP_REASONS } from "@/lib/types";
 import { repo } from "@/lib/repo";
 import { todayISO, shiftISO, durationMinutes, formatDuration, prettyDate } from "@/lib/time";
+import Link from "next/link";
 import NavBar from "@/components/NavBar";
+import { MOODS, Visage } from "@/components/EveningDebrief";
+import { estimationReading } from "@/lib/lecture";
 import PageHeader from "@/components/PageHeader";
 
 /** Fenêtre d'observation : assez large pour voir une tendance, assez
  *  courte pour que chaque jour reste lisible. */
 const FENETRE = 14;
-
-/** En dessous, on ne prétend pas dégager de tendance (voir la hiérarchie
- *  observation / tendance / hypothèse : pas d'insight sans données). */
-const MINIMUM_TENDANCE = 5;
 
 type Jour = {
   date: string;
@@ -83,16 +82,8 @@ export default function DashboardPage() {
     const reelTotal = mesures.reduce((s, j) => s + j.reel, 0);
     const horsPlanTotal = mesures.reduce((s, j) => s + j.horsPlan, 0);
 
-    // Biais d'estimation : uniquement les tâches où les deux valeurs existent.
-    const mesurees = tasks.filter(
-      (t) => t.origin !== "unplanned" && t.actualMinutes != null
-    );
-    const refMesure = mesurees.reduce(
-      (s, t) => s + (t.estimatedMinutes ?? durationMinutes(t.start, t.end)),
-      0
-    );
-    const reelMesure = mesurees.reduce((s, t) => s + (t.actualMinutes ?? 0), 0);
-    const biais = refMesure > 0 ? reelMesure / refMesure : null;
+    // La lecture des estimations est dans lib/lecture.ts (seuil de
+    // tendance, détection du temps réel recopié).
 
     // Causes d'écart déclarées
     const causes = GAP_REASONS.map((r) => ({
@@ -102,15 +93,20 @@ export default function DashboardPage() {
       .filter((c) => c.n > 0)
       .sort((a, b) => b.n - a.n);
 
+    // Dernière journée avec un temps réel, toutes périodes confondues :
+    // c'est ce qu'on dit quand la fenêtre de 14 jours est vide.
+    const dernierJour = tasks
+      .filter((t) => t.actualMinutes != null)
+      .reduce<string | null>((m, t) => (m === null || t.date > m ? t.date : m), null);
+
     return {
       jours,
+      dernierJour,
       joursAvecPlan,
       joursRenseignes,
       prevuTotal,
       reelTotal,
       horsPlanTotal,
-      biais,
-      nMesurees: mesurees.length,
       causes,
     };
   }, [tasks]);
@@ -126,6 +122,26 @@ export default function DashboardPage() {
           sub="Ce que tu avais prévu, ce que tu as fait — jour par jour."
         />
 
+        {/* Fenêtre vide : des « 0 min » partout ressemblent à un constat
+            d'échec. On dit ce qui se passe, et où retrouver le reste. */}
+        {ready && d.joursRenseignes === 0 ? (
+          <section className="card-surface dash-empty">
+            <p className="section-title">
+              Aucune journée renseignée ces {FENETRE} derniers jours.
+            </p>
+            <p className="dash-empty-text">
+              {d.dernierJour
+                ? `La dernière remonte au ${prettyDate(d.dernierJour)}. Tout ton travail passé reste dans l'historique et le portfolio.`
+                : "Renseigne le temps réel d'une première journée : ce tableau se remplira à partir de là."}
+            </p>
+            {d.dernierJour && (
+              <Link href="/history" className="btn-ghost" style={{ justifySelf: "start" }}>
+                Voir l&apos;historique
+              </Link>
+            )}
+          </section>
+        ) : (
+        <>
         <div className="dash-stats">
           <Chiffre
             valeur={ready ? `${d.joursRenseignes} / ${FENETRE}` : "—"}
@@ -167,17 +183,21 @@ export default function DashboardPage() {
             <Graphique jours={d.jours} />
           )}
         </section>
+        </>
+        )}
 
         <section className="card-surface" style={{ padding: "1.5rem", marginTop: "1.25rem" }}>
-          <h2 className="section-title" style={{ marginBottom: "0.75rem" }}>
+          <h2 className="section-title">
             Ce que les données disent
           </h2>
+          {/* Chaque section dit sur quelle période elle porte : celle-ci
+              lit tout l'historique, les chiffres du haut 14 jours. */}
+          <p className="dash-period">Sur tout ton historique.</p>
           {!ready ? (
             <p style={{ color: "var(--text-mute)", fontSize: "0.9rem" }}>Chargement…</p>
           ) : (
             <Lecture
-              biais={d.biais}
-              nMesurees={d.nMesurees}
+              tasks={tasks}
               joursRenseignes={d.joursRenseignes}
               joursAvecPlan={d.joursAvecPlan}
               horsPlan={d.horsPlanTotal}
@@ -188,9 +208,10 @@ export default function DashboardPage() {
         </section>
 
         <section className="card-surface" style={{ padding: "1.5rem", marginTop: "1.25rem" }}>
-          <h2 className="section-title" style={{ marginBottom: "0.75rem" }}>
+          <h2 className="section-title">
             Tes derniers débriefs
           </h2>
+          <p className="dash-period">Les six plus récents.</p>
           {!ready ? (
             <p style={{ color: "var(--text-mute)", fontSize: "0.9rem" }}>Chargement…</p>
           ) : debriefs.length === 0 ? (
@@ -203,19 +224,19 @@ export default function DashboardPage() {
                 .sort((a, b) => b.date.localeCompare(a.date))
                 .slice(0, 6)
                 .map((e) => (
-                  <div
-                    key={e.date}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      gap: "1rem",
-                      padding: "0.6rem 0",
-                      borderBottom: "1px solid var(--border)",
-                      fontSize: "0.88rem",
-                    }}
-                  >
-                    <span style={{ color: "var(--text-soft)" }}>{prettyDate(e.date)}</span>
-                    <span>{e.reachedGoals ? "Objectifs atteints" : "Partiellement"}</span>
+                  // Humeur et début de la note : « Objectifs atteints » répété
+                  // sur chaque ligne ne disait rien.
+                  <div key={e.date} className="dash-debrief">
+                    <span className="dash-debrief-date">{prettyDate(e.date)}</span>
+                    <span className="dash-debrief-note">
+                      {e.missingNote?.trim() || (e.reachedGoals ? "Objectifs atteints." : "Objectifs en partie atteints.")}
+                    </span>
+                    {e.mood && (
+                      <span className="dash-debrief-mood" title={MOODS.find((m) => m.valeur === e.mood)?.label}>
+                        <Visage courbe={MOODS.find((m) => m.valeur === e.mood)?.courbe ?? 0} />
+                        {MOODS.find((m) => m.valeur === e.mood)?.court}
+                      </span>
+                    )}
                   </div>
                 ))}
             </div>
@@ -352,49 +373,33 @@ function Barre({ hauteur, couleur, opacite }: { hauteur: number; couleur: string
  * trois mesures est une invention, pas un insight.
  */
 function Lecture({
-  biais,
-  nMesurees,
+  tasks,
   joursRenseignes,
   joursAvecPlan,
   horsPlan,
   reel,
   causes,
 }: {
-  biais: number | null;
-  nMesurees: number;
+  tasks: Task[];
   joursRenseignes: number;
   joursAvecPlan: number;
   horsPlan: number;
   reel: number;
   causes: { label: string; n: number }[];
 }) {
-  const lignes: string[] = [];
-
-  if (nMesurees < MINIMUM_TENDANCE || biais === null) {
-    lignes.push(
-      `${nMesurees} objectif${nMesurees > 1 ? "s" : ""} mesuré${nMesurees > 1 ? "s" : ""} jusqu'ici. Il en faut au moins ${MINIMUM_TENDANCE} pour parler d'une tendance.`
-    );
-  } else if (biais > 1.15) {
-    lignes.push(
-      `Tu passes en moyenne ${biais.toFixed(1)}× le temps que tu estimes. Sur ${nMesurees} objectifs mesurés.`
-    );
-  } else if (biais < 0.85) {
-    lignes.push(
-      `Tu termines en moyenne en ${Math.round(biais * 100)} % du temps estimé. Tes estimations sont larges.`
-    );
-  } else {
-    lignes.push(`Tes estimations tombent juste, à ${Math.round(Math.abs(1 - biais) * 100)} % près.`);
-  }
+  // Voir lib/lecture.ts : un rapport proche de 1 ne prouve pas que les
+  // estimations sont justes, il peut venir d'un temps réel recopié.
+  const lignes: string[] = [estimationReading(tasks)];
 
   if (joursAvecPlan > 0) {
     lignes.push(
-      `${joursRenseignes} jour${joursRenseignes > 1 ? "s" : ""} renseigné${joursRenseignes > 1 ? "s" : ""} sur ${joursAvecPlan} jour${joursAvecPlan > 1 ? "s" : ""} planifié${joursAvecPlan > 1 ? "s" : ""}.`
+      `Ces ${FENETRE} derniers jours : ${joursRenseignes} jour${joursRenseignes > 1 ? "s" : ""} renseigné${joursRenseignes > 1 ? "s" : ""} sur ${joursAvecPlan} jour${joursAvecPlan > 1 ? "s" : ""} planifié${joursAvecPlan > 1 ? "s" : ""}.`
     );
   }
 
   if (horsPlan > 0 && reel > 0) {
     lignes.push(
-      `${Math.round((horsPlan / reel) * 100)} % de ton temps noté n'était pas planifié.`
+      `Ces ${FENETRE} derniers jours, ${Math.round((horsPlan / reel) * 100)} % de ton temps noté n'était pas planifié.`
     );
   }
 
@@ -409,7 +414,7 @@ function Lecture({
       {causes.length > 0 && (
         <div style={{ marginTop: "0.4rem" }}>
           <p style={{ fontSize: "0.8rem", color: "var(--text-mute)", marginBottom: 6 }}>
-            Causes d&apos;écart déclarées
+            Causes d&apos;écart déclarées, depuis le début
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {causes.map((c) => (

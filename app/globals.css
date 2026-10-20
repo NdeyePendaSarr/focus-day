@@ -1725,3 +1725,47 @@ select,
   font-weight: 800;
   letter-spacing: -0.02em;
 }
+
+/* Tableau de bord : état vide, période de chaque section, débriefs. */
+.dash-empty {
+  padding: 1.6rem 1.75rem;
+  display: grid;
+  gap: 0.5rem;
+}
+.dash-empty-text {
+  font-size: 0.92rem;
+  color: var(--text-soft);
+  margin-bottom: 0.4rem;
+}
+.dash-period {
+  font-size: 0.8rem;
+  color: var(--text-mute);
+  margin: 0.15rem 0 0.9rem;
+}
+.dash-debrief {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem 1.25rem;
+  flex-wrap: wrap;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+.dash-debrief-date {
+  flex: 0 0 12.5rem;
+  color: var(--text-soft);
+}
+.dash-debrief-note {
+  flex: 1 1 260px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dash-debrief-mood {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+}

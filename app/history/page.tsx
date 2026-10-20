@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { Task } from "@/lib/types";
 import { repo } from "@/lib/repo";
-import { prettyDate, durationMinutes, formatDuration } from "@/lib/time";
+import { prettyDate, durationMinutes, formatDuration, todayISO } from "@/lib/time";
 import NavBar from "@/components/NavBar";
 import NoteEditor from "@/components/NoteEditor";
 import PageHeader from "@/components/PageHeader";
@@ -188,7 +188,18 @@ export default function HistoryPage() {
           before="Tes journées"
           accent="passées"
           sub="Ce que tu avais prévu, ce que tu as fait, et ce que tu en as noté."
-          action={<Link href="/archive" className="btn-ghost">Archives</Link>}
+          action={
+            // « Rattacher » est un mode d'action, pas un filtre : il quitte la
+            // barre de recherche pour l'en-tête, à côté d'Archives.
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {goals.length > 0 && !lot && (
+                <button className="btn-ghost" onClick={() => setLot(true)}>
+                  Rattacher à un parcours
+                </button>
+              )}
+              <Link href="/archive" className="btn-ghost">Archives</Link>
+            </div>
+          }
         />
 
         <div
@@ -201,7 +212,7 @@ export default function HistoryPage() {
         >
           <input
             className="field"
-            style={{ flex: 1, minWidth: 200 }}
+            style={{ flex: "1 1 340px", minWidth: 0 }}
             placeholder="Rechercher dans les objectifs et les notes…"
             value={query}
             onChange={(e) => { setQuery(e.target.value); setCoches(new Set()); }}
@@ -222,11 +233,6 @@ export default function HistoryPage() {
               ))}
               <option value={SANS_PARCOURS}>Sans parcours</option>
             </select>
-          )}
-          {goals.length > 0 && !lot && (
-            <button className="btn-ghost" onClick={() => setLot(true)}>
-              Rattacher à un parcours
-            </button>
           )}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {FILTRES.map((f) => (
@@ -500,11 +506,19 @@ function Ligne({
           </button>
         )}
 
-        <span
-          style={{ fontSize: "0.74rem", fontWeight: 600, color: STATUS_COLOR[t.status] }}
-        >
-          ● {STATUS_LABEL[t.status]}
-        </span>
+        {/* Une séance démarrée ou prévue un jour passé, jamais validée,
+            n'est plus « En cours » ni « À faire » : elle n'a pas été
+            validée. Le dire, plutôt qu'un statut figé depuis des semaines. */}
+        {(() => {
+          const passee = t.date < todayISO() && (t.status === "in_progress" || t.status === "planned");
+          return (
+            <span
+              style={{ fontSize: "0.74rem", fontWeight: 600, color: passee ? "var(--text-mute)" : STATUS_COLOR[t.status] }}
+            >
+              ● {passee ? "Non validée" : STATUS_LABEL[t.status]}
+            </span>
+          );
+        })()}
       </span>
     </div>
   );

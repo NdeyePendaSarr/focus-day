@@ -188,7 +188,7 @@ function resume(total: number, done: number, sansTempsReel: number): string {
  * visages en SVG suivent la couleur du texte et restent identiques
  * partout — et le libellé sous chacun lève l'ambiguïté du dessin.
  */
-const MOODS = [
+export const MOODS = [
   { valeur: 1, courbe: 7, court: "Dure", label: "Journée difficile" },
   { valeur: 2, courbe: 3, court: "Mitigée", label: "Journée mitigée" },
   { valeur: 3, courbe: 0, court: "Neutre", label: "Journée neutre" },
@@ -197,7 +197,7 @@ const MOODS = [
 ];
 
 /** courbe > 0 : bouche tournée vers le bas. < 0 : sourire. */
-function Visage({ courbe }: { courbe: number }) {
+export function Visage({ courbe }: { courbe: number }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="12" cy="12" r="9.2" stroke="currentColor" strokeWidth="1.6" />
