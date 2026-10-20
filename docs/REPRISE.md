@@ -341,6 +341,26 @@ jamais dans un fichier ni dans le dépôt. Après chaque migration
 appliquée, refaire le dump et le commiter : le diff git montre alors
 tout écart avec la production au lieu de le laisser découvrir plus tard.
 
+**Quelle chaîne de connexion.** La connexion directe
+`db.<ref>.supabase.co` ne se résout pas sur ce projet : le nom n'existe
+qu'en IPv6 (aucune adresse IPv4, vérifié avec `nslookup`), et ce réseau
+ne passe pas en IPv6. Il faut passer par le
+**Session pooler** (*Connect → Session pooler* dans le tableau de bord) :
+
+- hôte : `aws-1-eu-west-1.pooler.supabase.com`
+- port : `5432` (le port du mode session ; `6543` est le mode transaction)
+- utilisateur : `postgres.<ref>`, pas `postgres` seul
+
+Le mot de passe est celui de la base (*Database → Settings*), pas celui
+d'un compte Supabase. Il n'est écrit nulle part ici. Vingt minutes perdues
+à retrouver ça le 20 octobre 2026.
+
+**Ce que le dump ne contient pas.** `--schema public` laisse de côté le
+déclencheur `on_auth_user_created`, posé sur `auth.users`, qui appelle
+`public.handle_new_user()` pour créer le profil à l'inscription. Rejouer
+`schema.sql` sur une base neuve ne le recrée pas : il faut le reposer à la
+main. Le schéma `sauvegarde` n'y est pas non plus, c'est voulu.
+
 ### Sauvegardes — le seul filet
 
 **L'offre gratuite de Supabase n'a aucune sauvegarde** : ni sauvegarde
