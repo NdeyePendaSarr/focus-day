@@ -264,6 +264,13 @@ changé avant la fin de la fenêtre de mesure.
   l'origine des « 80 % de temps réels égaux à l'estimation » détectés par
   `lib/lecture.ts`. Piste : champ vide, l'estimation en indication
   (« Tu avais prévu 10 h 30 »), comme dans le rattrapage.
+  **Fait le 2 novembre 2026.** Champ vide, prévu en indication. Vide
+  n'est pas zéro : enregistrer sans durée n'écrit rien et ramène le
+  curseur dans le champ ; la question de la note reste affichée tant
+  que la durée n'est pas un 0 explicite. Pas de raccourci « comme
+  prévu », qui recréerait la recopie ; le raccourci « Chrono » reste.
+  Les temps réels saisis avant cette date restent suspects : à lire
+  avec `lib/lecture.ts`, qui les signale.
 - **Deux façons de valider la même séance sur le même écran.** Une
   séance en cours dont le créneau est dépassé apparaît à la fois sur sa
   carte (« Terminer », `actual_source = panneau`) et dans le débrief du

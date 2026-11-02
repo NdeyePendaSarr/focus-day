@@ -1,5 +1,6 @@
 "use client";
 
+import type { Ref } from "react";
 import { parseDuration, formatDuration } from "@/lib/time";
 
 /**
@@ -17,6 +18,8 @@ export default function DurationInput({
   hint,
   width = 110,
   autoFocus,
+  inputRef,
+  id,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -25,6 +28,9 @@ export default function DurationInput({
   hint?: string;
   width?: number;
   autoFocus?: boolean;
+  /** Pour y ramener le curseur quand une valeur manque. */
+  inputRef?: Ref<HTMLInputElement>;
+  id?: string;
 }) {
   const parsed = parseDuration(value);
   const invalid = value.trim() !== "" && parsed === null;
@@ -40,6 +46,8 @@ export default function DurationInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         autoFocus={autoFocus}
+        ref={inputRef}
+        id={id}
       />
       <span
         style={{

@@ -11,9 +11,16 @@ import { LIMITS } from "@/lib/limits";
  * Saisie du réalisé, ouverte par « Terminer » / « Fait ».
  *
  * Principe : ce panneau ne s'ajoute PAS au clic de fin, il le remplace.
- * La durée est pré-remplie avec la meilleure estimation disponible, donc
- * valider coûte un tap. Une donnée approximative vaut mieux qu'un champ
- * vide — et de toute façon, sans repère, on ne se souvient de rien le soir.
+ *
+ * La durée part VIDE, l'estimation en indication (« Tu avais prévu… »).
+ * Jusqu'au 2 novembre 2026 elle était pré-remplie avec l'estimation :
+ * valider sans retoucher enregistrait le prévu comme réel (la séance du
+ * 20 octobre est sortie à 630 min sur 630), d'où les temps réels égaux à
+ * l'estimation que lib/lecture.ts signalait. Taper la durée est un geste
+ * de deux secondes, et c'est ce geste conscient qui fait la donnée.
+ *
+ * Vide n'est pas zéro : vide = pas encore répondu, 0 = pas fait. Valider
+ * un champ vide n'enregistre rien et ramène le curseur dans le champ.
  *
  * La cause d'écart n'apparaît que si l'écart existe vraiment : la demander
  * quand le temps réel colle à l'estimation serait du bruit.
@@ -61,29 +68,42 @@ export default function ActualTimePanel({
   onCancel: () => void;
 }) {
   const reference = task.estimatedMinutes ?? slotMinutes;
-  // Défaut = ce que tu avais prévu. La question devient "as-tu passé
-  // le temps que tu pensais ?", et l'écart se lit tout de suite.
-  const [minutes, setMinutes] = useState(formatDuration(reference));
+  // Vide : le prévu est affiché en indication sous le champ, pas recopié.
+  const [minutes, setMinutes] = useState("");
   const [reason, setReason] = useState<GapReason | null>(null);
   // Repliée par défaut : valider une tâche doit rester deux taps.
   // La note est un bonus, jamais un péage.
   const [noteOuverte, setNoteOuverte] = useState(false);
   const [note, setNote] = useState(task.note ?? "");
   const noteRef = useRef<HTMLTextAreaElement>(null);
+  const durationRef = useRef<HTMLInputElement>(null);
+  // Tentative d'enregistrement sans durée : le message apparaît.
+  const [durationMissing, setDurationMissing] = useState(false);
 
-  const actual = parseDuration(minutes) ?? 0;
+  // null = pas encore saisi (ou illisible), à distinguer de 0 = pas fait.
+  const parsed = parseDuration(minutes);
+  const actual = parsed ?? 0;
   const chrono = chronoMinutes(task);
   const gap = actual - reference;
-  const significant = reference > 0 && Math.abs(gap) / reference > TOLERANCE;
-  // Rien à retenir d'une session qui n'a pas eu lieu : à zéro minute,
-  // la note redevient facultative.
-  const askNote = Boolean(task.goalId) && actual > 0;
-  const confirm = (withNote: boolean) =>
+  const significant = parsed !== null && reference > 0 && Math.abs(gap) / reference > TOLERANCE;
+  // Rien à retenir d'une session qui n'a pas eu lieu : sur un 0 explicite,
+  // la note redevient facultative. Champ encore vide : la question reste
+  // posée — la faire attendre la durée changerait l'étape mesurée.
+  const askNote = Boolean(task.goalId) && parsed !== 0;
+  const confirm = (withNote: boolean) => {
+    // Rien n'est enregistré sans durée : un champ vide lu comme 0
+    // marquerait la séance « pas faite » sans que personne l'ait dit.
+    if (parsed === null) {
+      setDurationMissing(true);
+      durationRef.current?.focus();
+      return;
+    }
     onConfirm(
-      actual,
+      parsed,
       significant ? reason ?? undefined : undefined,
       withNote ? note.trim() || undefined : task.note
     );
+  };
 
   return (
     <div
@@ -102,10 +122,15 @@ export default function ActualTimePanel({
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
         <DurationInput
           value={minutes}
-          onChange={setMinutes}
+          onChange={(v) => {
+            setMinutes(v);
+            setDurationMissing(false);
+          }}
           hint={`Tu avais prévu ${formatDuration(reference)}`}
           width={120}
-          autoFocus={!askNote}
+          autoFocus
+          inputRef={durationRef}
+          placeholder="Temps réel"
         />
 
         {chrono !== null && (
@@ -115,6 +140,12 @@ export default function ActualTimePanel({
         )}
       </div>
 
+      {durationMissing && (
+        <p role="alert" style={{ fontSize: "0.82rem", marginTop: 8, color: "var(--color-rose-text)" }}>
+          Indique le temps passé — ou 0 si la séance n&apos;a pas eu lieu.
+        </p>
+      )}
+
       {significant && (
         <p
           style={{
@@ -123,8 +154,9 @@ export default function ActualTimePanel({
             color: gap > 0 ? "var(--color-amber-text)" : "var(--color-mint-text)",
           }}
         >
-          {gap > 0 ? "+" : "−"}
-          {formatDuration(Math.abs(gap))} par rapport au prévu. Qu&apos;est-ce qui explique l&apos;écart ?
+          {/* Une seule chaîne : en morceaux de JSX, l'espace avant « par »
+              sautait (« −20 minpar rapport »). */}
+          {`${gap > 0 ? "+" : "−"}${formatDuration(Math.abs(gap))} par rapport au prévu. Qu'est-ce qui explique l'écart ?`}
         </p>
       )}
 
@@ -163,7 +195,6 @@ export default function ActualTimePanel({
             className="field"
             rows={3}
             maxLength={LIMITS.note}
-            autoFocus
             placeholder="Une notion comprise, un blocage, ce à revoir la prochaine fois…"
             value={note}
             onChange={(e) => setNote(e.target.value)}
@@ -198,7 +229,9 @@ export default function ActualTimePanel({
                 un cul-de-sac. Champ vide -> le curseur y va. */}
             <button
               className="chip chip-mint"
-              onClick={() => (note.trim() ? confirm(true) : noteRef.current?.focus())}
+              onClick={() =>
+                parsed === null || note.trim() ? confirm(true) : noteRef.current?.focus()
+              }
             >
               Enregistrer avec ma note
             </button>
