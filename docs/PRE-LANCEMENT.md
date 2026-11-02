@@ -291,6 +291,11 @@ changé avant la fin de la fenêtre de mesure.
   estimées », chiffre que le tableau de bord compare ensuite au réel.
   Piste : au-delà de 4 h environ, demander l'estimation au lieu de la
   déduire.
+  **Fait le 2 novembre 2026** (`lib/estimation.ts`). Au-delà de 4 h,
+  enregistrer sans estimation affiche « Ce créneau dure 10 h 30 :
+  combien de temps penses-tu y passer vraiment ? » et place le curseur
+  dans le champ ; un texte illisible compte comme absent. En dessous de
+  4 h, rien ne change : vide vaut la durée du créneau.
 
 ---
 

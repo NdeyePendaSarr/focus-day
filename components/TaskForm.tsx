@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Task, Goal } from "@/lib/types";
 import { selectableGoals } from "@/lib/goals";
 import GoalSelect from "@/components/GoalSelect";
@@ -8,6 +8,7 @@ import { toMinutes, findConflict, spillsIntoNextDay, durationMinutes, formatDura
 import DurationInput from "@/components/DurationInput";
 import { LIMITS } from "@/lib/limits";
 import CharCount from "@/components/CharCount";
+import { LONG_SLOT_MINUTES, missingEstimation } from "@/lib/estimation";
 
 export type TaskDraft = {
   name: string;
@@ -43,6 +44,7 @@ export default function TaskForm({
   // à jour, sinon elle reste fausse sans que rien ne le signale.
   const [estimationTouched, setEstimationTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const estimationRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (editing) {
@@ -89,6 +91,12 @@ export default function TaskForm({
     if (!draft.name.trim()) return setError("Donne un nom à ton objectif.");
     if (toMinutes(draft.end) === toMinutes(draft.start))
       return setError("Le créneau ne peut pas durer 0 minute.");
+    // Long créneau : l'estimation ne se déduit plus, elle se demande.
+    const manque = missingEstimation(slotMinutes, draft.estimatedMinutes);
+    if (manque) {
+      estimationRef.current?.focus();
+      return setError(manque);
+    }
     onSubmit(draft);
   };
 
@@ -178,8 +186,13 @@ export default function TaskForm({
                 setEstimationTouched(true);
                 set("estimatedMinutes", v);
               }}
-              placeholder={formatDuration(slotMinutes)}
-              hint={`Vide = la durée du créneau (${formatDuration(slotMinutes)})`}
+              placeholder={slotMinutes > LONG_SLOT_MINUTES ? "Temps de travail" : formatDuration(slotMinutes)}
+              hint={
+                slotMinutes > LONG_SLOT_MINUTES
+                  ? `Créneau de ${formatDuration(slotMinutes)} : indique le temps de travail réel prévu`
+                  : `Vide = la durée du créneau (${formatDuration(slotMinutes)})`
+              }
+              inputRef={estimationRef}
               width={130}
             />
           </div>
