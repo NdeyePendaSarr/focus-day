@@ -152,6 +152,39 @@ Critère de réussite : le taux de notes sur les sessions rattachées à un
 parcours doit dépasser 50 % au bout de deux semaines. En dessous, c'est
 le mécanisme qu'il faut revoir, pas l'utilisateur.
 
+**Résultat au 2 novembre 2026** (fenêtre du 20 octobre au 2 novembre,
+requête `supabase/mesures/taux_notes.sql`, compte de test exclu) :
+
+| Variante | Séances | Avec note | Note ≥ 20 caractères | Taux |
+|---|---|---|---|---|
+| panneau | 11 | 6 | 6 | 54,5 % |
+| rattrapage | 0 | — | — | — |
+| hors plan | 0 | — | — | — |
+
+Lecture :
+- **Critère atteint, de justesse.** 6 sur 11 : une seule validation
+  sans note de plus, et le taux tombe à 50 %. Sur 11 séances,
+  l'intervalle de confiance va d'environ 28 % à 79 % : « au-dessus de
+  50 % » est compatible avec les données, pas établi.
+- **L'effet du mécanisme, lui, est établi.** Avant le chantier, la note
+  derrière une icône était remplie 7 % du temps. À 7 %, obtenir 6 notes
+  sur 11 par hasard a moins d'une chance sur dix mille. Poser la
+  question au moment de la validation change le comportement.
+- **Les notes sont de vraies notes** : les 6 font au moins 20
+  caractères, aucune n'est un « ok » écrit pour passer.
+- **Aucune conclusion sur les variantes.** Toutes les séances mesurées
+  sont passées par le panneau. Et la répartition ne serait de toute
+  façon pas aléatoire : une séance en cours dont le créneau est dépassé
+  apparaît à la fois sur sa carte et dans le débrief
+  (`docs/PRE-LANCEMENT.md` §11 bis).
+- **Le signal faible est le volume** : 11 séances rattachées validées en
+  14 jours, pour une seule utilisatrice. La question suivante n'est plus
+  « est-ce qu'on note ? » mais « est-ce qu'on revient ? ».
+
+Décision : **le mécanisme est gardé tel quel.** La mesure continue sans
+date de fin ; on la relira quand une ou deux personnes de plus auront
+utilisé l'application quelques semaines.
+
 ### Chantier 3 — La page portfolio
 
 Route `/portfolio`. Une carte par parcours :
