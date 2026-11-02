@@ -279,6 +279,13 @@ changé avant la fin de la fenêtre de mesure.
   justement ce que l'on compare. Piste : le débrief ne liste que les
   séances qui ne sont plus visibles comme en cours, ou renvoie vers la
   carte.
+  **Fait le 2 novembre 2026 — un chemin selon le statut.** À venir ou
+  en cours : la carte seule (`panneau`). Manquée (créneau passé sans
+  démarrage) : le rattrapage seul (`rattrapage`) ; le « Fait » de sa
+  carte ouvre le débrief sur sa ligne. Le rattrapage renvoie vers les
+  cartes pour les séances en cours ou à venir. Depuis cette date,
+  `actual_source` dit aussi dans quelle situation la séance a été
+  validée.
 - **Une estimation de 10 h 30 passe sans question.** Champ d'estimation
   vide = durée du créneau ; un créneau de 9 h à 19 h 30 donne « 10 h 30
   estimées », chiffre que le tableau de bord compare ensuite au réel.

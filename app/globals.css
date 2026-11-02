@@ -1900,3 +1900,17 @@ a.btn-hero {
 .task-actions .chip-quiet {
   padding-inline: 0.55rem;
 }
+
+/* Rattrapage : renvoi vers les cartes, et ligne mise en évidence quand
+   on y arrive depuis le « Fait » d'une séance manquée. */
+.catchup-elsewhere {
+  font-size: var(--fs-sm);
+  color: var(--text-soft);
+}
+.catchup-row {
+  transition: box-shadow 0.4s ease, border-color 0.4s ease;
+}
+.catchup-row-focus {
+  border-color: var(--color-brand) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand) 18%, transparent);
+}

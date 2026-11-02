@@ -30,6 +30,7 @@ export default function TaskCard({
   onNote,
   onEdit,
   onArchive,
+  onCatchUp,
 }: {
   task: Task;
   /** Nom du parcours rattaché, s'il y en a un. */
@@ -42,6 +43,8 @@ export default function TaskCard({
   onNote: (id: string, note: string) => void;
   onEdit: (task: Task) => void;
   onArchive: (id: string) => void;
+  /** Séance manquée : « Fait » mène à sa ligne du rattrapage. */
+  onCatchUp?: (id: string) => void;
 }) {
   const [capturing, setCapturing] = useState(false);
   const [noteOuverte, setNoteOuverte] = useState(false);
@@ -192,7 +195,14 @@ export default function TaskCard({
         {/* Un seul bouton plein par carte : « Démarrer » ici, « Fait »
             en secondaire. Même texte, même place — seule la couleur change. */}
         {task.status !== "done" && task.status !== "in_progress" && (
-          <button className="btn-ghost btn-sm" onClick={() => setCapturing(true)}>
+          <button
+            className="btn-ghost btn-sm"
+            onClick={() =>
+              // Manquée : un seul chemin, le rattrapage du soir. Ailleurs,
+              // le panneau de validation de la carte.
+              task.status === "missed" && onCatchUp ? onCatchUp(task.id) : setCapturing(true)
+            }
+          >
             Fait
           </button>
         )}

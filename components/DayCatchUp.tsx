@@ -35,8 +35,17 @@ export default function DayCatchUp({
   onAddUnplanned: (name: string, minutes: number, goalId?: string, note?: string) => void;
 }) {
   const goalTitle = (id?: string) => (id ? goals.find((g) => g.id === id)?.title : undefined);
-  // Uniquement les créneaux planifiés sans temps réel renseigné.
-  const missing = tasks.filter((t) => t.origin !== "unplanned" && t.actualMinutes == null);
+  // Un seul chemin par séance, selon son statut (décision du 2 novembre
+  // 2026) : à venir ou en cours, elle se valide sur sa carte ; manquée
+  // (créneau passé sans démarrage), ici. Avant, toute séance sans temps
+  // réel apparaissait aux deux endroits, et le choix de la variante
+  // mesurée (panneau ou rattrapage) devenait un hasard d'écran.
+  const missing = tasks.filter(
+    (t) => t.origin !== "unplanned" && t.actualMinutes == null && t.status === "missed"
+  );
+  const onCards = tasks.filter(
+    (t) => t.origin !== "unplanned" && t.actualMinutes == null && t.status !== "missed"
+  );
   const unplanned = tasks.filter((t) => t.origin === "unplanned");
   const planned = tasks.filter((t) => t.origin !== "unplanned");
 
@@ -62,6 +71,14 @@ export default function DayCatchUp({
             ))}
           </div>
         </div>
+      )}
+
+      {onCards.length > 0 && (
+        <p className="catchup-elsewhere">
+          {onCards.length > 1
+            ? `${onCards.length} séances en cours ou à venir : valide-les sur leur carte, plus haut.`
+            : "1 séance en cours ou à venir : valide-la sur sa carte, plus haut."}
+        </p>
       )}
 
       <UnplannedBlock existing={unplanned} goals={goals} onAdd={onAddUnplanned} />
@@ -100,6 +117,8 @@ function MissingRow({
 
   return (
     <div
+      id={`rattrapage-${task.id}`}
+      className="catchup-row"
       style={{
         padding: "0.75rem 0.9rem",
         background: "var(--bg-3)",
@@ -119,6 +138,7 @@ function MissingRow({
           placeholder="Temps réel"
           hint={`Prévu ${formatDuration(reference)}`}
           width={110}
+          id={`rattrapage-duree-${task.id}`}
         />
         {/* Le zéro mérite son propre bouton : sans lui, une journée ratée
             ne laisse aucune trace, et c'est justement celle qui informe. */}

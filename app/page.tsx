@@ -92,6 +92,22 @@ export default function HomePage() {
   // atteignable à tout moment : un débrief rattrapé vaut mieux qu'un
   // débrief manqué, et les journées ratées sont celles qui informent.
   const [debriefOpen, setDebriefOpen] = useState(false);
+  // « Fait » sur une séance manquée : ouvrir le débrief, puis amener sa
+  // ligne de rattrapage à l'écran, curseur dans la durée.
+  const goToCatchUp = (id: string) => {
+    setDebriefOpen(true);
+    // Le débrief peut ne pas être encore rendu : on attend le prochain
+    // affichage avant de chercher la ligne.
+    window.setTimeout(() => {
+      const row = document.getElementById(`rattrapage-${id}`);
+      if (!row) return;
+      row.scrollIntoView({ behavior: "smooth", block: "center" });
+      row.classList.add("catchup-row-focus");
+      window.setTimeout(() => row.classList.remove("catchup-row-focus"), 1800);
+      document.getElementById(`rattrapage-duree-${id}`)?.focus({ preventScroll: true });
+    }, 60);
+  };
+
   const showDebrief =
     ready && tasks.length > 0 && (debriefOpen || now >= 18 * 60 || Boolean(existingDebrief));
 
@@ -285,7 +301,8 @@ export default function HomePage() {
           <section className="day-main">
             {plannedTasks.map((t) => (
               <TaskCard key={t.id} task={t} goalTitle={goalTitle(t.goalId)} now={now} onStatus={setStatus}
-              onComplete={completeTask} onNote={setNote} onEdit={openEdit} onArchive={archiveTask} />
+              onComplete={completeTask} onNote={setNote} onEdit={openEdit} onArchive={archiveTask}
+              onCatchUp={goToCatchUp} />
             ))}
 
             {/* Le débrief suit les séances, dans la même colonne. */}
