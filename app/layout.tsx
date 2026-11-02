@@ -1,18 +1,26 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
-// Titres : très gras et très serrés. next/font l'auto-héberge au build,
-// aucune dépendance npm ajoutée.
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
+// Polices versionnées dans app/fonts (licence OFL jointe), et non plus
+// téléchargées chez Google au moment du build : le 2 novembre 2026, la CI
+// a échoué sur « next/font/google queries have exactly one entry » alors
+// que le code n'avait pas changé. Le build ne dépend plus du réseau.
+// Fichiers variables, sous-ensemble latin (français compris).
+
+// Titres : très gras et très serrés.
+const jakarta = localFont({
+  src: "./fonts/plus-jakarta-sans-latin.woff2",
+  weight: "500 800",
   variable: "--font-jakarta",
-  weight: ["500", "600", "700", "800"],
+  display: "swap",
 });
-const inter = Inter({
-  subsets: ["latin"],
+const inter = localFont({
+  src: "./fonts/inter-latin.woff2",
+  weight: "100 900",
   variable: "--font-inter",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
