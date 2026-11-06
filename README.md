@@ -6,7 +6,7 @@
 
 ![Ma journée : la bande du jour, la séance en cours et les suivantes](screenshots/journee.png)
 
-> **Statut — pré-lancement.** L'application est en ligne et utilisée au quotidien. Une phase de mesure est en cours jusqu'au 2 novembre 2026 : elle compare deux façons de demander « Qu'est-ce que tu en retiens ? ». La liste de ce qui reste à faire avant d'ouvrir à un groupe est tenue dans [`docs/PRE-LANCEMENT.md`](docs/PRE-LANCEMENT.md).
+> **Statut — pré-lancement.** L'application est en ligne et utilisée au quotidien. La phase de mesure s'est terminée le 2 novembre 2026 : poser la question « Qu'est-ce que tu en retiens ? » au moment de valider une séance fait passer les notes de 7 % à 54,5 % des séances rattachées à un parcours (6 sur 11). L'échantillon est petit, une seule utilisatrice sur deux semaines, mais l'effet est net : le mécanisme est gardé ([`docs/BRIEF-PIVOT.md`](docs/BRIEF-PIVOT.md)). La liste de ce qui reste à faire avant d'ouvrir à un groupe est tenue dans [`docs/PRE-LANCEMENT.md`](docs/PRE-LANCEMENT.md).
 >
 > Les captures de ce README utilisent un **jeu de données fictif**.
 
@@ -83,7 +83,7 @@ Le tableau de bord compare le prévu et le réalisé jour par jour, sur deux sem
 | **Front** | Next.js 16 (App Router, Turbopack), React 19, TypeScript strict, Tailwind CSS v4 |
 | **Données** | Supabase : Postgres, Auth, Row Level Security |
 | **Emails** | SMTP Brevo, modèles HTML en français ([`supabase/emails/`](supabase/emails)) |
-| **Qualité** | Vitest (89 tests unitaires), ESLint, GitHub Actions |
+| **Qualité** | Vitest (109 tests unitaires), ESLint, GitHub Actions |
 | **Déploiement** | Vercel |
 
 Ce qui mérite d'être raconté :
@@ -157,10 +157,14 @@ npm run build
 
 ## Feuille de route
 
-Prévu après la phase de mesure (2 novembre 2026) :
+Fait à la fin de la phase de mesure (2 novembre 2026) :
 
-- temps réel non prérempli avec l'estimation, et un seul chemin de validation par séance ;
-- une estimation demandée explicitement pour les longs créneaux ;
+- le temps réel n'est plus prérempli avec l'estimation : le champ est vide, le prévu s'affiche en indication ;
+- un seul chemin de validation par séance, selon son statut : la carte pour une séance à venir ou en cours, le rattrapage du soir pour une séance manquée ;
+- une estimation demandée explicitement pour les créneaux de plus de 4 heures.
+
+Prévu :
+
 - une page « Ma journée » recentrée sur la séance en cours, débrief replié ;
 - export planifié des sauvegardes hors de Supabase ;
 - suppression de compte et export des données par l'utilisateur.
