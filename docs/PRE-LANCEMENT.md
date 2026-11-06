@@ -251,6 +251,47 @@ Reste à automatiser (export planifié hors de Supabase) avant d'ouvrir à
 un groupe : une copie dans la même base ne protège pas d'une suspension
 ou d'une suppression du projet.
 
+**Procédure hors de Supabase — chaque semaine, à la main (6 novembre
+2026).** En attendant une automatisation, ce sont deux fichiers sur ton
+ordinateur, dans un dossier qui n'est PAS celui du dépôt.
+
+1. Récupérer l'adresse de connexion : *Connect → Session pooler* dans le
+   tableau de bord. Le mot de passe de la base y figure en clair : ne
+   jamais le coller dans un fichier du dépôt, ni dans un message.
+2. Depuis un terminal, dans le dossier de sauvegarde (Docker doit être
+   lancé, la CLI Supabase s'en sert) :
+
+   ```bash
+   npx supabase db dump --remote="<adresse>" -s public -f schema_AAAAMMJJ.sql
+   npx supabase db dump --remote="<adresse>" --data-only -s public -f donnees_AAAAMMJJ.sql
+   ```
+
+   (CLI Supabase 3 : l'option est `--remote=`, l'ancienne `--db-url`
+   n'existe plus. `-s public` : seulement les tables de l'app, pas les
+   copies du schéma `sauvegarde`. `--dry-run` montre la commande sans
+   rien exécuter.)
+
+3. Vérifier que `donnees_AAAAMMJJ.sql` contient bien des `INSERT` ou des
+   `COPY` vers `public.sessions`, `goals` et `debriefs`. Un fichier vide
+   ou de quelques lignes n'est pas une sauvegarde.
+
+Sans Docker, en secours : *Table Editor* → chaque table de `public`
+(`sessions`, `goals`, `debriefs`, `profiles`) → *Export → CSV*.
+
+À savoir :
+
+- **Ce sont les données de tes amis.** Le dossier doit rester privé
+  (pas de dossier partagé, pas de dépôt public) ; un disque ou un cloud
+  personnel chiffré convient. `/sauvegardes/` et `*.dump` sont ignorés par
+  git, au cas où le dossier serait créé dans le dépôt par erreur.
+- **Les comptes ne sont pas dans ces fichiers.** Le dump de `public` ne
+  contient pas `auth.users`. Après une perte du projet, chacun recréerait
+  son compte, et `user_id` serait à faire correspondre à la main, par
+  adresse email. Le dump garde l'essentiel : les séances, les notes, les
+  parcours et les débriefs.
+- **Une sauvegarde jamais relue ne vaut rien.** Une fois, restaurer
+  `donnees_AAAAMMJJ.sql` dans un projet Supabase de test pour le vérifier.
+
 ### 11 bis. Biais de mesure vus sur Ma journée — après le 2 novembre
 
 Relevés le 20 octobre 2026 sur une vraie séance (9 h – 19 h 30). Tous

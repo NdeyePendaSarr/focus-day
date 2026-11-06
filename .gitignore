@@ -24,3 +24,8 @@ next-env.d.ts
 
 # Fichiers de travail de la CLI Supabase (version, cache)
 supabase/.temp/
+
+# Sauvegardes de la base : les données des utilisateurs, jamais dans git
+# (docs/PRE-LANCEMENT.md §11)
+/sauvegardes/
+*.dump

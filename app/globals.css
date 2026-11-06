@@ -587,6 +587,14 @@ select,
   margin-top: 1.4rem;
 }
 
+.auth-privacy {
+  margin-top: 0.9rem;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--text-soft);
+  text-align: center;
+}
+
 .auth-switch {
   margin-top: 1.1rem;
   font-size: 0.85rem;

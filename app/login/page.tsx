@@ -209,6 +209,16 @@ export default function LoginPage() {
             : "Créer mon compte"}
       </button>
 
+      {/* Qui peut lire quoi, dit avant d'écrire la première note, pas
+          après (docs/PRE-LANCEMENT.md §7). Formulation factuelle : ce
+          qui est vrai techniquement, sans promesse de comportement. */}
+      <p className="auth-privacy">
+        Tes séances et tes notes ne sont visibles par aucun autre
+        utilisateur. FocusDay est un projet personnel : son administratrice
+        peut techniquement y accéder. Tu peux demander la suppression de ton
+        compte à tout moment.
+      </p>
+
       <p className="auth-switch">
         {mode === "signin" ? "Pas encore de compte ?" : "Tu as déjà un compte ?"}{" "}
         <button
