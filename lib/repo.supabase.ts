@@ -18,6 +18,7 @@ import { spillsIntoNextDay, shiftISO } from "@/lib/time";
 import { getSupabase, currentUserId } from "@/lib/supabase";
 import { toPatchRow } from "@/lib/sessionPatch";
 import { withJwtRetry } from "@/lib/jwtRetry";
+import { fetchAllPages } from "@/lib/pagination";
 
 /* ------------------------------------------------------------------ */
 /* Conversion base <-> application                                     */
@@ -136,13 +137,21 @@ async function requireUserId(): Promise<string> {
 
 const supabaseTasks: TaskRepo = {
   async all() {
-    const { data, error } = await getSupabase()
-      .from("sessions")
-      .select(SESSION_COLS)
-      .order("local_date", { ascending: true })
-      .order("planned_start", { ascending: true });
-    if (error) fail(error);
-    return (data as SessionRow[]).map(toTask);
+    // Paginé : au-delà de 1 000 séances, une seule requête perdait les
+    // plus récentes sans erreur (lib/pagination.ts). L'id en dernier
+    // rend l'ordre total, condition pour que les pages ne se recoupent pas.
+    const rows = await fetchAllPages(async (from, to) => {
+      const { data, error } = await getSupabase()
+        .from("sessions")
+        .select(SESSION_COLS)
+        .order("local_date", { ascending: true })
+        .order("planned_start", { ascending: true })
+        .order("id", { ascending: true })
+        .range(from, to);
+      if (error) fail(error);
+      return data as SessionRow[];
+    });
+    return rows.map(toTask);
   },
 
   async byDate(date) {
@@ -165,13 +174,18 @@ const supabaseTasks: TaskRepo = {
   },
 
   async archived() {
-    const { data, error } = await getSupabase()
-      .from("sessions")
-      .select(SESSION_COLS)
-      .eq("archived", true)
-      .order("archived_at", { ascending: false });
-    if (error) fail(error);
-    return (data as SessionRow[]).map(toTask);
+    const rows = await fetchAllPages(async (from, to) => {
+      const { data, error } = await getSupabase()
+        .from("sessions")
+        .select(SESSION_COLS)
+        .eq("archived", true)
+        .order("archived_at", { ascending: false })
+        .order("id", { ascending: true })
+        .range(from, to);
+      if (error) fail(error);
+      return data as SessionRow[];
+    });
+    return rows.map(toTask);
   },
 
   async byId(id) {
@@ -277,12 +291,18 @@ const DEBRIEF_COLS = "local_date, reached_goals, did_more, missing_note, mood, c
 
 const supabaseDebriefs: DebriefRepo = {
   async all() {
-    const { data, error } = await getSupabase()
-      .from("debriefs")
-      .select(DEBRIEF_COLS)
-      .order("local_date", { ascending: true });
-    if (error) fail(error);
-    return (data as DebriefRow[]).map(toDebrief);
+    // local_date est unique par compte, et la RLS ne laisse voir que le
+    // sien : l'ordre est déjà total.
+    const rows = await fetchAllPages(async (from, to) => {
+      const { data, error } = await getSupabase()
+        .from("debriefs")
+        .select(DEBRIEF_COLS)
+        .order("local_date", { ascending: true })
+        .range(from, to);
+      if (error) fail(error);
+      return data as DebriefRow[];
+    });
+    return rows.map(toDebrief);
   },
 
   async byDate(date) {
@@ -344,12 +364,17 @@ function toGoal(r: GoalRow): Goal {
 
 const supabaseGoals: GoalRepo = {
   async all() {
-    const { data, error } = await getSupabase()
-      .from("goals")
-      .select(GOAL_COLS)
-      .order("created_at", { ascending: true });
-    if (error) fail(error);
-    return (data as GoalRow[]).map(toGoal);
+    const rows = await fetchAllPages(async (from, to) => {
+      const { data, error } = await getSupabase()
+        .from("goals")
+        .select(GOAL_COLS)
+        .order("created_at", { ascending: true })
+        .order("id", { ascending: true })
+        .range(from, to);
+      if (error) fail(error);
+      return data as GoalRow[];
+    });
+    return rows.map(toGoal);
   },
 
   async save(goal) {
