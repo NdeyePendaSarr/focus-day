@@ -10,6 +10,56 @@ incident que tu découvres trop tard, ou jamais.
 
 ---
 
+## État au 6 novembre 2026 — à lire avant d'envoyer le lien
+
+Les sections ci-dessous datent d'octobre ; ce résumé dit où en est
+chacune. Ouverture visée : un petit groupe (petit frère, quelques amis).
+
+**Encore bloquant, à faire de ton côté :**
+
+- **(11) Sauvegarde hors Supabase.** Procédure prête (§11). Faire la
+  première, et relire le fichier de données.
+
+**Fait :**
+
+- (1) Brevo branché dans Supabase (clé SMTP `supabase-focusday`),
+  limite d'envoi à 30 emails par heure. Testé le 6 novembre vers une
+  adresse extérieure : inscription (email reçu en boîte principale,
+  lien de confirmation, connexion) et mot de passe oublié (email reçu,
+  nouveau mot de passe choisi, connexion avec le nouveau).
+
+- (2) Mot de passe oublié : écrans en place (`/login/mot-de-passe-oublie`,
+  `/login/nouveau-mot-de-passe`), testé de bout en bout le 6 novembre.
+- (3) Erreurs visibles, et depuis le 6 novembre la saisie est gardée
+  quand un enregistrement échoue.
+- (4) Mot de passe : 8 caractères minimum ; *Secure password change*
+  activé le 6 novembre.
+- (5) Longueurs maximales (migration 05) ; durées bornées à 24 h
+  (migration 06).
+- (7) Phrase de confidentialité sur la page de connexion (6 novembre).
+- Audit complet du 6 novembre : pagination, accessibilité au clavier,
+  en-têtes de sécurité, migration 07 (rattachement aux seuls parcours du
+  compte, RLS allégée).
+
+**Peut attendre ce premier groupe :**
+
+- (6) Suppression de compte et export : à la main, sur demande. Vérifier
+  l'adresse deux fois : la suppression efface tout en cascade.
+- (7, suite) Une page « Confidentialité » complète.
+- (8) Première expérience : le bloc « Tes premiers pas » guide déjà les
+  trois gestes ; les écrans vides restent à expliquer.
+- (9) Inscriptions groupées : demander à chacun de s'inscrire à un
+  moment différent, ou depuis son propre réseau.
+- (10) Le message « Un compte existe déjà avec cette adresse » est
+  toujours dans le code (`lib/authMessages.ts`) ; *non vérifié* : s'il
+  s'affiche encore avec la confirmation par email activée.
+- (12) Sentry : demander à chacun de te prévenir s'il voit un bandeau
+  d'erreur.
+- (5, suite) Le compteur de caractères manque encore dans le panneau de
+  validation (`ActualTimePanel`), gelé pendant la mesure, terminée.
+
+---
+
 ## Bloquant
 
 ### 1. Envoi d'emails — Brevo
