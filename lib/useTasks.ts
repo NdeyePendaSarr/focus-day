@@ -88,16 +88,30 @@ export function useTasks(date: string = todayISO()) {
     try {
       const stored = await repo.tasks.byDate(date);
       const list = stored.map((t) => reconcileStatus(t));
-
-      // Persiste les bascules planned -> missed. Auparavant : une écriture
-      // par tâche à chaque affichage. Maintenant : un seul appel, et
-      // uniquement pour les tâches réellement modifiées.
-      const changed = list.filter((t, i) => t.status !== stored[i].status);
-      if (changed.length > 0) await repo.tasks.saveMany(changed);
+      const missedIds = list.filter((t, i) => t.status !== stored[i].status).map((t) => t.id);
 
       if (id !== reqId.current) return; // un refresh plus récent a pris la main
+      // La journée s'affiche dès la lecture : elle n'attend plus
+      // l'écriture des bascules, et n'en dépend plus.
       setTasks(list);
       setLoadError(null);
+
+      // Persiste les bascules planned -> missed : UPDATE ciblé du seul
+      // statut (repo.tasks.markMissed), plus la réécriture des lignes
+      // entières qui pouvait écraser une note écrite dans un autre onglet.
+      //
+      // Un échec ici n'est pas affiché : l'utilisateur n'a rien à
+      // refaire. « Manquée » est recalculé à chaque lecture, l'écran reste
+      // juste, et l'écriture est retentée au prochain chargement de la
+      // journée. Auparavant, cet échec jetait la lecture réussie : « Ta
+      // journée n'a pas pu être chargée », liste vide.
+      //
+      // Hors de track() pour la même raison : quitter la page pendant
+      // cette écriture ne perd rien, l'avertissement du navigateur serait
+      // une fausse alerte sur une écriture que personne n'a demandée.
+      if (missedIds.length > 0) {
+        void repo.tasks.markMissed(missedIds).catch(() => {});
+      }
     } catch (e) {
       // Une lecture qui échoue (session expirée, réseau) ne doit pas faire
       // planter la page : on affiche l'erreur, on garde l'app utilisable.

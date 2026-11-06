@@ -44,19 +44,28 @@ export interface TaskRepo {
   patch(id: string, patch: Partial<Task>): Promise<void>;
 
   /**
-   * Ajouté par rapport à store.ts : useTasks.refresh() persiste les
-   * bascules planned -> missed dans une boucle. Avec Supabase, une
-   * boucle = N requêtes réseau. Ici, un seul aller-retour.
+   * Bascule planned -> missed des séances dont le créneau est passé
+   * (useTasks.refresh). UPDATE ciblé de la seule colonne status, et
+   * seulement sur les lignes encore « planned » en base.
+   *
+   * Remplace saveMany, qui réécrivait chaque ligne entière depuis la
+   * copie du navigateur : une note écrite entre-temps dans un autre
+   * onglet était écrasée. Et une séance démarrée ou validée ailleurs
+   * entre-temps n'est pas repassée à « manquée ».
+   *
+   * Renvoie le nombre de séances basculées. Moins que demandé n'est pas
+   * une erreur : les autres ont changé de statut ailleurs, et c'est ce
+   * statut-là qui compte.
    */
-  saveMany(tasks: Task[]): Promise<void>;
+  markMissed(ids: string[]): Promise<number>;
 
   remove(id: string): Promise<void>;
 
   /**
    * Rattache des séances à un parcours (goalId null = les détacher).
    *
-   * Ne modifie QUE le parcours de ces séances. save/saveMany, eux,
-   * réécrivent toutes les colonnes que le modèle connaît à partir de la
+   * Ne modifie QUE le parcours de ces séances. save, lui, réécrit
+   * toutes les colonnes que le modèle connaît à partir de la
    * copie du navigateur : sur un lot de séances anciennes, la moindre
    * divergence entre cette copie et la base serait écrasée d'un coup.
    *
@@ -157,15 +166,17 @@ const localTasks: TaskRepo = {
     write(TASKS_KEY, tasks);
   },
 
-  async saveMany(incoming) {
-    if (incoming.length === 0) return;
-    const tasks = read<Task>(TASKS_KEY);
-    for (const task of incoming) {
-      const i = tasks.findIndex((t) => t.id === task.id);
-      if (i >= 0) tasks[i] = task;
-      else tasks.push(task);
-    }
-    write(TASKS_KEY, tasks);
+  async markMissed(ids) {
+    if (ids.length === 0) return 0;
+    const wanted = new Set(ids);
+    let n = 0;
+    const tasks = read<Task>(TASKS_KEY).map((t) => {
+      if (!wanted.has(t.id) || t.status !== "planned") return t;
+      n++;
+      return { ...t, status: "missed" as const };
+    });
+    if (n > 0) write(TASKS_KEY, tasks);
+    return n;
   },
 
   async remove(id) {

@@ -221,14 +221,24 @@ const supabaseTasks: TaskRepo = {
     if ((data ?? []).length !== 1) throw new Error("Cet objectif n'existe plus en base.");
   },
 
-  async saveMany(tasks) {
-    if (tasks.length === 0) return;
-    const userId = await requireUserId();
-    // Un seul aller-retour, quel que soit le nombre de tâches.
-    const { error } = await getSupabase()
-      .from("sessions")
-      .upsert(tasks.map((t) => toRow(t, userId)));
-    if (error) fail(error);
+  async markMissed(ids) {
+    if (ids.length === 0) return 0;
+    // UPDATE ciblé, jamais un upsert : seule la colonne status part, et
+    // le filtre status = planned laisse intactes les séances démarrées ou
+    // validées ailleurs entre la lecture et cette écriture. Par paquets
+    // de 100, comme setGoal, pour garder l'URL du filtre .in() raisonnable.
+    let n = 0;
+    for (let i = 0; i < ids.length; i += 100) {
+      const { data, error } = await getSupabase()
+        .from("sessions")
+        .update({ status: "missed" })
+        .in("id", ids.slice(i, i + 100))
+        .eq("status", "planned")
+        .select("id");
+      if (error) fail(error);
+      n += (data ?? []).length;
+    }
+    return n;
   },
 
   async remove(id) {
