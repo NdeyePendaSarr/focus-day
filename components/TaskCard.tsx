@@ -38,9 +38,10 @@ export default function TaskCard({
   now: number;
   onStatus: (id: string, s: TaskStatus) => void;
   /** Termine la tâche ET enregistre le réalisé, en une seule opération. */
-  onComplete: (id: string, actualMinutes: number, gapReason?: GapReason, note?: string) => void;
+  /** Résout à false si l'écriture a échoué (voir useTasks). */
+  onComplete: (id: string, actualMinutes: number, gapReason?: GapReason, note?: string) => Promise<boolean>;
   /** Enregistre ou efface la note. Chaîne vide = suppression. */
-  onNote: (id: string, note: string) => void;
+  onNote: (id: string, note: string) => Promise<boolean>;
   onEdit: (task: Task) => void;
   onArchive: (id: string) => void;
   /** Séance manquée : « Fait » mène à sa ligne du rattrapage. */
@@ -48,6 +49,14 @@ export default function TaskCard({
 }) {
   const [capturing, setCapturing] = useState(false);
   const [noteOuverte, setNoteOuverte] = useState(false);
+  // Saisie d'un enregistrement qui a échoué. Les fenêtres se ferment dès
+  // le clic (la séance est mise à jour à l'écran sans attendre) ; si
+  // l'écriture échoue, elles se rouvrent avec ce qui avait été saisi, au
+  // lieu de le perdre. Le bandeau d'erreur dit ce qui s'est passé.
+  const [noteDraft, setNoteDraft] = useState<string | null>(null);
+  const [actualDraft, setActualDraft] = useState<
+    { minutes: number; gapReason?: GapReason; note?: string } | undefined
+  >(undefined);
   const pos = timePosition(task, now);
   const duration = durationMinutes(task.start, task.end);
   const overnight = spillsIntoNextDay(task.start, task.end);
@@ -251,16 +260,25 @@ export default function TaskCard({
       <NoteEditor
         open={noteOuverte}
         titre={task.name}
-        valeur={task.note ?? ""}
-        onSave={(n) => {
-          onNote(task.id, n);
+        valeur={noteDraft ?? task.note ?? ""}
+        onSave={async (n) => {
+          setNoteOuverte(false);
+          if (await onNote(task.id, n)) {
+            setNoteDraft(null);
+          } else {
+            setNoteDraft(n);
+            setNoteOuverte(true);
+          }
+        }}
+        onDelete={async () => {
+          setNoteOuverte(false);
+          // Suppression ratée : la note est toujours là, l'éditeur revient.
+          if (!(await onNote(task.id, ""))) setNoteOuverte(true);
+        }}
+        onClose={() => {
+          setNoteDraft(null);
           setNoteOuverte(false);
         }}
-        onDelete={() => {
-          onNote(task.id, "");
-          setNoteOuverte(false);
-        }}
-        onClose={() => setNoteOuverte(false)}
       />
 
       {capturing && (
@@ -268,11 +286,20 @@ export default function TaskCard({
           task={task}
           goalTitle={goalTitle}
           slotMinutes={duration}
-          onConfirm={(m, r, n) => {
+          initial={actualDraft}
+          onConfirm={async (m, r, n) => {
             setCapturing(false);
-            onComplete(task.id, m, r, n);
+            if (await onComplete(task.id, m, r, n)) {
+              setActualDraft(undefined);
+            } else {
+              setActualDraft({ minutes: m, gapReason: r, note: n });
+              setCapturing(true);
+            }
           }}
-          onCancel={() => setCapturing(false)}
+          onCancel={() => {
+            setActualDraft(undefined);
+            setCapturing(false);
+          }}
         />
       )}
     </article>

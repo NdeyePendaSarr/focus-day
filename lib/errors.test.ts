@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { writeFailureMessage, errorDetail, type WriteAction } from "./errors";
+import { writeFailureMessage, errorDetail, KEEPS_INPUT, type WriteAction } from "./errors";
 
 const ACTIONS: WriteAction[] = [
   "add", "edit", "status", "complete", "note", "actual", "unplanned", "archive", "remove",
@@ -10,11 +10,12 @@ describe("writeFailureMessage", () => {
     expect(writeFailureMessage("add", "Réviser DAX")).toContain("« Réviser DAX »");
   });
 
-  it("dit toujours que rien n'a été enregistré et qu'il faut refaire", () => {
+  it("dit toujours que rien n'a été enregistré, et quoi faire", () => {
     for (const action of ACTIONS) {
       const msg = writeFailureMessage(action, "X");
       expect(msg, action).toMatch(/n'a pas été|n'ont pas été/);
-      expect(msg, action).toMatch(/Il faut/);
+      // Formulaire rouvert avec la saisie : réessayer. Sinon : refaire.
+      expect(msg, action).toMatch(KEEPS_INPUT.includes(action) ? /Ta saisie est restée/ : /Il faut/);
     }
   });
 

@@ -3,10 +3,18 @@
  *
  * Une écriture ratée n'est pas rejouée : useTasks recharge la journée
  * depuis la base, et la modification disparaît de l'écran. Le message
- * doit donc dire qu'elle n'a PAS été enregistrée et qu'il faut la
- * refaire — un « une erreur est survenue » laisserait croire qu'elle
- * est passée quand même.
+ * doit donc dire qu'elle n'a PAS été enregistrée — un « une erreur est
+ * survenue » laisserait croire qu'elle est passée quand même.
+ *
+ * Validation, note, temps réel et hors-plan rouvrent leur formulaire
+ * avec la saisie (TaskCard, DayCatchUp) : le message le dit, au lieu de
+ * demander de tout retaper. Les autres actions sont à refaire.
  */
+
+/** Actions dont le formulaire revient avec la saisie après un échec. */
+export const KEEPS_INPUT: readonly WriteAction[] = ["complete", "note", "actual", "unplanned"];
+
+const KEPT = "Ta saisie est restée dans le formulaire : tu peux réessayer.";
 
 export type WriteAction =
   | "add"
@@ -31,13 +39,13 @@ export function writeFailureMessage(action: WriteAction, name: string): string {
     case "status":
       return `Le changement d'état de ${n} n'a pas été enregistré. Il faut le refaire.`;
     case "complete":
-      return `La validation de ${n} et son temps réel n'ont pas été enregistrés. Il faut les refaire.`;
+      return `La validation de ${n} et son temps réel n'ont pas été enregistrés. ${KEPT}`;
     case "note":
-      return `Ta note sur ${n} n'a pas été enregistrée. Il faut la réécrire.`;
+      return `Ta note sur ${n} n'a pas été enregistrée. ${KEPT}`;
     case "actual":
-      return `Le temps réel de ${n} n'a pas été enregistré. Il faut le ressaisir.`;
+      return `Le temps réel de ${n} n'a pas été enregistré. ${KEPT}`;
     case "unplanned":
-      return `L'activité hors-plan ${n} n'a pas été enregistrée. Il faut la ressaisir.`;
+      return `L'activité hors-plan ${n} n'a pas été enregistrée. ${KEPT}`;
     case "archive":
       return `L'archivage de ${n} n'a pas été enregistré. Il faut le refaire.`;
     case "remove":

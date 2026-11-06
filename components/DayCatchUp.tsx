@@ -31,9 +31,24 @@ export default function DayCatchUp({
 }: {
   tasks: Task[];
   goals: Goal[];
-  onSetActual: (id: string, actualMinutes: number, gapReason?: GapReason, note?: string) => void;
-  onAddUnplanned: (name: string, minutes: number, goalId?: string, note?: string) => void;
+  /** Résout à false si l'écriture a échoué (voir useTasks). */
+  onSetActual: (id: string, actualMinutes: number, gapReason?: GapReason, note?: string) => Promise<boolean>;
+  onAddUnplanned: (name: string, minutes: number, goalId?: string, note?: string) => Promise<boolean>;
 }) {
+  // Saisie d'un rattrapage qui a échoué, par séance. La ligne disparaît
+  // dès la validation (la séance est mise à jour sans attendre), puis
+  // revient si l'écriture échoue : sans ce brouillon gardé ici, elle
+  // revenait vide, note comprise.
+  const [drafts, setDrafts] = useState<Record<string, RowDraft>>({});
+  const setActualKeeping = async (id: string, m: number, r?: GapReason, n?: string) => {
+    const ok = await onSetActual(id, m, r, n);
+    setDrafts((d) => {
+      const rest = { ...d };
+      delete rest[id];
+      return ok ? rest : { ...rest, [id]: { minutes: m, gapReason: r, note: n } };
+    });
+    return ok;
+  };
   const goalTitle = (id?: string) => (id ? goals.find((g) => g.id === id)?.title : undefined);
   // Un seul chemin par séance, selon son statut (décision du 2 novembre
   // 2026) : à venir ou en cours, elle se valide sur sa carte ; manquée
@@ -67,7 +82,15 @@ export default function DayCatchUp({
           </label>
           <div style={{ display: "grid", gap: 8 }}>
             {missing.map((t) => (
-              <MissingRow key={t.id} task={t} goalTitle={goalTitle(t.goalId)} onSetActual={onSetActual} />
+              <MissingRow
+                // La clé change quand un brouillon arrive : la ligne,
+                // déjà revenue vide, est remontée avec la saisie.
+                key={drafts[t.id] ? `${t.id}-brouillon` : t.id}
+                task={t}
+                goalTitle={goalTitle(t.goalId)}
+                initial={drafts[t.id]}
+                onSetActual={setActualKeeping}
+              />
             ))}
           </div>
         </div>
@@ -95,19 +118,23 @@ export default function DayCatchUp({
  * rendraient pénible. C'est aussi une variante à comparer avec le
  * panneau de validation, qui lui demande de choisir avec ou sans note.
  */
+type RowDraft = { minutes: number; gapReason?: GapReason; note?: string };
+
 function MissingRow({
   task,
   goalTitle,
+  initial,
   onSetActual,
 }: {
   task: Task;
   goalTitle?: string;
-  onSetActual: (id: string, actualMinutes: number, gapReason?: GapReason, note?: string) => void;
+  initial?: RowDraft;
+  onSetActual: (id: string, actualMinutes: number, gapReason?: GapReason, note?: string) => Promise<boolean>;
 }) {
   const reference = task.estimatedMinutes ?? durationMinutes(task.start, task.end);
-  const [minutes, setMinutes] = useState("");
-  const [reason, setReason] = useState<GapReason | null>(null);
-  const [note, setNote] = useState(task.note ?? "");
+  const [minutes, setMinutes] = useState(initial ? formatDuration(initial.minutes) : "");
+  const [reason, setReason] = useState<GapReason | null>(initial?.gapReason ?? null);
+  const [note, setNote] = useState(initial?.note ?? task.note ?? "");
 
   const actual = minutes.trim() === "" ? null : parseDuration(minutes);
   const gap = actual === null ? 0 : actual - reference;
@@ -150,7 +177,7 @@ function MissingRow({
           className="chip chip-mint"
           disabled={actual === null}
           onClick={() =>
-            onSetActual(task.id, actual ?? 0, reason ?? undefined, askNote ? note.trim() || undefined : undefined)
+            void onSetActual(task.id, actual ?? 0, reason ?? undefined, askNote ? note.trim() || undefined : undefined)
           }
         >
           Valider
@@ -207,7 +234,7 @@ function UnplannedBlock({
 }: {
   existing: Task[];
   goals: Goal[];
-  onAdd: (name: string, minutes: number, goalId?: string, note?: string) => void;
+  onAdd: (name: string, minutes: number, goalId?: string, note?: string) => Promise<boolean>;
 }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -228,14 +255,25 @@ function UnplannedBlock({
   // panneau de validation d'une séance.
   const askNote = goalId !== "";
 
-  const add = (withNote: boolean) => {
+  const add = async (withNote: boolean) => {
     if (!canAdd) return;
-    onAdd(name.trim(), m, goalId || undefined, withNote ? note.trim() || undefined : undefined);
+    // Le formulaire se vide tout de suite (l'activité s'affiche sans
+    // attendre), mais la saisie est gardée : si l'enregistrement échoue,
+    // elle revient, au lieu d'être à retaper.
+    const saisie = { name, minutes, goalId, note };
     setName("");
     setMinutes("");
     setGoalId("");
     setNote("");
     setOpen(false);
+    const ok = await onAdd(name.trim(), m, goalId || undefined, withNote ? note.trim() || undefined : undefined);
+    if (!ok) {
+      setName(saisie.name);
+      setMinutes(saisie.minutes);
+      setGoalId(saisie.goalId);
+      setNote(saisie.note);
+      setOpen(true);
+    }
   };
 
   return (

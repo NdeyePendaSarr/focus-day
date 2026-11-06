@@ -153,8 +153,10 @@ export function useTasks(date: string = todayISO()) {
     [date, refresh, reportWrite, track]
   );
 
+  /** Renvoie false si l'écriture a échoué : l'appelant peut alors rendre
+   *  sa saisie à l'utilisateur au lieu de la perdre. */
   const updateTask = useCallback(
-    async (id: string, patch: Partial<Task>, action: WriteAction = "edit") => {
+    async (id: string, patch: Partial<Task>, action: WriteAction = "edit"): Promise<boolean> => {
       const before = tasksRef.current.find((t) => t.id === id);
       const name = patch.name ?? before?.name ?? "";
       setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
@@ -162,6 +164,7 @@ export function useTasks(date: string = todayISO()) {
         // UPDATE ciblé : seules les colonnes de `patch` partent, en un
         // seul aller-retour. Plus de relecture préalable de la ligne.
         await track(() => repo.tasks.patch(id, patch));
+        return true;
       } catch (e) {
         // Restauration explicite des seuls champs modifiés, à leur valeur
         // d'avant : une autre modification de la même séance, faite
@@ -174,6 +177,7 @@ export function useTasks(date: string = todayISO()) {
         }
         reportWrite(action, name, e);
         await refresh();
+        return false;
       }
     },
     [refresh, reportWrite, track]
@@ -185,7 +189,7 @@ export function useTasks(date: string = todayISO()) {
       const patch: Partial<Task> = { status };
       if (status === "in_progress") patch.startedAt = now;
       if (status === "done") patch.completedAt = now;
-      await updateTask(id, patch, "status");
+      return updateTask(id, patch, "status");
     },
     [updateTask]
   );
@@ -193,7 +197,7 @@ export function useTasks(date: string = todayISO()) {
   /** Termine une tâche en enregistrant le réalisé dans la même écriture. */
   const completeTask = useCallback(
     async (id: string, actualMinutes: number, gapReason?: GapReason, note?: string) => {
-      await updateTask(id, {
+      return updateTask(id, {
         status: "done",
         completedAt: new Date().toISOString(),
         actualMinutes,
@@ -208,7 +212,7 @@ export function useTasks(date: string = todayISO()) {
   /** Enregistre la note. Chaîne vide = suppression. */
   const setNote = useCallback(
     async (id: string, note: string) => {
-      await updateTask(id, { note: note || undefined }, "note");
+      return updateTask(id, { note: note || undefined }, "note");
     },
     [updateTask]
   );
@@ -216,7 +220,7 @@ export function useTasks(date: string = todayISO()) {
   /** Rattrapage : renseigne le temps réel sans toucher au statut. */
   const setActual = useCallback(
     async (id: string, actualMinutes: number, gapReason?: GapReason, note?: string) => {
-      await updateTask(
+      return updateTask(
         id,
         { actualMinutes, actualSource: "rattrapage", gapReason, ...(note ? { note } : {}) },
         "actual"
@@ -228,7 +232,7 @@ export function useTasks(date: string = todayISO()) {
   /** Activité réalisée sans avoir été planifiée : pas de créneau,
    *  seulement une durée. C'est elle qui mesure le hors-plan. */
   const addUnplanned = useCallback(
-    async (name: string, minutes: number, goalId?: string, note?: string) => {
+    async (name: string, minutes: number, goalId?: string, note?: string): Promise<boolean> => {
       const now = new Date().toISOString();
       const task: Task = {
         id: uid(),
@@ -248,10 +252,12 @@ export function useTasks(date: string = todayISO()) {
       setTasks((prev) => sortForDay([...prev, task], date));
       try {
         await track(() => repo.tasks.save(task));
+        return true;
       } catch (e) {
         setTasks((prev) => prev.filter((t) => t.id !== task.id));
         reportWrite("unplanned", name, e);
         await refresh();
+        return false;
       }
     },
     [date, refresh, reportWrite, track]
@@ -276,7 +282,7 @@ export function useTasks(date: string = todayISO()) {
 
   const archiveTask = useCallback(
     async (id: string) => {
-      await updateTask(id, { archived: true, archivedAt: new Date().toISOString() }, "archive");
+      return updateTask(id, { archived: true, archivedAt: new Date().toISOString() }, "archive");
     },
     [updateTask]
   );

@@ -59,6 +59,7 @@ export default function ActualTimePanel({
   slotMinutes,
   onConfirm,
   onCancel,
+  initial,
 }: {
   task: Task;
   /** Nom du parcours rattaché, s'il y en a un. */
@@ -66,15 +67,18 @@ export default function ActualTimePanel({
   slotMinutes: number;
   onConfirm: (actualMinutes: number, gapReason?: GapReason, note?: string) => void;
   onCancel: () => void;
+  /** Saisie d'un essai qui a échoué, rendue telle quelle : la retaper
+   *  pousserait vers « sans note » la fois suivante. */
+  initial?: { minutes: number; gapReason?: GapReason; note?: string };
 }) {
   const reference = task.estimatedMinutes ?? slotMinutes;
   // Vide : le prévu est affiché en indication sous le champ, pas recopié.
-  const [minutes, setMinutes] = useState("");
-  const [reason, setReason] = useState<GapReason | null>(null);
+  const [minutes, setMinutes] = useState(initial ? formatDuration(initial.minutes) : "");
+  const [reason, setReason] = useState<GapReason | null>(initial?.gapReason ?? null);
   // Repliée par défaut : valider une tâche doit rester deux taps.
   // La note est un bonus, jamais un péage.
-  const [noteOuverte, setNoteOuverte] = useState(false);
-  const [note, setNote] = useState(task.note ?? "");
+  const [noteOuverte, setNoteOuverte] = useState(Boolean(initial?.note));
+  const [note, setNote] = useState(initial?.note ?? task.note ?? "");
   const noteRef = useRef<HTMLTextAreaElement>(null);
   const durationRef = useRef<HTMLInputElement>(null);
   // Tentative d'enregistrement sans durée : le message apparaît.

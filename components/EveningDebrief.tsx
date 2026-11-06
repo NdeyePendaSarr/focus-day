@@ -28,8 +28,8 @@ export default function EveningDebrief({
   tasks: Task[];
   existing?: DebriefEntry;
   onSaved: (entry: DebriefEntry) => void;
-  onSetActual: (id: string, actualMinutes: number, gapReason?: GapReason, note?: string) => void;
-  onAddUnplanned: (name: string, minutes: number, goalId?: string, note?: string) => void;
+  onSetActual: (id: string, actualMinutes: number, gapReason?: GapReason, note?: string) => Promise<boolean>;
+  onAddUnplanned: (name: string, minutes: number, goalId?: string, note?: string) => Promise<boolean>;
   goals: Goal[];
 }) {
   const planned = tasks.filter((t) => t.origin !== "unplanned");
