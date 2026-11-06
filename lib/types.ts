@@ -4,6 +4,15 @@
 
 export type TaskStatus = "planned" | "in_progress" | "done" | "missed";
 
+/** Libellés des statuts, partagés par la carte et l'historique. Leurs
+ *  couleurs, elles, diffèrent volontairement d'un écran à l'autre. */
+export const STATUS_LABEL: Record<TaskStatus, string> = {
+  planned: "À faire",
+  in_progress: "En cours",
+  done: "Terminée",
+  missed: "Manquée",
+};
+
 /** Cause d'un écart entre le prévu et le réalisé. Liste volontairement
  *  courte : au-delà de sept choix, la saisie devient un formulaire. */
 export type GapReason =

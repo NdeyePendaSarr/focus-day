@@ -15,6 +15,7 @@ import ErrorBanner from "@/components/ErrorBanner";
 import { errorDetail } from "@/lib/errors";
 import FirstSteps from "@/components/FirstSteps";
 import { repo } from "@/lib/repo";
+import { plannedMinutes } from "@/lib/estimation";
 
 export default function HomePage() {
   const today = todayISO();
@@ -132,7 +133,7 @@ export default function HomePage() {
   // Le hors-plan compte dans le réalisé : c'est du temps vécu, même
   // s'il ne correspond à aucun créneau.
   const minutesPrevues = plannedTasks.reduce(
-    (sum, t) => sum + (t.estimatedMinutes ?? durationMinutes(t.start, t.end)),
+    (sum, t) => sum + plannedMinutes(t),
     0
   );
   const minutesRealisees = tasks.reduce((sum, t) => sum + (t.actualMinutes ?? 0), 0);

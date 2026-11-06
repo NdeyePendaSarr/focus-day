@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import type { Task } from "@/lib/types";
+import { STATUS_LABEL, type Task } from "@/lib/types";
+import { plannedMinutes, isSignificantGap } from "@/lib/estimation";
 import { repo } from "@/lib/repo";
 import { prettyDate, durationMinutes, formatDuration, todayISO } from "@/lib/time";
 import NavBar from "@/components/NavBar";
@@ -12,12 +13,6 @@ import ErrorBanner from "@/components/ErrorBanner";
 import { useGoals } from "@/lib/useGoals";
 import { errorDetail } from "@/lib/errors";
 
-const STATUS_LABEL: Record<string, string> = {
-  planned: "À faire",
-  in_progress: "En cours",
-  done: "Terminée",
-  missed: "Manquée",
-};
 const STATUS_COLOR: Record<string, string> = {
   planned: "var(--text-mute)",
   in_progress: "var(--color-amber-text)",
@@ -28,17 +23,13 @@ const STATUS_COLOR: Record<string, string> = {
 /** Effort de référence : l'estimation si elle existe, sinon le créneau. */
 function reference(t: Task): number {
   if (t.origin === "unplanned") return 0;
-  return t.estimatedMinutes ?? durationMinutes(t.start, t.end);
+  return plannedMinutes(t);
 }
 
-/**
- * Seuil d'affichage : au-delà, le delta est mis en évidence.
- *
- * Il ne sert PAS à filtrer. Un seuil décide si un écart mérite d'être
- * signalé, pas s'il existe : 1 h 45 au lieu de 2 h reste plus rapide,
- * même si l'écart est trop faible pour être souligné.
- */
-const TOLERANCE = 0.15;
+// Seuil d'affichage (isSignificantGap, lib/estimation.ts) : au-delà, le
+// delta est mis en évidence. Il ne sert PAS à filtrer. Un seuil décide
+// si un écart mérite d'être signalé, pas s'il existe : 1 h 45 au lieu de
+// 2 h reste plus rapide, même si l'écart est trop faible pour être souligné.
 
 type Filtre = "tout" | "depasse" | "rapide" | "sans-mesure";
 
@@ -582,7 +573,7 @@ function Ecart({ t }: { t: Task }) {
   }
 
   const gap = t.actualMinutes - ref;
-  const significatif = ref > 0 && Math.abs(gap) / ref > TOLERANCE;
+  const significatif = isSignificantGap(t.actualMinutes, ref);
 
   return (
     <p className="hist-gap">

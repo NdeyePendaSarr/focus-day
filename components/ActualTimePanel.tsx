@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import type { Task, GapReason } from "@/lib/types";
 import { GAP_REASONS } from "@/lib/types";
 import { formatDuration, parseDuration } from "@/lib/time";
+import { isSignificantGap } from "@/lib/estimation";
 import DurationInput from "@/components/DurationInput";
 import { LIMITS } from "@/lib/limits";
 
@@ -50,8 +51,6 @@ export function chronoMinutes(task: Task): number | null {
   if (elapsed <= 0 || elapsed > 16 * 60) return null;
   return elapsed;
 }
-/** Écart considéré comme normal : en deçà, on ne demande pas de cause. */
-const TOLERANCE = 0.15;
 
 export default function ActualTimePanel({
   task,
@@ -89,7 +88,7 @@ export default function ActualTimePanel({
   const actual = parsed ?? 0;
   const chrono = chronoMinutes(task);
   const gap = actual - reference;
-  const significant = parsed !== null && reference > 0 && Math.abs(gap) / reference > TOLERANCE;
+  const significant = parsed !== null && isSignificantGap(actual, reference);
   // Rien à retenir d'une session qui n'a pas eu lieu : sur un 0 explicite,
   // la note redevient facultative. Champ encore vide : la question reste
   // posée — la faire attendre la durée changerait l'étape mesurée.

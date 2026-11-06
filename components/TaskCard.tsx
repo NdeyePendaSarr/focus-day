@@ -2,17 +2,10 @@
 
 import { useState } from "react";
 import type { Task, TaskStatus, GapReason } from "@/lib/types";
-import { GAP_REASONS } from "@/lib/types";
+import { GAP_REASONS, STATUS_LABEL } from "@/lib/types";
 import ActualTimePanel from "@/components/ActualTimePanel";
 import NoteEditor from "@/components/NoteEditor";
 import { formatDuration, durationMinutes, timePosition, spillsIntoNextDay } from "@/lib/time";
-
-const STATUS_LABEL: Record<TaskStatus, string> = {
-  planned: "À faire",
-  in_progress: "En cours",
-  done: "Terminée",
-  missed: "Manquée",
-};
 
 const STATUS_COLOR: Record<TaskStatus, string> = {
   planned: "var(--text-soft)",

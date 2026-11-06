@@ -3,7 +3,8 @@
 import { useRef, useState } from "react";
 import type { Task, GapReason, Goal } from "@/lib/types";
 import { GAP_REASONS } from "@/lib/types";
-import { formatDuration, durationMinutes, parseDuration } from "@/lib/time";
+import { formatDuration, parseDuration } from "@/lib/time";
+import { plannedMinutes, isSignificantGap } from "@/lib/estimation";
 import DurationInput from "@/components/DurationInput";
 import GoalSelect from "@/components/GoalSelect";
 import { LIMITS } from "@/lib/limits";
@@ -65,7 +66,7 @@ export default function DayCatchUp({
   const planned = tasks.filter((t) => t.origin !== "unplanned");
 
   const prevu = planned.reduce(
-    (sum, t) => sum + (t.estimatedMinutes ?? durationMinutes(t.start, t.end)),
+    (sum, t) => sum + plannedMinutes(t),
     0
   );
   const reel = planned.reduce((sum, t) => sum + (t.actualMinutes ?? 0), 0);
@@ -131,14 +132,14 @@ function MissingRow({
   initial?: RowDraft;
   onSetActual: (id: string, actualMinutes: number, gapReason?: GapReason, note?: string) => Promise<boolean>;
 }) {
-  const reference = task.estimatedMinutes ?? durationMinutes(task.start, task.end);
+  const reference = plannedMinutes(task);
   const [minutes, setMinutes] = useState(initial ? formatDuration(initial.minutes) : "");
   const [reason, setReason] = useState<GapReason | null>(initial?.gapReason ?? null);
   const [note, setNote] = useState(initial?.note ?? task.note ?? "");
 
   const actual = minutes.trim() === "" ? null : parseDuration(minutes);
   const gap = actual === null ? 0 : actual - reference;
-  const significant = actual !== null && reference > 0 && Math.abs(gap) / reference > 0.15;
+  const significant = actual !== null && isSignificantGap(actual, reference);
   // Pas de question pour une séance marquée « Pas fait ».
   const askNote = Boolean(task.goalId) && actual !== 0;
 

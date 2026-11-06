@@ -10,7 +10,7 @@
  */
 
 import type { Task } from "./types";
-import { durationMinutes } from "./time";
+import { plannedMinutes } from "./estimation";
 
 /** En dessous, on ne parle pas de tendance : pas d'insight sans données. */
 export const MINIMUM_TENDANCE = 5;
@@ -19,7 +19,7 @@ export const MINIMUM_TENDANCE = 5;
  *  temps réel n'est plus une mesure : on le dit au lieu de conclure. */
 export const SEUIL_COPIE = 0.8;
 
-const reference = (t: Task) => t.estimatedMinutes ?? durationMinutes(t.start, t.end);
+const reference = plannedMinutes;
 
 export function estimationReading(tasks: Task[]): string {
   const mesurees = tasks.filter((t) => t.origin !== "unplanned" && t.actualMinutes != null);

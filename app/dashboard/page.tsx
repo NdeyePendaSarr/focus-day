@@ -9,6 +9,7 @@ import Link from "next/link";
 import NavBar from "@/components/NavBar";
 import { MOODS, Visage } from "@/components/EveningDebrief";
 import { estimationReading } from "@/lib/lecture";
+import { plannedMinutes } from "@/lib/estimation";
 import PageHeader from "@/components/PageHeader";
 import ErrorBanner from "@/components/ErrorBanner";
 import { errorDetail } from "@/lib/errors";
@@ -66,7 +67,7 @@ export default function DashboardPage() {
       return {
         date,
         prevu: planifies.reduce(
-          (s, t) => s + (t.estimatedMinutes ?? durationMinutes(t.start, t.end)),
+          (s, t) => s + plannedMinutes(t),
           0
         ),
         reel: duJour.reduce((s, t) => s + (t.actualMinutes ?? 0), 0),
