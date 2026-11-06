@@ -27,7 +27,7 @@ export default function EveningDebrief({
   date: string;
   tasks: Task[];
   existing?: DebriefEntry;
-  onSaved: () => void;
+  onSaved: (entry: DebriefEntry) => void;
   onSetActual: (id: string, actualMinutes: number, gapReason?: GapReason, note?: string) => void;
   onAddUnplanned: (name: string, minutes: number, goalId?: string, note?: string) => void;
   goals: Goal[];
@@ -61,7 +61,7 @@ export default function EveningDebrief({
     try {
       await repo.debriefs.save(entry);
       setSaved(true);
-      onSaved();
+      onSaved(entry);
       setTimeout(() => setSaved(false), 2500);
     } catch (e) {
       setSaveError({ detail: errorDetail(e) });

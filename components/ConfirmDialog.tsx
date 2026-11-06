@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 /**
  * Confirmation générique avant une action irréversible.
@@ -23,15 +23,32 @@ export default function ConfirmDialog({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const cancelRef = useRef<HTMLButtonElement>(null);
+
+  // Échap annule. Entrée n'est plus écoutée sur toute la fenêtre : elle
+  // confirmait la suppression même focus sur « Annuler ». Elle active
+  // désormais le bouton qui a le focus, comme partout ailleurs.
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onCancel();
-      if (e.key === "Enter") onConfirm();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onCancel, onConfirm]);
+  }, [open, onCancel]);
+
+  // Le focus entre dans la fenêtre, sur « Annuler » : resté sur le bouton
+  // « Supprimer » derrière, Entrée rouvrait la confirmation. Pour une
+  // action irréversible, le choix par défaut est celui qui ne détruit
+  // rien. À la fermeture, il revient là où il était, s'il existe encore.
+  useEffect(() => {
+    if (!open) return;
+    const before = document.activeElement as HTMLElement | null;
+    cancelRef.current?.focus();
+    return () => {
+      if (before?.isConnected) before.focus();
+    };
+  }, [open]);
 
   if (!open) return null;
 
@@ -65,7 +82,7 @@ export default function ConfirmDialog({
           {message}
         </p>
         <div style={{ display: "flex", gap: "0.7rem", justifyContent: "flex-end" }}>
-          <button className="btn-ghost" onClick={onCancel}>Annuler</button>
+          <button ref={cancelRef} className="btn-ghost" onClick={onCancel}>Annuler</button>
           <button
             className="btn-primary"
             onClick={onConfirm}

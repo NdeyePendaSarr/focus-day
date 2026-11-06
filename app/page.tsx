@@ -64,26 +64,39 @@ export default function HomePage() {
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
-  const [debriefKey, setDebriefKey] = useState(0);
-  // La lecture du débrief est asynchrone : elle ne peut plus se faire pendant
-  // le rendu. On la recharge au montage, au changement de jour, et après un
-  // enregistrement (debriefKey est incrémenté par onSaved).
-  const [existingDebrief, setExistingDebrief] = useState<DebriefEntry | null>(null);
+  // Le débrief du jour, une fois lu, avec le jour auquel il appartient.
+  // null = pas encore lu. Le formulaire ne s'affiche qu'une fois la
+  // lecture faite pour `today` : il recopie `existing` à son montage, et
+  // monté avant (séances arrivées les premières), il s'ouvrait vide et
+  // l'enregistrer écrasait le débrief déjà en base.
+  const [debrief, setDebrief] = useState<{ date: string; entry: DebriefEntry | null } | null>(null);
   // Un débrief non chargé s'afficherait vide, et l'enregistrer écraserait
   // celui qui existe déjà en base : l'échec doit se voir.
   const [debriefLoadError, setDebriefLoadError] = useState<string | null>(null);
+  // Incrémenté par « Réessayer » après un échec de lecture.
+  const [debriefReload, setDebriefReload] = useState(0);
   useEffect(() => {
+    // Seule la lecture la plus récente compte : au passage de minuit, une
+    // réponse lente pour la veille ne doit pas remplacer celle du jour.
+    let current = true;
     void (async () => {
       try {
-        setExistingDebrief(await repo.debriefs.byDate(today));
+        const entry = await repo.debriefs.byDate(today);
+        if (!current) return;
+        setDebrief({ date: today, entry });
         setDebriefLoadError(null);
       } catch (e) {
         // Session absente ou réseau : pas de crash, mais un bandeau.
-        setExistingDebrief(null);
+        if (!current) return;
         setDebriefLoadError(errorDetail(e) ?? "erreur inconnue");
       }
     })();
-  }, [today, debriefKey]);
+    return () => {
+      current = false;
+    };
+  }, [today, debriefReload]);
+  const debriefReady = debrief?.date === today;
+  const existingDebrief = debriefReady ? debrief.entry : null;
   // Les hors-plan n'ont pas de créneau : ils ne passent pas dans la timeline
   // et ne comptent pas dans le taux d'achèvement des objectifs planifiés.
   const plannedTasks = tasks.filter((t) => t.origin !== "unplanned");
@@ -109,7 +122,10 @@ export default function HomePage() {
   };
 
   const showDebrief =
-    ready && tasks.length > 0 && (debriefOpen || now >= 18 * 60 || Boolean(existingDebrief));
+    ready &&
+    debriefReady &&
+    tasks.length > 0 &&
+    (debriefOpen || now >= 18 * 60 || Boolean(existingDebrief));
 
   const stats = computeStats(plannedTasks);
 
@@ -191,7 +207,7 @@ export default function HomePage() {
                 message="Ton débrief du jour n'a pas pu être chargé. N'en enregistre pas un nouveau avant d'avoir réessayé : il remplacerait l'ancien."
                 detail={debriefLoadError}
                 actionLabel="Réessayer"
-                onAction={() => setDebriefKey((k) => k + 1)}
+                onAction={() => setDebriefReload((k) => k + 1)}
               />
             )}
             {writeFailures.map((f) => (
@@ -306,7 +322,7 @@ export default function HomePage() {
             ))}
 
             {/* Le débrief suit les séances, dans la même colonne. */}
-            {ready && tasks.length > 0 && !showDebrief && (
+            {ready && debriefReady && tasks.length > 0 && !showDebrief && (
               <button
                 className="btn-ghost"
                 style={{ justifySelf: "start", marginTop: "0.6rem" }}
@@ -318,14 +334,19 @@ export default function HomePage() {
 
             {showDebrief && (
               <EveningDebrief
-                key={debriefKey}
+                // Un formulaire par jour : à minuit, celui de la veille
+                // ne garde pas ses réponses pour les écrire sur le jour.
+                key={today}
                 date={today}
                 tasks={tasks}
                 onSetActual={setActual}
                 onAddUnplanned={addUnplanned}
                 goals={goals}
                 existing={existingDebrief ?? undefined}
-                onSaved={() => setDebriefKey((k) => k + 1)}
+                // Le débrief enregistré devient la référence, sans
+                // relecture ni remontage : le formulaire garde ce qui
+                // vient d'être saisi, et « Débrief enregistré ✓ » reste.
+                onSaved={(entry) => setDebrief({ date: entry.date, entry })}
               />
             )}
           </section>
