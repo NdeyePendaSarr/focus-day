@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Task, TaskStatus, GapReason } from "@/lib/types";
 import { repo, uid } from "@/lib/repo";
 import { todayISO, reconcileStatus, nowMinutes } from "@/lib/time";
@@ -287,5 +287,11 @@ export function useTasks(date: string = todayISO()) {
     [updateTask]
   );
 
-  return { tasks, ready, loadError, writeFailures, dismissWriteFailure, addTask, updateTask, setStatus, completeTask, setNote, setActual, addUnplanned, removeTask, archiveTask, refresh };
+  // Une séance archivée quitte la journée tout de suite. Auparavant elle
+  // restait affichée jusqu'au rechargement : l'archivage ne changeait que
+  // son champ archived. Si l'écriture échoue, updateTask rétablit ce
+  // champ et elle revient d'elle-même.
+  const visible = useMemo(() => tasks.filter((t) => !t.archived), [tasks]);
+
+  return { tasks: visible, ready, loadError, writeFailures, dismissWriteFailure, addTask, updateTask, setStatus, completeTask, setNote, setActual, addUnplanned, removeTask, archiveTask, refresh };
 }
