@@ -86,6 +86,10 @@ export default function LoginPage() {
           window.location.href = "/";
         } else {
           setInfo("Compte créé. Ouvre le lien de confirmation reçu par email.");
+          // Pas de redirection ici : le bouton doit redevenir utilisable.
+          // Il restait sur « Un instant… », et corriger une faute dans
+          // l'adresse obligeait à recharger la page.
+          setBusy(false);
         }
       }
     } catch (e) {
