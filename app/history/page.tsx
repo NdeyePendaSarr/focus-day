@@ -254,11 +254,13 @@ export default function HistoryPage() {
               <option value={SANS_PARCOURS}>Sans parcours</option>
             </select>
           )}
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <div role="group" aria-label="Filtrer les séances" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {FILTRES.map((f) => (
               <button
                 key={f.valeur}
                 className={filtre === f.valeur ? "btn-primary" : "btn-ghost"}
+                // Le filtre actif était signalé par sa couleur seule.
+                aria-pressed={filtre === f.valeur}
                 onClick={() => { setFiltre(f.valeur); setCoches(new Set()); }}
               >
                 {f.label}

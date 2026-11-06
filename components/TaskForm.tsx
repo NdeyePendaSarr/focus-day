@@ -40,10 +40,6 @@ export default function TaskForm({
   onSubmit: (draft: TaskDraft) => void;
 }) {
   const [draft, setDraft] = useState<TaskDraft>(EMPTY);
-  // Tant que l'estimation n'a pas été saisie à la main, elle suit le
-  // créneau : allonger un créneau de 1h à 2h doit mettre l'estimation
-  // à jour, sinon elle reste fausse sans que rien ne le signale.
-  const [estimationTouched, setEstimationTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const estimationRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -76,10 +72,8 @@ export default function TaskForm({
         estimatedMinutes: explicite ? String(editing.estimatedMinutes) : "",
         goalId: editing.goalId ?? "",
       });
-      setEstimationTouched(explicite);
     } else {
       setDraft(EMPTY);
-      setEstimationTouched(false);
     }
     setError(null);
   }, [editing, open]);
@@ -201,10 +195,7 @@ export default function TaskForm({
           </label>
           <DurationInput
             value={draft.estimatedMinutes}
-            onChange={(v) => {
-              setEstimationTouched(true);
-              set("estimatedMinutes", v);
-            }}
+            onChange={(v) => set("estimatedMinutes", v)}
             placeholder={slotMinutes > LONG_SLOT_MINUTES ? "Temps de travail" : formatDuration(slotMinutes)}
             hint={
               slotMinutes > LONG_SLOT_MINUTES

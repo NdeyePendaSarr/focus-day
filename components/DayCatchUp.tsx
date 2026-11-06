@@ -177,7 +177,10 @@ function MissingRow({
           className="chip chip-mint"
           disabled={actual === null}
           onClick={() =>
-            void onSetActual(task.id, actual ?? 0, reason ?? undefined, askNote ? note.trim() || undefined : undefined)
+            // Cause choisie puis durée corrigée jusqu'au prévu : l'écart
+            // n'est plus significatif, la cause ne doit pas partir. Même
+            // règle que le panneau de validation.
+            void onSetActual(task.id, actual ?? 0, significant ? reason ?? undefined : undefined, askNote ? note.trim() || undefined : undefined)
           }
         >
           Valider

@@ -236,8 +236,8 @@ export default function HomePage() {
         {/* Rappels actifs */}
         {activeReminders.length > 0 && (
           <div style={{ display: "grid", gap: 8, marginBottom: "1.25rem" }}>
-            {activeReminders.map((msg, i) => (
-              <div key={i} style={{ padding: "0.7rem 1rem", borderRadius: 12, background: "color-mix(in srgb, var(--color-amber) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--color-amber) 30%, transparent)", fontSize: "0.88rem", color: "var(--text)" }}>
+            {activeReminders.map((msg) => (
+              <div key={msg} style={{ padding: "0.7rem 1rem", borderRadius: 12, background: "color-mix(in srgb, var(--color-amber) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--color-amber) 30%, transparent)", fontSize: "0.88rem", color: "var(--text)" }}>
                 ⏳ {msg}
               </div>
             ))}

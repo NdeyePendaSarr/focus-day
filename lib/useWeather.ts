@@ -46,7 +46,11 @@ export function useWeather() {
           const res = await fetch(
             `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code`
           );
+          // Sans ce contrôle, une réponse d'erreur (quota, panne) était lue
+          // comme une météo : « Ciel dégagé », 0 °C.
+          if (!res.ok) throw new Error(`Open-Meteo : ${res.status}`);
           const data = await res.json();
+          if (typeof data.current?.temperature_2m !== "number") throw new Error("réponse incomplète");
           const code = data.current?.weather_code ?? 0;
           setWeather({
             temp: Math.round(data.current?.temperature_2m ?? 0),

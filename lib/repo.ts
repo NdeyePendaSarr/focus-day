@@ -153,7 +153,7 @@ const localTasks: TaskRepo = {
   async patch(id, patch) {
     const tasks = read<Task>(TASKS_KEY);
     const i = tasks.findIndex((t) => t.id === id);
-    if (i === -1) throw new Error("Cet objectif n'existe plus.");
+    if (i === -1) throw new Error("Cette séance n'existe plus.");
     tasks[i] = { ...tasks[i], ...patch };
     write(TASKS_KEY, tasks);
   },

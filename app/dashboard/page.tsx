@@ -302,7 +302,31 @@ function Graphique({ jours }: { jours: Jour[] }) {
   const H = 130;
 
   return (
-    <div style={{ display: "flex", gap: 8 }}>
+    <>
+    {/* Équivalent texte, pour un lecteur d'écran : les barres ne disaient
+        leurs valeurs que dans des title, ni lus ni atteignables au clavier. */}
+    <div className="sr-only">
+    <table>
+      <caption>Prévu et réalisé, jour par jour</caption>
+      <thead>
+        <tr>
+          <th scope="col">Jour</th>
+          <th scope="col">Prévu</th>
+          <th scope="col">Réalisé</th>
+        </tr>
+      </thead>
+      <tbody>
+        {jours.map((j) => (
+          <tr key={j.date}>
+            <th scope="row">{prettyDate(j.date)}</th>
+            <td>{j.prevu > 0 ? formatDuration(j.prevu) : "rien de prévu"}</td>
+            <td>{j.renseigne ? formatDuration(j.reel) : "non renseigné"}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    </div>
+    <div aria-hidden="true" style={{ display: "flex", gap: 8 }}>
       {/* Une échelle, même minimale : sans repère, la hauteur d'une
           barre ne se traduit en durée qu'au survol. */}
       <div
@@ -368,6 +392,7 @@ function Graphique({ jours }: { jours: Jour[] }) {
       ))}
     </div>
     </div>
+    </>
   );
 }
 
@@ -426,8 +451,8 @@ function Lecture({
 
   return (
     <div style={{ display: "grid", gap: "0.7rem" }}>
-      {lignes.map((l, i) => (
-        <p key={i} style={{ fontSize: "0.9rem", color: "var(--text-soft)" }}>
+      {lignes.map((l) => (
+        <p key={l} style={{ fontSize: "0.9rem", color: "var(--text-soft)" }}>
           {l}
         </p>
       ))}

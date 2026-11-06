@@ -96,6 +96,9 @@ export default function NavBar() {
               <Link
                 key={l.href}
                 href={l.href}
+                // Annoncé « page actuelle » : sans cela, seuls la couleur
+                // et le gras disaient où l'on est.
+                aria-current={active ? "page" : undefined}
                 style={{
                   fontSize: "0.88rem",
                   fontWeight: active ? 600 : 500,
@@ -134,7 +137,7 @@ export default function NavBar() {
         <button
           className="nav-burger btn-ghost"
           onClick={() => setMenuOpen((v) => !v)}
-          aria-label="Ouvrir le menu"
+          aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
           aria-expanded={menuOpen}
           style={{ padding: "0.5rem 0.65rem", fontSize: "1.1rem", lineHeight: 1 }}
         >
@@ -161,6 +164,9 @@ export default function NavBar() {
               <Link
                 key={l.href}
                 href={l.href}
+                // Annoncé « page actuelle » : sans cela, seuls la couleur
+                // et le gras disaient où l'on est.
+                aria-current={active ? "page" : undefined}
                 style={{
                   fontSize: "0.95rem",
                   fontWeight: active ? 600 : 500,

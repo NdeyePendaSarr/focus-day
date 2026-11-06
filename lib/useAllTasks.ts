@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Task } from "@/lib/types";
 import { repo } from "@/lib/repo";
 import { errorDetail } from "@/lib/errors";
@@ -11,14 +11,20 @@ export function useAllTasks() {
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Seule la lecture la plus récente compte (voir useGoals).
+  const reqId = useRef(0);
   const load = useCallback(async () => {
+    const id = ++reqId.current;
     try {
-      setTasks(await repo.tasks.all());
+      const list = await repo.tasks.all();
+      if (id !== reqId.current) return;
+      setTasks(list);
       setError(null);
     } catch (e) {
+      if (id !== reqId.current) return;
       setError(errorDetail(e) ?? "erreur inconnue");
     } finally {
-      setReady(true);
+      if (id === reqId.current) setReady(true);
     }
   }, []);
 

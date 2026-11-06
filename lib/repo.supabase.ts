@@ -218,7 +218,7 @@ const supabaseTasks: TaskRepo = {
       .select("id");
     if (error) fail(error);
     // La RLS filtre en silence : zéro ligne, c'est un échec à dire.
-    if ((data ?? []).length !== 1) throw new Error("Cet objectif n'existe plus en base.");
+    if ((data ?? []).length !== 1) throw new Error("Cette séance n'existe plus en base.");
   },
 
   async markMissed(ids) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Goal } from "@/lib/types";
 import { repo, uid } from "@/lib/repo";
 import { goalFailureMessage, errorDetail, type GoalWriteAction } from "@/lib/errors";
@@ -25,14 +25,22 @@ export function useGoals() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [writeFailures, setWriteFailures] = useState<WriteFailure[]>([]);
 
+  // Seule la lecture la plus récente compte : un « Réessayer » ou une
+  // relecture après écriture ne doit pas être écrasé par une réponse plus
+  // ancienne arrivée après lui. Même garde que useTasks.
+  const reqId = useRef(0);
   const refresh = useCallback(async () => {
+    const id = ++reqId.current;
     try {
-      setGoals(await repo.goals.all());
+      const list = await repo.goals.all();
+      if (id !== reqId.current) return;
+      setGoals(list);
       setLoadError(null);
     } catch (e) {
+      if (id !== reqId.current) return;
       setLoadError(errorDetail(e) ?? "erreur inconnue");
     } finally {
-      setReady(true);
+      if (id === reqId.current) setReady(true);
     }
   }, []);
 
