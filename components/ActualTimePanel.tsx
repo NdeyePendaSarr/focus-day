@@ -142,7 +142,11 @@ export default function ActualTimePanel({
 
       {durationMissing && (
         <p role="alert" style={{ fontSize: "0.82rem", marginTop: 8, color: "var(--color-rose-text)" }}>
-          Indique le temps passé — ou 0 si la séance n&apos;a pas eu lieu.
+          {/* Champ rempli mais refusé (illisible, plus de 24 h) : la
+              raison est sous le champ, inutile de demander une saisie. */}
+          {minutes.trim() === ""
+            ? "Indique le temps passé — ou 0 si la séance n'a pas eu lieu."
+            : "Corrige la durée : la raison est indiquée sous le champ."}
         </p>
       )}
 

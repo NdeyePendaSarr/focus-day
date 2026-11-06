@@ -193,6 +193,14 @@ export function findConflict<T extends { id: string; start: string; end: string 
 }
 
 /**
+ * Durée maximale d'une séance, en minutes : 24 h. Une saisie au-delà est
+ * presque toujours une faute de frappe (« 6000 » pour « 60 ») qui
+ * ajouterait 100 h au portfolio. Même borne que les contraintes CHECK de
+ * la base (supabase/06_durees_max.sql) : les deux doivent bouger ensemble.
+ */
+export const MAX_DURATION_MINUTES = 24 * 60;
+
+/**
  * Interprète une durée saisie librement.
  *
  *   "90"      -> 90        "1h30"  -> 90
@@ -202,9 +210,25 @@ export function findConflict<T extends { id: string; start: string; end: string 
  * Un nombre seul est compris comme des minutes : c'est la saisie la
  * plus fréquente, elle ne doit rien coûter. Les autres formes évitent
  * d'avoir à convertir de tête — ou pire, dans un autre onglet.
- * Renvoie null si la saisie n'est pas interprétable.
+ * Renvoie null si la saisie n'est pas interprétable, ou si elle dépasse
+ * MAX_DURATION_MINUTES : tous les formulaires passent par ici, la borne
+ * vaut donc partout. durationProblem dit laquelle des deux raisons.
  */
 export function parseDuration(raw: string): number | null {
+  const m = parseDurationUnbounded(raw);
+  return m !== null && m <= MAX_DURATION_MINUTES ? m : null;
+}
+
+/** Pourquoi une saisie non vide est refusée, ou null si elle convient. */
+export function durationProblem(raw: string): string | null {
+  if (raw.trim() === "") return null;
+  const m = parseDurationUnbounded(raw);
+  if (m === null) return "Essaie 90, 1h30 ou 45min";
+  if (m > MAX_DURATION_MINUTES) return `${formatDuration(m)} : plus de 24 h, vérifie la saisie`;
+  return null;
+}
+
+function parseDurationUnbounded(raw: string): number | null {
   const s = raw.trim().toLowerCase().replace(",", ".");
   if (!s) return null;
 

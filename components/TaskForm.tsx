@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Task, Goal } from "@/lib/types";
 import { selectableGoals } from "@/lib/goals";
 import GoalSelect from "@/components/GoalSelect";
-import { toMinutes, findConflict, spillsIntoNextDay, durationMinutes, formatDuration } from "@/lib/time";
+import { toMinutes, findConflict, spillsIntoNextDay, durationMinutes, formatDuration, parseDuration } from "@/lib/time";
 import DurationInput from "@/components/DurationInput";
 import { LIMITS } from "@/lib/limits";
 import CharCount from "@/components/CharCount";
@@ -91,6 +91,20 @@ export default function TaskForm({
     if (!draft.name.trim()) return setError("Donne un nom à ton objectif.");
     if (toMinutes(draft.end) === toMinutes(draft.start))
       return setError("Le créneau ne peut pas durer 0 minute.");
+    // Estimation saisie mais refusée : sans ce contrôle, elle retombait
+    // en silence sur la durée du créneau (ou, pour « 0 », échouait en
+    // base, qui exige une estimation positive).
+    if (draft.estimatedMinutes.trim() !== "") {
+      const estimation = parseDuration(draft.estimatedMinutes);
+      if (estimation === null || estimation === 0) {
+        estimationRef.current?.focus();
+        return setError(
+          estimation === 0
+            ? "L'estimation doit être d'au moins une minute — ou laisse le champ vide."
+            : "L'estimation n'est pas valable : corrige-la ou laisse le champ vide."
+        );
+      }
+    }
     // Long créneau : l'estimation ne se déduit plus, elle se demande.
     const manque = missingEstimation(slotMinutes, draft.estimatedMinutes);
     if (manque) {

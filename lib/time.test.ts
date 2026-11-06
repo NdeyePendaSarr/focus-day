@@ -16,6 +16,8 @@ import {
   findConflict,
   todayISO,
   parseDuration,
+  durationProblem,
+  MAX_DURATION_MINUTES,
 } from "./time";
 
 /** Fabrique une tâche minimale pour les tests. */
@@ -220,5 +222,27 @@ describe("parseDuration", () => {
   it("renvoie null sur une saisie vide ou incomprise", () => {
     expect(parseDuration("")).toBeNull();
     expect(parseDuration("bientôt")).toBeNull();
+  });
+  it("accepte jusqu'à 24 h pile, refuse au-delà", () => {
+    expect(parseDuration("24h")).toBe(MAX_DURATION_MINUTES);
+    expect(parseDuration("1440")).toBe(1440);
+    expect(parseDuration("1441")).toBeNull();
+    // La faute de frappe visée : « 6000 » pour « 60 ».
+    expect(parseDuration("6000")).toBeNull();
+    expect(parseDuration("25h")).toBeNull();
+  });
+});
+
+describe("durationProblem", () => {
+  it("rien à dire sur un champ vide ou une durée valable", () => {
+    expect(durationProblem("")).toBeNull();
+    expect(durationProblem("  ")).toBeNull();
+    expect(durationProblem("1h30")).toBeNull();
+    expect(durationProblem("0")).toBeNull();
+    expect(durationProblem("24h")).toBeNull();
+  });
+  it("distingue l'illisible du trop long", () => {
+    expect(durationProblem("bientôt")).toBe("Essaie 90, 1h30 ou 45min");
+    expect(durationProblem("6000")).toBe("100 h : plus de 24 h, vérifie la saisie");
   });
 });

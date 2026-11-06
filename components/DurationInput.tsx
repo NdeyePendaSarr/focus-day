@@ -1,7 +1,7 @@
 "use client";
 
 import type { Ref } from "react";
-import { parseDuration, formatDuration } from "@/lib/time";
+import { parseDuration, formatDuration, durationProblem } from "@/lib/time";
 
 /**
  * Saisie d'une durée en langage naturel.
@@ -33,7 +33,9 @@ export default function DurationInput({
   id?: string;
 }) {
   const parsed = parseDuration(value);
-  const invalid = value.trim() !== "" && parsed === null;
+  // Illisible, ou plus de 24 h : dit sous le champ, en rouge.
+  const problem = durationProblem(value);
+  const invalid = problem !== null;
 
   return (
     <div style={{ display: "grid", gap: 3 }}>
@@ -57,7 +59,7 @@ export default function DurationInput({
         }}
       >
         {invalid
-          ? "Essaie 90, 1h30 ou 45min"
+          ? problem
           : parsed !== null
             ? `= ${formatDuration(parsed)}`
             : (hint ?? "")}

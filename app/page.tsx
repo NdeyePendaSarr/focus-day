@@ -144,7 +144,8 @@ export default function HomePage() {
   const openEdit = (t: Task) => { setEditing(t); setFormOpen(true); };
 
   const handleSubmit = (d: TaskDraft) => {
-    // Champ vide ou incompris : on retient la durée du créneau.
+    // Champ vide : on retient la durée du créneau. Une saisie illisible,
+    // nulle ou de plus de 24 h est refusée avant, par TaskForm.
     const estimated = parseDuration(d.estimatedMinutes) ?? durationMinutes(d.start, d.end);
     const base = {
       name: d.name,
