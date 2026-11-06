@@ -11,15 +11,12 @@ const ThemeCtx = createContext<{ theme: Theme; toggle: () => void }>({
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("light");
 
-  // Au montage : lire la préférence sauvée, sinon celle du système
+  // Au montage : reprendre le thème déjà posé sur <html> par le script
+  // du <head> (app/layout.tsx), avant le premier affichage. Le recalculer
+  // ici ne servirait qu'à risquer un désaccord entre les deux.
   useEffect(() => {
-    const saved = localStorage.getItem("focusday.theme") as Theme | null;
-    const system = window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
-    const initial = saved ?? system;
-    setTheme(initial);
-    document.documentElement.setAttribute("data-theme", initial);
+    const current = document.documentElement.getAttribute("data-theme");
+    setTheme(current === "dark" ? "dark" : "light");
   }, []);
 
   const toggle = () => {
