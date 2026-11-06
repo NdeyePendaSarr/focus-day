@@ -115,7 +115,7 @@ export default function ActualTimePanel({
         border: "1px solid var(--border)",
       }}
     >
-      <label className="field-label" style={{ display: "block", marginBottom: 6 }}>
+      <label className="field-label" htmlFor={`reel-${task.id}`} style={{ display: "block", marginBottom: 6 }}>
         Combien de temps y as-tu réellement passé ?
       </label>
 
@@ -130,6 +130,7 @@ export default function ActualTimePanel({
           width={120}
           autoFocus
           inputRef={durationRef}
+          id={`reel-${task.id}`}
           placeholder="Temps réel"
         />
 
@@ -206,8 +207,9 @@ export default function ActualTimePanel({
         </div>
       ) : noteOuverte ? (
         <div style={{ marginTop: 12 }}>
-          <label className="field-label">Ce que tu en retiens</label>
+          <label className="field-label" htmlFor={`note-libre-${task.id}`}>Ce que tu en retiens</label>
           <textarea
+            id={`note-libre-${task.id}`}
             className="field"
             rows={3}
             maxLength={LIMITS.note}

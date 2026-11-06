@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import Link from "next/link";
 import type { Goal, GoalStatus, Task } from "@/lib/types";
 import { useGoals } from "@/lib/useGoals";
@@ -180,6 +180,7 @@ function GoalForm({
 }) {
   const [draft, setDraft] = useState<Draft>(initial);
   const [error, setError] = useState<string | null>(null);
+  const uid = useId();
   const [pending, setPending] = useState(false);
   const set = (k: keyof Draft, v: string) => setDraft((d) => ({ ...d, [k]: v }));
 
@@ -196,8 +197,9 @@ function GoalForm({
   return (
     <div style={{ display: "grid", gap: "0.8rem" }}>
       <div>
-        <label className="field-label">Nom du parcours</label>
+        <label className="field-label" htmlFor={`${uid}-nom`}>Nom du parcours</label>
         <input
+          id={`${uid}-nom`}
           className="field"
           autoFocus={autoFocus}
           value={draft.title}
@@ -208,8 +210,9 @@ function GoalForm({
         <CharCount value={draft.title} max={LIMITS.goalTitle} />
       </div>
       <div>
-        <label className="field-label">Pourquoi ce parcours ? (optionnel)</label>
+        <label className="field-label" htmlFor={`${uid}-pourquoi`}>Pourquoi ce parcours ? (optionnel)</label>
         <textarea
+          id={`${uid}-pourquoi`}
           className="field"
           rows={2}
           value={draft.why}
@@ -221,8 +224,9 @@ function GoalForm({
         <CharCount value={draft.why} max={LIMITS.why} />
       </div>
       <div>
-        <label className="field-label">Échéance visée (optionnel)</label>
+        <label className="field-label" htmlFor={`${uid}-echeance`}>Échéance visée (optionnel)</label>
         <input
+          id={`${uid}-echeance`}
           type="date"
           className="field"
           value={draft.targetDate}
@@ -230,7 +234,7 @@ function GoalForm({
           style={{ maxWidth: 200 }}
         />
       </div>
-      {error && <p style={{ color: "var(--color-rose-text)", fontSize: "0.85rem" }}>{error}</p>}
+      {error && <p role="alert" style={{ color: "var(--color-rose-text)", fontSize: "0.85rem" }}>{error}</p>}
       <div style={{ display: "flex", gap: "0.7rem", justifyContent: "flex-end" }}>
         {onCancel && <button className="btn-ghost" onClick={onCancel}>Annuler</button>}
         <button className={hero ? "btn-hero" : "btn-primary"} onClick={() => void submit()} disabled={pending}>

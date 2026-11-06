@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useId, type ReactNode } from "react";
+import Dialog from "@/components/Dialog";
 
 /**
  * Fenêtre par-dessus la page : fond assombri, fermeture par Échap ou par
- * un clic à côté. Même apparence que le formulaire d'objectif.
+ * un clic à côté. Le comportement (focus, Échap, nom annoncé) est celui
+ * de Dialog ; ici, seulement l'apparence et le titre.
  */
 export default function Modal({
   open,
@@ -17,29 +19,17 @@ export default function Modal({
   onClose: () => void;
   children: ReactNode;
 }) {
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
-
-  if (!open) return null;
-
+  const titleId = useId();
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div
-        className="card-surface modal-card"
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 className="modal-title">{title}</h2>
-        {children}
-      </div>
-    </div>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      labelledBy={titleId}
+      overlayClassName="modal-overlay"
+      className="card-surface modal-card"
+    >
+      <h2 id={titleId} className="modal-title">{title}</h2>
+      {children}
+    </Dialog>
   );
 }

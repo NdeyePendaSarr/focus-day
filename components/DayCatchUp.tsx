@@ -139,6 +139,7 @@ function MissingRow({
           hint={`Prévu ${formatDuration(reference)}`}
           width={110}
           id={`rattrapage-duree-${task.id}`}
+          label={`Temps réel de « ${task.name} »`}
         />
         {/* Le zéro mérite son propre bouton : sans lui, une journée ratée
             ne laisse aucune trace, et c'est justement celle qui informe. */}
@@ -282,12 +283,13 @@ function UnplannedBlock({
             className="field"
             style={{ flex: 1, minWidth: 180 }}
             placeholder="Quoi ?"
+            aria-label="Ce que tu as fait"
             maxLength={LIMITS.taskTitle}
             value={name}
             onChange={(e) => setName(e.target.value)}
             autoFocus
           />
-          <DurationInput value={minutes} onChange={setMinutes} width={110} />
+          <DurationInput value={minutes} onChange={setMinutes} width={110} id="hors-plan-duree" label="Durée" />
           <GoalSelect goals={goals} value={goalId} onChange={setGoalId} style={{ flex: "0 1 220px", minWidth: 0 }} />
           {askNote ? (
             <>

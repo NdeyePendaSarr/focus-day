@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { LIMITS } from "@/lib/limits";
 import CharCount from "@/components/CharCount";
+import Dialog from "@/components/Dialog";
 
 /**
  * Éditeur de note d'un objectif.
@@ -61,6 +62,7 @@ export default function NoteEditor({
   const [texte, setTexte] = useState(valeur);
   const [apercu, setApercu] = useState(false);
   const champ = useRef<HTMLTextAreaElement>(null);
+  const titreId = useId();
 
   useEffect(() => {
     if (open) {
@@ -68,15 +70,6 @@ export default function NoteEditor({
       setApercu(false);
     }
   }, [open, valeur]);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
 
   if (!open) return null;
 
@@ -95,81 +88,93 @@ export default function NoteEditor({
   };
 
   return (
-    <div className="note-overlay" onClick={onClose}>
-      <div className="note-modal card-surface" onClick={(e) => e.stopPropagation()}>
-        <p className="note-eyebrow">Note</p>
-        <h2 className="note-title">{titre}</h2>
+    // Sans Dialog, cette fenêtre n'avait ni rôle ni nom : un lecteur
+    // d'écran ne savait pas qu'elle s'était ouverte. Échap, focus gardé
+    // et rendu à la fermeture : Dialog aussi.
+    <Dialog
+      open={open}
+      onClose={onClose}
+      labelledBy={titreId}
+      // Le champ de texte, explicitement : sans cela, la fenêtre se
+      // rabat sur son premier bouton (« Gras »). En consultation seule,
+      // champ est vide et c'est « Fermer » qui reçoit le focus.
+      initialFocus={champ}
+      overlayClassName="note-overlay"
+      className="note-modal card-surface"
+    >
+      <p className="note-eyebrow">Note</p>
+      <h2 id={titreId} className="note-title">{titre}</h2>
 
-        {readOnly ? (
-          <>
+      {readOnly ? (
+        <>
+          <div className="note-preview">
+            {valeur.trim() ? renderNote(valeur) : "Cette note est vide."}
+          </div>
+          <p className="note-help">
+            Consultation seule — une note d&apos;un jour passé ne se
+            modifie plus.
+          </p>
+          <div className="note-actions">
+            <span style={{ flex: 1 }} />
+            <button className="btn-primary" onClick={onClose}>
+              Fermer
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="note-toolbar">
+            <button className="chip" onClick={() => entourer("**")} title="Gras" aria-label="Gras">
+              <strong>G</strong>
+            </button>
+            <button className="chip" onClick={() => entourer("*")} title="Italique" aria-label="Italique">
+              <em>I</em>
+            </button>
+            <button className="chip" onClick={() => setApercu((v) => !v)} aria-pressed={apercu}>
+              {apercu ? "Écrire" : "Aperçu"}
+            </button>
+          </div>
+
+          {apercu ? (
             <div className="note-preview">
-              {valeur.trim() ? renderNote(valeur) : "Cette note est vide."}
+              {texte.trim() ? renderNote(texte) : "Rien à afficher pour l'instant."}
             </div>
-            <p className="note-help">
-              Consultation seule — une note d&apos;un jour passé ne se
-              modifie plus.
-            </p>
-            <div className="note-actions">
-              <span style={{ flex: 1 }} />
-              <button className="btn-primary" onClick={onClose}>
-                Fermer
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="note-toolbar">
-              <button className="chip" onClick={() => entourer("**")} title="Gras">
-                <strong>G</strong>
-              </button>
-              <button className="chip" onClick={() => entourer("*")} title="Italique">
-                <em>I</em>
-              </button>
-              <button className="chip" onClick={() => setApercu((v) => !v)}>
-                {apercu ? "Écrire" : "Aperçu"}
-              </button>
-            </div>
+          ) : (
+            <textarea
+              ref={champ}
+              className="field note-field"
+              aria-labelledby={titreId}
+              rows={9}
+              placeholder="Ce que j'ai appris, ce qui a bloqué, ce à quoi penser la prochaine fois…"
+              maxLength={LIMITS.note}
+              value={texte}
+              onChange={(e) => setTexte(e.target.value)}
+              autoFocus
+            />
+          )}
+          <CharCount value={texte} max={LIMITS.note} />
 
-            {apercu ? (
-              <div className="note-preview">
-                {texte.trim() ? renderNote(texte) : "Rien à afficher pour l'instant."}
-              </div>
-            ) : (
-              <textarea
-                ref={champ}
-                className="field note-field"
-                rows={9}
-                placeholder="Ce que j'ai appris, ce qui a bloqué, ce à quoi penser la prochaine fois…"
-                maxLength={LIMITS.note}
-                value={texte}
-                onChange={(e) => setTexte(e.target.value)}
-                autoFocus
-              />
+          <p className="note-help">
+            Entoure un passage de <code>**</code> pour le mettre en gras, de{" "}
+            <code>*</code> pour l&apos;italique.
+          </p>
+
+          <div className="note-actions">
+            {valeur && onDelete && (
+              <button className="chip chip-rose" onClick={onDelete}>
+                Supprimer
+              </button>
             )}
-            <CharCount value={texte} max={LIMITS.note} />
-
-            <p className="note-help">
-              Entoure un passage de <code>**</code> pour le mettre en gras, de{" "}
-              <code>*</code> pour l&apos;italique.
-            </p>
-
-            <div className="note-actions">
-              {valeur && onDelete && (
-                <button className="chip chip-rose" onClick={onDelete}>
-                  Supprimer
-                </button>
-              )}
-              <span style={{ flex: 1 }} />
-              <button className="chip" onClick={onClose}>
-                Annuler
-              </button>
-              <button className="btn-primary" onClick={() => onSave?.(texte.trim())}>
-                Enregistrer
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+            <span style={{ flex: 1 }} />
+            <button className="chip" onClick={onClose}>
+              Annuler
+            </button>
+            <button className="btn-primary" onClick={() => onSave?.(texte.trim())}>
+              Enregistrer
+            </button>
+          </div>
+        </>
+      )}
+    </Dialog>
   );
 }

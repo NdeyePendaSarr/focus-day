@@ -192,7 +192,7 @@ export default function LoginPage() {
         </p>
       )}
 
-      {error && <p className="auth-msg auth-msg-error">{error}</p>}
+      {error && <p role="alert" className="auth-msg auth-msg-error">{error}</p>}
       <button
         className="btn-hero auth-submit"
         onClick={submit}

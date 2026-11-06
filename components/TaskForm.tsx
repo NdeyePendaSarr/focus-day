@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { Task, Goal } from "@/lib/types";
 import { selectableGoals } from "@/lib/goals";
 import GoalSelect from "@/components/GoalSelect";
 import { toMinutes, findConflict, spillsIntoNextDay, durationMinutes, formatDuration, parseDuration } from "@/lib/time";
 import DurationInput from "@/components/DurationInput";
+import Dialog from "@/components/Dialog";
 import { LIMITS } from "@/lib/limits";
 import CharCount from "@/components/CharCount";
 import { LONG_SLOT_MINUTES, missingEstimation } from "@/lib/estimation";
@@ -45,6 +46,19 @@ export default function TaskForm({
   const [estimationTouched, setEstimationTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const estimationRef = useRef<HTMLInputElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
+  // Un id par champ, pour relier chaque <label> à son champ : sans lui,
+  // un lecteur d'écran annonçait « champ texte » sans dire lequel.
+  const uid = useId();
+  const ids = {
+    title: `${uid}-titre`,
+    name: `${uid}-nom`,
+    start: `${uid}-debut`,
+    end: `${uid}-fin`,
+    description: `${uid}-description`,
+    estimation: `${uid}-estimation`,
+    why: `${uid}-pourquoi`,
+  };
 
   useEffect(() => {
     if (editing) {
@@ -69,16 +83,6 @@ export default function TaskForm({
     }
     setError(null);
   }, [editing, open]);
-
-  // Fermeture au clavier (Échap) — accessibilité
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
 
   if (!open) return null;
 
@@ -117,9 +121,13 @@ export default function TaskForm({
   const set = (k: keyof TaskDraft, v: string) => setDraft((d) => ({ ...d, [k]: v }));
 
   return (
-    <div
-      onClick={onClose}
-      style={{
+    // Échap, focus gardé dans la fenêtre et rendu à la fermeture : Dialog.
+    <Dialog
+      open={open}
+      onClose={onClose}
+      labelledBy={ids.title}
+      initialFocus={nameRef}
+      overlayStyle={{
         position: "fixed",
         inset: 0,
         background: "rgba(0,0,0,0.5)",
@@ -130,143 +138,143 @@ export default function TaskForm({
         padding: "1rem",
         zIndex: 50,
       }}
+      className="card-surface"
+      style={{
+        width: "100%",
+        maxWidth: 460,
+        padding: "1.25rem",
+        /* Le formulaire ne doit jamais dépasser la fenêtre : sur un
+           téléphone en paysage ou un petit écran, il défile dedans
+           au lieu de sortir du cadre. */
+        maxHeight: "90vh",
+        overflowY: "auto",
+        animation: "var(--animate-slide-up)",
+      }}
     >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-label={editing ? "Modifier l\'objectif" : "Nouvel objectif"}
-        className="card-surface"
-        style={{
-          width: "100%",
-          maxWidth: 460,
-          padding: "1.25rem",
-          /* Le formulaire ne doit jamais dépasser la fenêtre : sur un
-             téléphone en paysage ou un petit écran, il défile dedans
-             au lieu de sortir du cadre. */
-          maxHeight: "90vh",
-          overflowY: "auto",
-          animation: "var(--animate-slide-up)",
-        }}
-      >
-        <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.15rem", fontWeight: 700, marginBottom: "0.9rem" }}>
-          {editing ? "Modifier l'objectif" : "Nouvel objectif"}
-        </h2>
+      <h2 id={ids.title} style={{ fontFamily: "var(--font-display)", fontSize: "1.15rem", fontWeight: 700, marginBottom: "0.9rem" }}>
+        {editing ? "Modifier l'objectif" : "Nouvel objectif"}
+      </h2>
 
-        <div style={{ display: "grid", gap: "0.8rem" }}>
+      <div style={{ display: "grid", gap: "0.8rem" }}>
+        <div>
+          <label className="field-label" htmlFor={ids.name}>Nom de l&apos;objectif</label>
+          <input
+            ref={nameRef}
+            id={ids.name}
+            className="field"
+            autoFocus
+            value={draft.name}
+            onChange={(e) => set("name", e.target.value)}
+            maxLength={LIMITS.taskTitle}
+            placeholder="Réviser le chapitre 3"
+          />
+          <CharCount value={draft.name} max={LIMITS.taskTitle} />
+        </div>
+
+        <div className="time-row">
           <div>
-            <label className="field-label">Nom de l&apos;objectif</label>
-            <input
-              className="field"
-              autoFocus
-              value={draft.name}
-              onChange={(e) => set("name", e.target.value)}
-              maxLength={LIMITS.taskTitle}
-              placeholder="Réviser le chapitre 3"
-            />
-            <CharCount value={draft.name} max={LIMITS.taskTitle} />
+            <label className="field-label" htmlFor={ids.start}>Début</label>
+            <input id={ids.start} type="time" className="field" value={draft.start} onChange={(e) => set("start", e.target.value)} />
           </div>
-
-          <div className="time-row">
-            <div>
-              <label className="field-label">Début</label>
-              <input type="time" className="field" value={draft.start} onChange={(e) => set("start", e.target.value)} />
-            </div>
-            <div>
-              <label className="field-label">Fin</label>
-              <input type="time" className="field" value={draft.end} onChange={(e) => set("end", e.target.value)} />
-            </div>
-          </div>
-
           <div>
-            <label className="field-label">Description (optionnel)</label>
-            <input
-              className="field"
-              value={draft.description}
-              onChange={(e) => set("description", e.target.value)}
-              maxLength={LIMITS.description}
-              placeholder="Exercices 1 à 10"
-            />
-            <CharCount value={draft.description} max={LIMITS.description} />
-          </div>
-
-          <div>
-            <label className="field-label">
-              Combien de temps penses-tu y passer vraiment ?
-            </label>
-            <DurationInput
-              value={draft.estimatedMinutes}
-              onChange={(v) => {
-                setEstimationTouched(true);
-                set("estimatedMinutes", v);
-              }}
-              placeholder={slotMinutes > LONG_SLOT_MINUTES ? "Temps de travail" : formatDuration(slotMinutes)}
-              hint={
-                slotMinutes > LONG_SLOT_MINUTES
-                  ? `Créneau de ${formatDuration(slotMinutes)} : indique le temps de travail réel prévu`
-                  : `Vide = la durée du créneau (${formatDuration(slotMinutes)})`
-              }
-              inputRef={estimationRef}
-              width={130}
-            />
-          </div>
-
-          {/* Optionnel : tout ne relève pas d'une formation. Sans parcours
-              créé, le champ cède la place à une indication. */}
-          <div>
-            <label className="field-label" htmlFor="task-goal">Parcours (optionnel)</label>
-            {options.length > 0 ? (
-              <GoalSelect
-                id="task-goal"
-                goals={goals}
-                value={draft.goalId}
-                currentId={editing?.goalId}
-                onChange={(v) => set("goalId", v)}
-              />
-            ) : (
-              <p style={{ fontSize: "0.8rem", color: "var(--text-mute)" }}>
-                Aucun parcours en cours. Crée-en un dans l&apos;onglet Parcours pour y rattacher tes objectifs.
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="field-label">Pourquoi c&apos;est important ?</label>
-            <textarea
-              className="field"
-              rows={2}
-              value={draft.why}
-              onChange={(e) => set("why", e.target.value)}
-              maxLength={LIMITS.why}
-              placeholder="Pour être prête à l'examen sans stresser."
-              style={{ resize: "vertical" }}
-            />
-            <CharCount value={draft.why} max={LIMITS.why} />
-          </div>
-
-
-          {error && (
-            <p style={{ color: "var(--color-rose-text)", fontSize: "0.85rem" }}>{error}</p>
-          )}
-          {!error && spillsIntoNextDay(draft.start, draft.end) && (
-            <p style={{ color: "var(--color-brand)", fontSize: "0.82rem" }}>
-              🌙 Ce créneau traverse minuit — il se terminera le lendemain à {draft.end}.
-            </p>
-          )}
-          {!error && conflict && (
-            <p style={{ color: "var(--color-amber-text)", fontSize: "0.82rem" }}>
-              ⚠ Ce créneau chevauche « {conflict.name} » ({conflict.start}–{conflict.end}). Tu peux quand même l&apos;ajouter.
-            </p>
-          )}
-
-          <div style={{ display: "flex", gap: "0.7rem", justifyContent: "flex-end", marginTop: "0.3rem" }}>
-            <button className="btn-ghost" onClick={onClose}>Annuler</button>
-            <button className="btn-primary" onClick={submit}>
-              {editing ? "Enregistrer" : "Ajouter à ma journée"}
-            </button>
+            <label className="field-label" htmlFor={ids.end}>Fin</label>
+            <input id={ids.end} type="time" className="field" value={draft.end} onChange={(e) => set("end", e.target.value)} />
           </div>
         </div>
+
+        <div>
+          <label className="field-label" htmlFor={ids.description}>Description (optionnel)</label>
+          <input
+            id={ids.description}
+            className="field"
+            value={draft.description}
+            onChange={(e) => set("description", e.target.value)}
+            maxLength={LIMITS.description}
+            placeholder="Exercices 1 à 10"
+          />
+          <CharCount value={draft.description} max={LIMITS.description} />
+        </div>
+
+        <div>
+          <label className="field-label" htmlFor={ids.estimation}>
+            Combien de temps penses-tu y passer vraiment ?
+          </label>
+          <DurationInput
+            value={draft.estimatedMinutes}
+            onChange={(v) => {
+              setEstimationTouched(true);
+              set("estimatedMinutes", v);
+            }}
+            placeholder={slotMinutes > LONG_SLOT_MINUTES ? "Temps de travail" : formatDuration(slotMinutes)}
+            hint={
+              slotMinutes > LONG_SLOT_MINUTES
+                ? `Créneau de ${formatDuration(slotMinutes)} : indique le temps de travail réel prévu`
+                : `Vide = la durée du créneau (${formatDuration(slotMinutes)})`
+            }
+            inputRef={estimationRef}
+            id={ids.estimation}
+            width={130}
+          />
+        </div>
+
+        {/* Optionnel : tout ne relève pas d'une formation. Sans parcours
+            créé, le champ cède la place à une indication. */}
+        <div>
+          <label className="field-label" htmlFor="task-goal">Parcours (optionnel)</label>
+          {options.length > 0 ? (
+            <GoalSelect
+              id="task-goal"
+              goals={goals}
+              value={draft.goalId}
+              currentId={editing?.goalId}
+              onChange={(v) => set("goalId", v)}
+            />
+          ) : (
+            <p style={{ fontSize: "0.8rem", color: "var(--text-mute)" }}>
+              Aucun parcours en cours. Crée-en un dans l&apos;onglet Parcours pour y rattacher tes objectifs.
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label className="field-label" htmlFor={ids.why}>Pourquoi c&apos;est important ?</label>
+          <textarea
+            id={ids.why}
+            className="field"
+            rows={2}
+            value={draft.why}
+            onChange={(e) => set("why", e.target.value)}
+            maxLength={LIMITS.why}
+            placeholder="Pour être prête à l'examen sans stresser."
+            style={{ resize: "vertical" }}
+          />
+          <CharCount value={draft.why} max={LIMITS.why} />
+        </div>
+
+
+        {/* Annoncée dès qu'elle apparaît : le focus, lui, est souvent
+            ramené dans le champ fautif. */}
+        {error && (
+          <p role="alert" style={{ color: "var(--color-rose-text)", fontSize: "0.85rem" }}>{error}</p>
+        )}
+        {!error && spillsIntoNextDay(draft.start, draft.end) && (
+          <p style={{ color: "var(--color-brand)", fontSize: "0.82rem" }}>
+            🌙 Ce créneau traverse minuit — il se terminera le lendemain à {draft.end}.
+          </p>
+        )}
+        {!error && conflict && (
+          <p style={{ color: "var(--color-amber-text)", fontSize: "0.82rem" }}>
+            ⚠ Ce créneau chevauche « {conflict.name} » ({conflict.start}–{conflict.end}). Tu peux quand même l&apos;ajouter.
+          </p>
+        )}
+
+        <div style={{ display: "flex", gap: "0.7rem", justifyContent: "flex-end", marginTop: "0.3rem" }}>
+          <button className="btn-ghost" onClick={onClose}>Annuler</button>
+          <button className="btn-primary" onClick={submit}>
+            {editing ? "Enregistrer" : "Ajouter à ma journée"}
+          </button>
+        </div>
       </div>
-    </div>
+    </Dialog>
   );
 }

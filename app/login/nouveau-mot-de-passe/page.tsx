@@ -70,7 +70,7 @@ export default function NouveauMotDePassePage() {
 
       {etat === "sans-session" && (
         <>
-          <p className="auth-msg auth-msg-error auth-msg-top">
+          <p role="alert" className="auth-msg auth-msg-error auth-msg-top">
             Ce lien a expiré, a déjà servi ou a été ouvert dans un autre
             navigateur.
           </p>
@@ -130,7 +130,7 @@ export default function NouveauMotDePassePage() {
             {passwordHint(password)}
           </p>
 
-          {error && <p className="auth-msg auth-msg-error">{error}</p>}
+          {error && <p role="alert" className="auth-msg auth-msg-error">{error}</p>}
           <button className="btn-hero auth-submit" onClick={submit} disabled={busy || !password}>
             {busy ? "Un instant…" : "Enregistrer le mot de passe"}
           </button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { Task, DebriefEntry, Goal } from "@/lib/types";
 import { repo } from "@/lib/repo";
 
@@ -45,6 +45,10 @@ export default function EveningDebrief({
   // Échec d'enregistrement. Contrairement aux objectifs, rien n'est
   // rechargé ici : les réponses restent dans le formulaire, on peut
   // vraiment réessayer.
+  // Les questions à boutons sont des groupes nommés par leur intitulé,
+  // et chaque bouton dit s'il est la réponse choisie (aria-pressed) :
+  // sans cela, seule la couleur le montrait.
+  const uid = useId();
   const [saveError, setSaveError] = useState<{ detail?: string } | null>(null);
 
   const save = async () => {
@@ -88,41 +92,42 @@ export default function EveningDebrief({
 
         <div style={{ display: "grid", gap: "1.2rem" }}>
         <div>
-          <label className="field-label">As-tu atteint tes objectifs du jour ?</label>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button className={reached === true ? "btn-primary" : "btn-ghost"} onClick={() => setReached(true)} style={{ flex: 1 }}>Oui</button>
-            <button className={reached === false ? "btn-primary" : "btn-ghost"} onClick={() => setReached(false)} style={{ flex: 1 }}>Pas tout à fait</button>
+          <p className="field-label" id={`${uid}-atteint`}>As-tu atteint tes objectifs du jour ?</p>
+          <div role="group" aria-labelledby={`${uid}-atteint`} style={{ display: "flex", gap: 8 }}>
+            <button className={reached === true ? "btn-primary" : "btn-ghost"} aria-pressed={reached === true} onClick={() => setReached(true)} style={{ flex: 1 }}>Oui</button>
+            <button className={reached === false ? "btn-primary" : "btn-ghost"} aria-pressed={reached === false} onClick={() => setReached(false)} style={{ flex: 1 }}>Pas tout à fait</button>
           </div>
         </div>
 
         <div>
-          <label className="field-label">As-tu fait plus que prévu ?</label>
+          <p className="field-label" id={`${uid}-plus`}>As-tu fait plus que prévu ?</p>
           {/* Deux réponses, comme la question du dessus : un seul bouton
               qui changeait de texte se lisait comme une action. */}
-          <div style={{ display: "flex", gap: 8 }}>
-            <button className={didMore === true ? "btn-primary" : "btn-ghost"} onClick={() => setDidMore(true)} style={{ flex: 1 }}>Oui</button>
-            <button className={didMore === false ? "btn-primary" : "btn-ghost"} onClick={() => setDidMore(false)} style={{ flex: 1 }}>Non</button>
+          <div role="group" aria-labelledby={`${uid}-plus`} style={{ display: "flex", gap: 8 }}>
+            <button className={didMore === true ? "btn-primary" : "btn-ghost"} aria-pressed={didMore === true} onClick={() => setDidMore(true)} style={{ flex: 1 }}>Oui</button>
+            <button className={didMore === false ? "btn-primary" : "btn-ghost"} aria-pressed={didMore === false} onClick={() => setDidMore(false)} style={{ flex: 1 }}>Non</button>
           </div>
         </div>
 
         <div>
-          <label className="field-label">Sur ta journée : qu&apos;est-ce qui a manqué, ou que tu as ajouté ?</label>
+          <label className="field-label" htmlFor={`${uid}-manque`}>Sur ta journée : qu&apos;est-ce qui a manqué, ou que tu as ajouté ?</label>
           <p className="debrief-help">
             Ce que tu retiens d&apos;une séance se note sur la séance : c&apos;est
             cette note-là qui rejoint ton portfolio.
           </p>
-          <textarea className="field" rows={3} maxLength={LIMITS.debriefNote} value={note} onChange={(e) => setNote(e.target.value)} placeholder="J'ai reporté la lecture, mais j'ai avancé sur le projet…" style={{ resize: "vertical" }} />
+          <textarea id={`${uid}-manque`} className="field" rows={3} maxLength={LIMITS.debriefNote} value={note} onChange={(e) => setNote(e.target.value)} placeholder="J'ai reporté la lecture, mais j'ai avancé sur le projet…" style={{ resize: "vertical" }} />
           <CharCount value={note} max={LIMITS.debriefNote} />
         </div>
 
         <div>
-          <label className="field-label">Ta journée, dans l&apos;ensemble</label>
-          <div style={{ display: "flex", gap: 6 }}>
+          <p className="field-label" id={`${uid}-ressenti`}>Ta journée, dans l&apos;ensemble</p>
+          <div role="group" aria-labelledby={`${uid}-ressenti`} style={{ display: "flex", gap: 6 }}>
             {MOODS.map((m) => (
               <button
                 key={m.valeur}
                 onClick={() => setMood(m.valeur)}
                 aria-label={m.label}
+                aria-pressed={mood === m.valeur}
                 title={m.label}
                 style={{
                   flex: 1,

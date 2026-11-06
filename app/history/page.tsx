@@ -233,6 +233,7 @@ export default function HistoryPage() {
             className="field"
             style={{ flex: "1 1 340px", minWidth: 0 }}
             placeholder="Rechercher dans les objectifs et les notes…"
+            aria-label="Rechercher dans les objectifs et les notes"
             value={query}
             onChange={(e) => { setQuery(e.target.value); setCoches(new Set()); }}
           />

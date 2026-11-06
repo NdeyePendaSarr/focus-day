@@ -79,7 +79,7 @@ export default function MotDePasseOubliePage() {
           </p>
 
           {expired && (
-            <p className="auth-msg auth-msg-error auth-msg-top">
+            <p role="alert" className="auth-msg auth-msg-error auth-msg-top">
               Ce lien a expiré, a déjà servi ou a été ouvert dans un autre
               navigateur. Demande-en un nouveau ci-dessous.
             </p>
@@ -99,7 +99,7 @@ export default function MotDePasseOubliePage() {
             onKeyDown={(e) => e.key === "Enter" && submit()}
           />
 
-          {error && <p className="auth-msg auth-msg-error">{error}</p>}
+          {error && <p role="alert" className="auth-msg auth-msg-error">{error}</p>}
           <button className="btn-hero auth-submit" onClick={submit} disabled={busy || !email}>
             {busy ? "Un instant…" : "Envoyer le lien"}
           </button>

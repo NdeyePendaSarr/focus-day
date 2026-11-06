@@ -20,6 +20,7 @@ export default function DurationInput({
   autoFocus,
   inputRef,
   id,
+  label,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -31,6 +32,8 @@ export default function DurationInput({
   /** Pour y ramener le curseur quand une valeur manque. */
   inputRef?: Ref<HTMLInputElement>;
   id?: string;
+  /** Nom annoncé quand aucun <label htmlFor> ne désigne le champ. */
+  label?: string;
 }) {
   const parsed = parseDuration(value);
   // Illisible, ou plus de 24 h : dit sous le champ, en rouge.
@@ -50,8 +53,14 @@ export default function DurationInput({
         autoFocus={autoFocus}
         ref={inputRef}
         id={id}
+        aria-label={label}
+        aria-invalid={invalid || undefined}
+        aria-describedby={id ? `${id}-aide` : undefined}
       />
       <span
+        id={id ? `${id}-aide` : undefined}
+        // Annonce l'interprétation (« = 1 h 30 ») ou l'erreur, à la frappe.
+        aria-live="polite"
         style={{
           fontSize: "0.72rem",
           color: invalid ? "var(--color-rose-text)" : "var(--text-mute)",
