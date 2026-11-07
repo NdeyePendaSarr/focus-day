@@ -10,17 +10,19 @@ incident que tu découvres trop tard, ou jamais.
 
 ---
 
-## État au 6 novembre 2026 — à lire avant d'envoyer le lien
+## État au 7 novembre 2026 — à lire avant d'envoyer le lien
 
 Les sections ci-dessous datent d'octobre ; ce résumé dit où en est
 chacune. Ouverture visée : un petit groupe (petit frère, quelques amis).
 
-**Encore bloquant, à faire de ton côté :**
-
-- **(11) Sauvegarde hors Supabase.** Procédure prête (§11). Faire la
-  première, et relire le fichier de données.
+**Plus rien de bloquant.** Le lien peut être partagé. À tenir dans la
+durée : la sauvegarde hebdomadaire (§11).
 
 **Fait :**
+
+- (11) Première sauvegarde hors Supabase le 7 novembre : 124 séances,
+  12 parcours, 5 débriefs, 5 profils. La procédure du §11 a été
+  réécrite d'après ce premier essai.
 
 - (1) Brevo branché dans Supabase (clé SMTP `supabase-focusday`),
   limite d'envoi à 30 emails par heure. Testé le 6 novembre vers une
@@ -301,29 +303,89 @@ Reste à automatiser (export planifié hors de Supabase) avant d'ouvrir à
 un groupe : une copie dans la même base ne protège pas d'une suspension
 ou d'une suppression du projet.
 
-**Procédure hors de Supabase — chaque semaine, à la main (6 novembre
-2026).** En attendant une automatisation, ce sont deux fichiers sur ton
-ordinateur, dans un dossier qui n'est PAS celui du dépôt.
+**Procédure hors de Supabase — chaque semaine, à la main.** Éprouvée le
+7 novembre 2026 (première sauvegarde : 124 séances, 12 parcours, 5
+débriefs, 5 profils). Deux fichiers sur ton ordinateur, dans un dossier
+qui n'est PAS celui du dépôt.
 
-1. Récupérer l'adresse de connexion : *Connect → Session pooler* dans le
-   tableau de bord. Le mot de passe de la base y figure en clair : ne
-   jamais le coller dans un fichier du dépôt, ni dans un message.
-2. Depuis un terminal, dans le dossier de sauvegarde (Docker doit être
-   lancé, la CLI Supabase s'en sert) :
+**Une fois pour toutes**, noter deux valeurs, lues dans *Connect →
+Direct → Session pooler* (pas « Direct connection », qui ne passe qu'en
+IPv6 sur l'offre gratuite, ni « Transaction pooler », port 6543) :
+l'utilisateur (`postgres.<identifiant du projet>`) et le serveur
+(`aws-…pooler.supabase.com`). L'adresse affichée contient
+`[YOUR-PASSWORD]` et non le mot de passe : c'est celui de la base,
+choisi à la création du projet ou réinitialisé dans *Database →
+Settings → Reset database password*. Le garder dans un gestionnaire de
+mots de passe, jamais dans le dépôt ni dans un message.
 
-   ```bash
-   npx supabase db dump --remote="<adresse>" -s public -f schema_AAAAMMJJ.sql
-   npx supabase db dump --remote="<adresse>" --data-only -s public -f donnees_AAAAMMJJ.sql
+**Chaque semaine :**
+
+1. Lancer Docker Desktop (la CLI Supabase s'en sert) et attendre
+   *Engine running*.
+2. Ouvrir **PowerShell**, pas l'Invite de commandes (`cmd`) : la ligne
+   doit commencer par `PS`. Depuis `cmd`, taper `powershell`.
+3. Se placer dans le dossier de sauvegarde :
+
+   ```powershell
+   cd C:\Users\hp\Documents\sauvegardes-focusday
+   ```
+
+4. Saisir le mot de passe (affiché en étoiles, jamais enregistré dans
+   l'historique), puis assembler l'adresse en remplaçant `<utilisateur>`
+   et `<serveur>` par les deux valeurs notées :
+
+   ```powershell
+   $mdp = [System.Net.NetworkCredential]::new('', (Read-Host -AsSecureString "Mot de passe de la base")).Password
+   $url = "postgresql://<utilisateur>:$([uri]::EscapeDataString($mdp))@<serveur>:5432/postgres"
+   ```
+
+   `EscapeDataString` encode les caractères spéciaux du mot de passe :
+   sans lui, un `@`, un `#` ou un `"` coupe l'adresse au mauvais
+   endroit (« connection to server at "12" »). Ne pas passer par le
+   presse-papiers : on y laisse vite autre chose que l'adresse.
+
+5. Vérifier l'adresse avant de l'utiliser. Attendu : `True`, le serveur
+   noté, `5432`.
+
+   ```powershell
+   "adresse a jour : $([uri]::UnescapeDataString(([uri]$url).UserInfo.Split(':',2)[1]) -ceq $mdp) | serveur : $(([uri]$url).Host) | port : $(([uri]$url).Port)"
+   ```
+
+6. Sauvegarder (remplacer `AAAAMMJJ` par la date du jour) :
+
+   ```powershell
+   npx supabase db dump --remote="$url" -s public -f schema_AAAAMMJJ.sql
+   npx supabase db dump --remote="$url" --data-only -s public -f donnees_AAAAMMJJ.sql
    ```
 
    (CLI Supabase 3 : l'option est `--remote=`, l'ancienne `--db-url`
    n'existe plus. `-s public` : seulement les tables de l'app, pas les
    copies du schéma `sauvegarde`. `--dry-run` montre la commande sans
-   rien exécuter.)
+   rien exécuter. Le premier lancement télécharge l'image Postgres de
+   Supabase : quelques minutes, une seule fois.)
 
-3. Vérifier que `donnees_AAAAMMJJ.sql` contient bien des `INSERT` ou des
-   `COPY` vers `public.sessions`, `goals` et `debriefs`. Un fichier vide
-   ou de quelques lignes n'est pas une sauvegarde.
+7. Compter les lignes sauvegardées par table. La CLI écrit **un seul
+   `INSERT` par table**, toutes les lignes à la suite : compter les
+   `INSERT` donne 1 partout et ne prouve rien. Ceci compte les lignes :
+
+   ```powershell
+   $t=$null; $n=@{}; Get-Content donnees_AAAAMMJJ.sql | ForEach-Object { if ($_ -match 'INSERT INTO "public"\."(\w+)"') { $t=$matches[1]; $n[$t]=0 } elseif ($t -and $_ -match '^\s*\(') { $n[$t]++ } }; $n
+   ```
+
+   `sessions` doit être au moins au niveau de la sauvegarde précédente
+   (124 le 7 novembre). Un chiffre qui baisse, ou une table absente,
+   est à comprendre avant de jeter l'ancienne sauvegarde.
+
+8. Taper `exit` pour fermer PowerShell : `$mdp` et `$url`, qui
+   contiennent le mot de passe, disparaissent de la mémoire.
+
+En cas d'échec :
+
+- « password authentication failed » : le mot de passe ne correspond
+  pas. Revérifier l'étape 5 ; après une réinitialisation, attendre
+  quelques minutes que le pooler la prenne en compte.
+- `$url = …` ou `Read-Host` « n'est pas reconnu » : on est dans `cmd`,
+  pas dans PowerShell (étape 2).
 
 Sans Docker, en secours : *Table Editor* → chaque table de `public`
 (`sessions`, `goals`, `debriefs`, `profiles`) → *Export → CSV*.
