@@ -13,6 +13,15 @@ import { createServerClient } from "@supabase/ssr";
  */
 export async function proxy(request: NextRequest) {
   if (process.env.NEXT_PUBLIC_DATA_SOURCE !== "supabase") {
+    // Démo : pas de compte, donc pas de page de connexion. Un lien vers
+    // /login (ou un « Mot de passe oublié » ancien) ramène à l'accueil
+    // au lieu d'afficher « Supabase n'est pas configuré ».
+    if (process.env.NEXT_PUBLIC_DEMO === "1" && request.nextUrl.pathname.startsWith("/login")) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
     return NextResponse.next();
   }
 

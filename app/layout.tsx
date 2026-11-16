@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import DemoBanner from "@/components/DemoBanner";
 
 // Polices versionnées dans app/fonts (licence OFL jointe), et non plus
 // téléchargées chez Google au moment du build : le 2 novembre 2026, la CI
@@ -57,7 +58,10 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_AVANT_AFFICHAGE }} />
       </head>
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <DemoBanner />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

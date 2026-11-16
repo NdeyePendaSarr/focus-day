@@ -144,6 +144,17 @@ NEXT_PUBLIC_SUPABASE_URL=…
 NEXT_PUBLIC_SUPABASE_ANON_KEY=…   # clé publique uniquement
 ```
 
+### Mode démo, sans compte
+
+Pour montrer l'application sans inscription : un jeu de données fictif (4 parcours, 46 séances sur cinq semaines, des notes, du hors-plan, 5 débriefs) est écrit dans le navigateur au premier chargement, recalé sur la date et l'heure du visiteur. Un bandeau le signale, et « Réinitialiser la démo » repart de zéro. Chaque visiteur a sa propre copie : rien n'est partagé, rien n'est envoyé à une base.
+
+```text
+NEXT_PUBLIC_DEMO=1
+NEXT_PUBLIC_DATA_SOURCE=local
+```
+
+Sur Vercel, c'est un projet distinct de la production, branché sur le même dépôt, avec ces deux variables et sans aucune variable Supabase. Le jeu de données est dans [`lib/demo.ts`](lib/demo.ts), testé dans [`lib/demo.test.ts`](lib/demo.test.ts).
+
 Les quatre vérifications, lancées aussi par la CI à chaque push :
 
 ```bash

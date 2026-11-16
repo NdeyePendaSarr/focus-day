@@ -11,8 +11,9 @@
  */
 
 import type { Task, DebriefEntry, Goal } from "@/lib/types";
-import { spillsIntoNextDay, shiftISO } from "@/lib/time";
+import { spillsIntoNextDay, shiftISO, todayISO, nowMinutes } from "@/lib/time";
 import { supabaseRepo } from "@/lib/repo.supabase";
+import { IS_DEMO, seedDemo } from "@/lib/demo";
 
 /* ------------------------------------------------------------------ */
 /* Interface                                                           */
@@ -102,8 +103,22 @@ const TASKS_KEY = "focusday.tasks";
 const DEBRIEF_KEY = "focusday.debriefs";
 const GOALS_KEY = "focusday.goals";
 
+/** Mode démo : le jeu de données fictif est écrit au premier accès de
+ *  ce navigateur, avant toute lecture (lib/demo.ts). Une fois par page. */
+let demoChecked = false;
+function ensureDemo(): void {
+  if (!IS_DEMO || demoChecked) return;
+  demoChecked = true;
+  try {
+    seedDemo(localStorage, todayISO(), nowMinutes());
+  } catch {
+    /* stockage indisponible (navigation privée stricte) : démo vide */
+  }
+}
+
 function read<T>(key: string): T[] {
   if (typeof window === "undefined") return [];
+  ensureDemo();
   try {
     const raw = localStorage.getItem(key);
     return raw ? (JSON.parse(raw) as T[]) : [];
