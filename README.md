@@ -2,7 +2,8 @@
 
 **Un carnet d'apprentissage pour les personnes qui se forment seules** (certifications, bootcamps, MOOC). On planifie ses séances, on note le temps vraiment passé et ce qu'on en retient. FocusDay en fait un **portfolio** par parcours : heures consacrées, séances, notes. Une trace concrète à montrer à un recruteur.
 
-**[focus-day-nps.vercel.app](https://focus-day-nps.vercel.app/)** (inscription par email)
+**Essayer sans compte : [focus-day-demo.vercel.app](https://focus-day-demo.vercel.app/)** — démo avec des données fictives, gardées dans ton navigateur ([mode démo](#mode-démo-sans-compte)).
+Application réelle : [focus-day-nps.vercel.app](https://focus-day-nps.vercel.app/) (inscription par email).
 
 ![Ma journée : la bande du jour, la séance en cours et les suivantes](screenshots/journee.png)
 
