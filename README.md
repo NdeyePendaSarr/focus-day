@@ -181,4 +181,10 @@ FocusDay prolonge un sujet d'examen de Master 1 (2025) : une todo-list en Flutte
 
 Conçu et développé par **Ndeye Penda Sarr**, Business Intelligence & Data · Développement web full-stack.
 
-© 2025–2026 Ndeye Penda Sarr
+---
+
+## Licence
+
+Code sous licence [MIT](LICENSE) © 2025–2026 Ndeye Penda Sarr.
+
+Les polices Inter et Plus Jakarta Sans, versionnées dans [`app/fonts/`](app/fonts), restent sous leur propre licence, la SIL Open Font License ([`OFL-inter.txt`](app/fonts/OFL-inter.txt), [`OFL-plus-jakarta-sans.txt`](app/fonts/OFL-plus-jakarta-sans.txt)).
